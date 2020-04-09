@@ -27,6 +27,7 @@ abstract class AbstractSchema : JsonExtend {
 
     open fun preInsert(){
         this.createdAt = System.currentTimeMillis()
+        this.deletedAt = 0
     }
 
     open fun preUpdate(){
