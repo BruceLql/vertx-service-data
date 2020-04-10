@@ -4,7 +4,7 @@ import io.vertx.rxjava.ext.mongo.MongoClient
 import kavi.tech.service.mongo.component.AbstractModel
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
-import tech.kavi.cms.entity.CrawlerSession
+import kavi.tech.service.mongo.schema.CrawlerSession
 
 @Repository
 class CrawlerSessionModel @Autowired constructor(val client: MongoClient) :

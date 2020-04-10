@@ -1,4 +1,4 @@
-package tech.kavi.cms.entity
+package kavi.tech.service.mongo.schema
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import kavi.tech.service.mongo.component.AbstractSchema
@@ -22,7 +22,7 @@ data class CrawlerSession constructor(
         var params: String? = null
 ) : AbstractSchema() {
 
-    override fun tableName() = CrawlerSession.TABLE_NAME
+    override fun tableName() = TABLE_NAME
 
     companion object {
         const val TABLE_NAME = "crawler_session"

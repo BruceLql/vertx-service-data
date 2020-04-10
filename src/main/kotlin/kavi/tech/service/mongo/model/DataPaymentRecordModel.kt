@@ -5,7 +5,7 @@ import io.vertx.rxjava.ext.mongo.MongoClient
 import kavi.tech.service.mongo.component.AbstractModel
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
-import tech.kavi.cms.entity.DataPaymentRecord
+import kavi.tech.service.mongo.schema.DataPaymentRecord
 
 
 @Repository

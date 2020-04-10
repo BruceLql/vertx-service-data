@@ -1,4 +1,4 @@
-package tech.kavi.cms.entity
+package kavi.tech.service.mongo.schema
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import kavi.tech.service.mongo.component.AbstractSchema
@@ -21,7 +21,7 @@ class DataOtherInfo constructor(
         var data: String? = null
 ) : AbstractSchema() {
 
-    override fun tableName() = DataOtherInfo.TABLE_NAME
+    override fun tableName() = TABLE_NAME
 
     companion object {
         const val TABLE_NAME = "data_other_info"
