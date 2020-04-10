@@ -35,10 +35,10 @@ dependencies {
     compile "io.vertx:vertx-mysql-postgresql-client:$VERTX_VERSION"
     /* 数据请求校验工具 */
     compile "io.vertx:vertx-web-api-contract:$VERTX_VERSION"
-    
+
     compile "io.vertx:vertx-codegen:$VERTX_VERSION"
     kapt "io.vertx:vertx-codegen:$VERTX_VERSION:processor"
-
+    testCompile group: 'junit', name: 'junit', version: '4.13'
 }
 
 
