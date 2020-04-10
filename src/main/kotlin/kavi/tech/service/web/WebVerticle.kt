@@ -58,7 +58,7 @@ class WebVerticle : AbstractVerticle() {
          * 加载静态目录文件, 兼容SPA模式，找不到文件返回至跟路径
          * [ 注意GET为前端请求，POST为后台数据访问 ]
          * */
-        router.route("/static/*").handler(StaticHandler.create())
+//        router.route("/static/*").handler(StaticHandler.create())
 
         /*HTTP端口监听*/
         vertx.createHttpServer()
