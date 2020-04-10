@@ -15,8 +15,8 @@ import tech.kavi.vs.core.LauncherVerticle;
 import tech.kavi.vs.mybatis.MybatisDataSourceBean;
 import tech.kavi.vs.web.HandlerRequestAnnotationBeanName;
 
-@Import({BeanConfig.class, MybatisDataSourceBean.class})
-@ComponentScan(nameGenerator= HandlerRequestAnnotationBeanName.class)
+//@Import({BeanConfig.class, MybatisDataSourceBean.class})
+//@ComponentScan(nameGenerator= HandlerRequestAnnotationBeanName.class)
 public class ApplicationVerticle extends LauncherVerticle {
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
