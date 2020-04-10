@@ -62,6 +62,10 @@ abstract class AbstractSQL<T> {
         sql().tables.add(tableName)
         return self
     }
+    fun BATCH_INTO_COLUMNS(vararg columns: String?): T {
+        sql().columns.addAll(Arrays.asList<String>(*columns))
+        return self
+    }
 
     fun BATCH_INTO_VALUES(vararg values: Any?): T {
         sql().batch_values.add(Arrays.asList(*values))
