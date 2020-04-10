@@ -12,6 +12,7 @@ import tech.kavi.vs.web.HandlerRequest
 import io.vertx.ext.web.api.validation.HTTPRequestValidationHandler
 import io.vertx.ext.web.api.validation.ParameterType
 import io.vertx.ext.web.handler.impl.HttpStatusException
+import kavi.tech.service.common.extension.logger
 import kavi.tech.service.common.extension.success
 import kavi.tech.service.common.extension.toEntity
 import kavi.tech.service.mongo.model.RecordModel
@@ -22,11 +23,13 @@ import kavi.tech.service.mysql.entity.User
 class ListHandler @Autowired constructor(
         private val recordModel: RecordModel
 ) : ControllerHandler() {
-
+    private val log = logger(this::class)
     /**
      * 数据处理
      * */
     override fun handle(routingContext: RoutingContext) {
+        log.info("=========/record/list==============")
+
         recordModel.list(JsonObject(), FindOptions())
             .subscribe({
                 routingContext.response().success(it)
