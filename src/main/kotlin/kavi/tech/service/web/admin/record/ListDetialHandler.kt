@@ -8,12 +8,10 @@ import kavi.tech.service.common.extension.regexInt
 import kavi.tech.service.common.extension.regexPhone
 import kavi.tech.service.mongo.model.*
 import kavi.tech.service.mysql.dao.*
-import kavi.tech.service.mysql.entity.CallLog
 import org.springframework.beans.factory.annotation.Autowired
 import rx.Single
 import tech.kavi.vs.web.ControllerHandler
 import tech.kavi.vs.web.HandlerRequest
-import java.lang.AssertionError
 
 @HandlerRequest(path = "/listDetial", method = HttpMethod.POST)
 class ListDetialHandler @Autowired constructor(
@@ -33,7 +31,8 @@ class ListDetialHandler @Autowired constructor(
     private val userInfoDao: UserInfoDao,
     private val smsInfoDao: SmsInfoDao,
     private val internetInfoDao: InternetInfoDao,
-    private val paymentRecordDao: PaymentRecordDao
+    private val paymentRecordDao: PaymentRecordDao,
+    private val expenseCalendarDao: ExpenseCalendarDao
 ) : ControllerHandler() {
 
 
@@ -65,7 +64,7 @@ class ListDetialHandler @Autowired constructor(
             // mid 参数校验
             val mid = params.getString("mid") ?: throw IllegalArgumentException("缺少mid !")
             query.put("mid", mid)
-            println("=========入参：" + query.toString())
+            println("=========入参：$query")
 
             when (type) {
                 // 1：账户信息表
@@ -93,7 +92,7 @@ class ListDetialHandler @Autowired constructor(
 
                 else -> Single.error(IllegalArgumentException("参数不合法！"))
             }.subscribe({
-                println("=====================mongoData :" + it.toString())
+                println("=====================mongoData :$it")
                 easyClearData(type, it)
 
                 event.response().end(result.put("data", it).toString())
@@ -122,7 +121,7 @@ class ListDetialHandler @Autowired constructor(
             // 通话记录数据
             3 ->callLogDao.callLogDataInsert(data)
             // 消费记录信息
-            6 -> callLogDao.callLogDataInsert(data)
+            6 -> expenseCalendarDao.expenseCalendarDataInsert(data)
             // 上网详情信息
             7 -> internetInfoDao.internetInfoDataInsert(data)
             // 交费充值记录表
