@@ -8,6 +8,7 @@ import kavi.tech.service.common.extension.regexInt
 import kavi.tech.service.common.extension.regexPhone
 import kavi.tech.service.mongo.model.*
 import kavi.tech.service.mysql.dao.CallLogDao
+import kavi.tech.service.mysql.dao.InternetInfoDao
 import kavi.tech.service.mysql.dao.SmsInfoDao
 import kavi.tech.service.mysql.dao.UserInfoDao
 import kavi.tech.service.mysql.entity.CallLog
@@ -33,7 +34,8 @@ class ListDetialHandler @Autowired constructor(
     val dataUserInfoDao: DataUserInfoModel,
     private val callLogDao: CallLogDao,
     private val userInfoDao: UserInfoDao,
-    private val smsInfoDao: SmsInfoDao
+    private val smsInfoDao: SmsInfoDao,
+    private val internetInfoDao: InternetInfoDao
 ) : ControllerHandler() {
 
 
@@ -124,7 +126,7 @@ class ListDetialHandler @Autowired constructor(
             // 消费记录信息
             6 -> callLogDao.callLogDataInsert(data)
             // 上网详情信息
-            7 -> callLogDao.callLogDataInsert(data)
+            7 -> internetInfoDao.internetInfoDataInsert(data)
             // 交费充值记录表
             9 -> callLogDao.callLogDataInsert(data)
             // 短信数据
