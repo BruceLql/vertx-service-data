@@ -7,10 +7,7 @@ import io.vertx.ext.web.RoutingContext
 import kavi.tech.service.common.extension.regexInt
 import kavi.tech.service.common.extension.regexPhone
 import kavi.tech.service.mongo.model.*
-import kavi.tech.service.mysql.dao.CallLogDao
-import kavi.tech.service.mysql.dao.InternetInfoDao
-import kavi.tech.service.mysql.dao.SmsInfoDao
-import kavi.tech.service.mysql.dao.UserInfoDao
+import kavi.tech.service.mysql.dao.*
 import kavi.tech.service.mysql.entity.CallLog
 import org.springframework.beans.factory.annotation.Autowired
 import rx.Single
@@ -35,7 +32,8 @@ class ListDetialHandler @Autowired constructor(
     private val callLogDao: CallLogDao,
     private val userInfoDao: UserInfoDao,
     private val smsInfoDao: SmsInfoDao,
-    private val internetInfoDao: InternetInfoDao
+    private val internetInfoDao: InternetInfoDao,
+    private val paymentRecordDao: PaymentRecordDao
 ) : ControllerHandler() {
 
 
@@ -128,7 +126,7 @@ class ListDetialHandler @Autowired constructor(
             // 上网详情信息
             7 -> internetInfoDao.internetInfoDataInsert(data)
             // 交费充值记录表
-            9 -> callLogDao.callLogDataInsert(data)
+            9 -> paymentRecordDao.paymentRecordDataInsert(data)
             // 短信数据
             10 -> smsInfoDao.smsInfoDataInsert(data)
             // 个人信息数据
