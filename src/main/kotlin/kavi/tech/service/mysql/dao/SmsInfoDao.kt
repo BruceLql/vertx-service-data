@@ -41,7 +41,7 @@ class SmsInfoDao @Autowired constructor(
         println(" 短信记录存入mysql: .....")
         val smsInfoList = ArrayList<SmsInfo>()
         data.forEach {
-            println("smsData：" + it.toString())
+            println("smsData：$it")
             // 运营商类型  移动：CMCC 联通：CUCC 电信：CTCC
             val operator = it.getString("operator")
             val mobile = it.getString("mobile")
@@ -56,17 +56,17 @@ class SmsInfoDao @Autowired constructor(
             }
             dataOut.getJsonArray("data").forEachIndexed { index, mutableEntry ->
                 val smsInfo_s = SmsInfo()
-                smsInfo_s.mobile = mobile;
-                smsInfo_s.bill_month = bill_month;
-                smsInfo_s.task_id = task_id;
+                smsInfo_s.mobile = mobile
+                smsInfo_s.bill_month = bill_month
+                smsInfo_s.task_id = task_id
                 val obj = JsonObject(mutableEntry.toString())
                 when (operator) {
                     // 移动数据提取
-                    "CMCC" -> CMCC(smsInfo_s, obj)
+                    "CMCC" -> cmcc(smsInfo_s, obj)
                     // 联通数据提取
-                    "CUCC" -> CUCC(smsInfo_s, obj)
+                    "CUCC" -> cucc(smsInfo_s, obj)
                     // 电信数据提取
-                    "CTCC" -> CTCC(smsInfo_s, obj)
+                    "CTCC" -> ctcc(smsInfo_s, obj)
                 }
                 smsInfoList.add(smsInfo_s)
             }
@@ -155,8 +155,8 @@ class SmsInfoDao @Autowired constructor(
      * */
     private fun selectBeforeInsert(smsInfo: SmsInfo): Single<ResultSet> {
         val sql = SQL.init {
-            SELECT("id");
-            FROM(SmsInfo.tableName);
+            SELECT("id")
+            FROM(SmsInfo.tableName)
             WHERE(Pair("task_id", smsInfo.task_id))
         }
         println("selectBeforeInsert sql：$sql")
@@ -170,7 +170,7 @@ class SmsInfoDao @Autowired constructor(
     /**
      * 移动-短信数据提取
      */
-    private fun CMCC(smsInfo: SmsInfo, obj: JsonObject) {
+    private fun cmcc(smsInfo: SmsInfo, obj: JsonObject) {
         smsInfo.time = obj.getString("startTime")
         smsInfo.location = obj.getString("commPlac")
         // 通信方式 （SMS-短信; MSS-彩信）
@@ -189,7 +189,7 @@ class SmsInfoDao @Autowired constructor(
     /**
      * 联通-短信数据提取
      */
-    private fun CUCC(smsInfo: SmsInfo, obj: JsonObject) {
+    private fun cucc(smsInfo: SmsInfo, obj: JsonObject) {
         smsInfo.time = obj.getString("smsdate") + " " + obj.getString("smstime")
         // 通信地点 无数据
         smsInfo.location = ""
@@ -217,7 +217,7 @@ class SmsInfoDao @Autowired constructor(
     /**
      * 电信-短信数据提取
      */
-    private fun CTCC(smsInfo: SmsInfo, obj: JsonObject) {
+    private fun ctcc(smsInfo: SmsInfo, obj: JsonObject) {
 
 
     }
