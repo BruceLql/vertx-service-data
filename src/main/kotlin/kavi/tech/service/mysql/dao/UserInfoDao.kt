@@ -2,6 +2,7 @@ package kavi.tech.service.mysql.dao
 
 import io.vertx.core.json.JsonObject
 import io.vertx.core.logging.Logger
+import io.vertx.ext.sql.ResultSet
 import io.vertx.rxjava.ext.asyncsql.AsyncSQLClient
 import io.vertx.rxjava.ext.sql.SQLConnection
 import kavi.tech.service.common.extension.logger
@@ -23,7 +24,6 @@ class UserInfoDao @Autowired constructor(
     override val log: Logger = logger(this::class)
 
 
-
     fun userInfoDataInsert(data: List<JsonObject>) {
 
         println(" 基本信息存入mysql: .....")
@@ -33,7 +33,9 @@ class UserInfoDao @Autowired constructor(
             userInfo.task_id = it.getString("mid")
             userInfo.province = it.getString("operator")  // CMCC 移动
             val dataOut = it.getJsonObject("data")
-            if (dataOut.isEmpty) { return }
+            if (dataOut.isEmpty) {
+                return
+            }
             userInfo.name = dataOut.getString("name")
             userInfo.state = dataOut.getString("status")
             userInfo.reliability = dataOut.getString("realNameInfo")
@@ -51,23 +53,37 @@ class UserInfoDao @Autowired constructor(
             userInfo.city = dataOut.getString("city_name")  //城市
             userInfo.province = dataOut.getString("area")  // 省份
 
-
-            println(it.toString())
-            println("userInfo===="+userInfo.toString())
+            println("userInfo====" + userInfo.toString())
 
         }
-        insert(userInfo)
+        /* 检查这条数据是否已经存在 */
+        selectBeforeInsert(userInfo).subscribe({
+            println("result:: " + it.toJson())  //{"columnNames":["id"],"numColumns":1,"numRows":1,"results":[[18]],"rows":[{"id":18}]}
+            println(it.numRows)
+            if (it.numRows == 0) {
+                // 插入数据
+                insert(userInfo).subscribe({
+                    it.toString()
+                }, {
+                    it.printStackTrace()
+                })
+            }
+        }, {
+            it.printStackTrace()
+        })
+
+
     }
 
     /**
      * 新增记录
      * */
-    private fun insert( userInfo : UserInfo): Single<Void> {
+    private fun insert(userInfo: UserInfo): Single<Void> {
         val sql = SQL.init {
             INSERT_INTO(userInfo.tableName())
             userInfo.preInsert().forEach { t, u -> VALUES(t, u) }
         }
-        println("sql："+sql)
+        println("insert sql：" + sql)
         return this.client.rxGetConnection().flatMap { conn ->
 
             conn.rxExecute(sql).doAfterTerminate(conn::close)
@@ -75,5 +91,21 @@ class UserInfoDao @Autowired constructor(
         }
     }
 
+    /**
+     * 查询是否已经入库
+     * */
+    private fun selectBeforeInsert(userInfo: UserInfo): Single<ResultSet> {
+        val sql = SQL.init {
+            SELECT("id");
+            FROM(UserInfo.tableName);
+            WHERE(Pair("task_id", userInfo.task_id))
+        }
+        println("selectBeforeInsert sql：" + sql)
+        return this.client.rxGetConnection().flatMap { conn ->
+
+            conn.rxQuery(sql).doAfterTerminate(conn::close)
+
+        }
+    }
 
 }
