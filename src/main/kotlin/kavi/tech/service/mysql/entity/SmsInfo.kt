@@ -23,20 +23,10 @@ data class SmsInfo(
     var time: String? = null,                   // 收/发短信时间
     var peer_number: String? = null,            // 对方号码
     var location: String? = null,               // 通信地(自己的)
-    var package_name: String? = null,          // package_name
     var send_type: String? = null,     // SEND-发送; RECEIVE-收取
     var msg_type: String? = null,              // SMS-短信; MSS-彩信
     var service_name: String? = null,                          // 业务名称. e.g. 点对点(网内)
-    var star_score: String? = null,                          // 星级得分（仅移动有）
-    var user_email: String? = null,               // 电子邮箱
-    var zip_code: String? = null,               // 邮政编码
-    var user_address: String? = null,               //联系地址
-    var idcard: String? = null,               // 身份证号码
-    var carrier: String? = null,               // 运营商类型：移动、联通、电信
-    var province: String? = null,               // province 省份
-    var city: String? = null,               // city 城市
-    var state: String? = null,               // state 账户状态
-    var reliability: String? = null,               // reliability 实名认证
+    var fee: Int? = 0,                          // 通信费(单位分)
     var carrier_001: String? = null,            // 预留1
     var carrier_002: String? = null          // 预留2
 
@@ -50,7 +40,7 @@ data class SmsInfo(
         /**
          * 表名
          * */
-        const val tableName = "carrier_baseinfo"
+        const val tableName = "carrier_sms"
 
     }
 }
