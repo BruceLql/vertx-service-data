@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.annotation.JsonNaming
 import kavi.tech.service.mysql.component.AbstractEntity
 
 /**
- * 分析结果数据表
+ * 通知记录表
  * */
 @JsonNaming(PropertyNamingStrategy.LowerCaseStrategy::class)
 data class NoticeRecords(
