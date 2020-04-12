@@ -154,7 +154,7 @@ class ExpenseCalendarDao @Autowired constructor(
         expenseCalendar.bill_end_date = obj.getString("billEndDate")
 
         // 金额费用 原始数据单位是元  转换成分后存储
-        expenseCalendar.bill_fee = (obj.getString("billFee ").toDouble() * 100).toInt()
+        expenseCalendar.bill_fee = (obj.getString("billFee").toDouble() * 100).toInt()
         // 预留字段
         expenseCalendar.carrier_001 = ""
         expenseCalendar.carrier_002 = ""
