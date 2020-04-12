@@ -38,7 +38,9 @@ class ResultDataDao @Autowired constructor(
      * 查询已清洗的数据结果
      * */
     private fun selectData(where: List<Serializable>): Single<ResultData> {
-        return this.one(SQL.init { SELECT("*"); FROM(ResultData.tableName); WHERES(where) })
+        val sql = SQL.init { SELECT("*"); FROM(ResultData.tableName); WHERES(where) }
+        print("selectData sql:$sql")
+        return this.one(sql)
         }
 
 
