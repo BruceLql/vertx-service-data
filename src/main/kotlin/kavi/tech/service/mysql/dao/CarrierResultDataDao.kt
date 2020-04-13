@@ -8,7 +8,6 @@ import io.vertx.rxjava.ext.asyncsql.AsyncSQLClient
 import io.vertx.rxjava.ext.sql.SQLConnection
 import kavi.tech.service.mysql.component.AbstractDao
 import kavi.tech.service.mysql.component.SQL
-import kavi.tech.service.mysql.entity.CallLog
 import kavi.tech.service.mysql.entity.CarrierResultData
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
@@ -31,7 +30,7 @@ class CarrierResultDataDao @Autowired constructor(
     /**
      * 新增记录
      * */
-    private fun insert(conn: SQLConnection, carrierResultData: CarrierResultData): Single<CarrierResultData> {
+     fun insert(conn: SQLConnection, carrierResultData: CarrierResultData): Single<CarrierResultData> {
         val sql = SQL.init {
             INSERT_INTO(carrierResultData.tableName())
 
@@ -45,15 +44,33 @@ class CarrierResultDataDao @Autowired constructor(
     /**
      * 通过task_id查询数据是否已经入库
      * */
-    private fun selectBeforeInsert(carrierResultData: CarrierResultData): Single<ResultSet> {
-        val sql = SQL.init {
-            SELECT("id")
-            FROM(CarrierResultData.tableName)
-            WHERE(Pair("task_id", carrierResultData.task_id))
-        }
-        println("selectBeforeInsert sql：$sql")
-        return this.client.rxGetConnection().flatMap { conn ->
+     fun selectBeforeInsert(carrierResultData: CarrierResultData): Single<List<JsonObject>> {
 
+        val sql = SQL.init {
+           SELECT("*")
+            FROM(CarrierResultData.tableName)
+            WHERE(Pair("task_id",carrierResultData.task_id))
+            WHERE(Pair("mobile",carrierResultData.mobile))
+        }
+        log.info("selectBeforeInsert sql：$sql")
+
+        return this.select(sql)
+    }
+
+    /**
+     * 自定义入参sql
+     * */
+     fun customizeSQL(sql: String): Single<List<JsonObject>> {
+        log.info("selectBeforeInsert sql：$sql")
+        return this.select(sql)
+    }
+    /**
+     * 自定义入参sql
+     * */
+     fun customizeSQLRes(sql: String): Single<ResultSet> {
+
+        log.info("selectBeforeInsert sql：$sql")
+        return this.client.rxGetConnection().flatMap { conn ->
             conn.rxQuery(sql).doAfterTerminate(conn::close)
 
         }
@@ -76,7 +93,7 @@ class CarrierResultDataDao @Autowired constructor(
                 "created_at",
                 "deleted_at"
             )
-            println("valueList:$valueList")
+            log.info("valueList:$valueList")
             valueList.map {
                 val ss = it.preInsert()
 
@@ -93,13 +110,13 @@ class CarrierResultDataDao @Autowired constructor(
 
         }
 
-        println("sql=$sql")
+        log.info("sql=$sql")
 
         return this.client.rxGetConnection().flatMap { conn ->
             val startTime = System.currentTimeMillis()
             conn.rxUpdate(sql).doAfterTerminate {
                 conn.close()
-                println("执行时间：${System.currentTimeMillis() - startTime}ms")
+                log.info("执行时间：${System.currentTimeMillis() - startTime}ms")
             }
             /* conn.rxBatch(sql).doAfterTerminate{
                  conn.close()
@@ -111,7 +128,7 @@ class CarrierResultDataDao @Autowired constructor(
 
     fun carrierResultDataInsert(data: List<JsonObject>) {
 
-        println(" 通话记录存入mysql: .....")
+        log.info(" 通话记录存入mysql: .....")
         val carrierResultDataList = ArrayList<CarrierResultData>()
         data.forEach {
             val mobile = it.getString("mobile")
@@ -134,24 +151,24 @@ class CarrierResultDataDao @Autowired constructor(
 
         }
         log.info("carrierResultDataList:${carrierResultDataList.size}" + carrierResultDataList.toString())
-        selectBeforeInsert(carrierResultDataList[0]).subscribe({
-            // 如果查询结果的行数大于0 说明已经入库过了  暂时先不处理
-            if (it.numRows == 0) {
-                // 执行批量方法
-                insertBybatch(CarrierResultData(), carrierResultDataList).subscribe({ it ->
-                    println(it)
-                    // todo 处理通话数据分析规则
-                    println("处理分析结果数据表：=====")
-
-                }, {
-                    it.printStackTrace()
-                })
-            } else {
-                log.info("已经存在${it.numRows}条数据,该数据已经入库过！新数据有${carrierResultDataList.size}条")
-            }
-        }, {
-            it.printStackTrace()
-        })
+//        selectBeforeInsert(carrierResultDataList[0]).subscribe({
+//            // 如果查询结果的行数大于0 说明已经入库过了  暂时先不处理
+//            if (it.numRows == 0) {
+//                // 执行批量方法
+//                insertBybatch(CarrierResultData(), carrierResultDataList).subscribe({ it ->
+//                    println(it)
+//                    // todo 处理通话数据分析规则
+//                    println("处理分析结果数据表：=====")
+//
+//                }, {
+//                    it.printStackTrace()
+//                })
+//            } else {
+//                log.info("已经存在${it.numRows}条数据,该数据已经入库过！新数据有${carrierResultDataList.size}条")
+//            }
+//        }, {
+//            log.error(it.printStackTrace())
+//        })
     }
 
     /**
