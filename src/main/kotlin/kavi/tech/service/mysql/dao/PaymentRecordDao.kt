@@ -35,20 +35,35 @@ class PaymentRecordDao @Autowired constructor(
             if (dataOut.isEmpty) {
                 return
             }
-            dataOut.getJsonArray("data").forEachIndexed { index, mutableEntry ->
-                val paymentRecord_s = PaymentRecord()
-                paymentRecord_s.mobile = mobile
-                paymentRecord_s.task_id = task_id
-                val obj = JsonObject(mutableEntry.toString())
-                when (operator) {
-                    // 移动数据提取
-                    "CMCC" -> cmcc(paymentRecord_s, obj)
-                    // 联通数据提取
-                    "CUCC" -> cucc(paymentRecord_s, obj)
-                    // 电信数据提取
-                    "CTCC" -> ctcc(paymentRecord_s, obj)
+
+            when (operator) {
+                // 移动数据提取
+                "CMCC" -> {
+                    dataOut.getJsonArray("data").forEachIndexed { index, mutableEntry ->
+                        val paymentRecord_s = PaymentRecord()
+                        paymentRecord_s.mobile = mobile
+                        paymentRecord_s.task_id = task_id
+                        val obj = JsonObject(mutableEntry.toString())
+                        cmcc(paymentRecord_s, obj)
+                        paymentRecordList.add(paymentRecord_s)
+                    }
+
                 }
-                paymentRecordList.add(paymentRecord_s)
+                // 联通数据提取
+                "CUCC" -> {
+                    dataOut.getJsonArray("totalResult").forEachIndexed { index, mutableEntry ->
+                        val paymentRecord_s = PaymentRecord()
+                        paymentRecord_s.mobile = mobile
+                        paymentRecord_s.task_id = task_id
+                        val obj = JsonObject(mutableEntry.toString())
+                        cucc(paymentRecord_s, obj)
+                        paymentRecordList.add(paymentRecord_s)
+                    }
+                }
+                // 电信数据提取
+                "CTCC" ->{
+
+                }
             }
 
         }
