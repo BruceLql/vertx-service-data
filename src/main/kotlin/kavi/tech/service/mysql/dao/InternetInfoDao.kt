@@ -239,7 +239,7 @@ class InternetInfoDao @Autowired constructor(
             "" -> "0.00"
             else -> obj.getString("pertotalsm")
         }
-        internetInfo.sum_flow = (pertotalsm.toDouble()*100).toInt().toString()
+        internetInfo.sum_flow = (pertotalsm.toDouble()*1000).toInt().toString()
         // 套餐优惠
         internetInfo.meal = obj.getString("deratefee")
         // 费用 原始数据单位是元  转换成分后存储

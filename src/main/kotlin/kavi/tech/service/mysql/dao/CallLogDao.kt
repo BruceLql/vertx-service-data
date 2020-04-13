@@ -7,6 +7,7 @@ import io.vertx.ext.sql.UpdateResult
 import io.vertx.rxjava.ext.asyncsql.AsyncSQLClient
 import io.vertx.rxjava.ext.sql.SQLConnection
 import kavi.tech.service.common.extension.logger
+import kavi.tech.service.common.extension.splitHms
 import kavi.tech.service.mysql.component.AbstractDao
 import kavi.tech.service.mysql.component.SQL
 import kavi.tech.service.mysql.entity.CallLog
@@ -55,7 +56,7 @@ class CallLogDao @Autowired constructor(
             when (operator) {
                 // 移动数据提取
                 "CMCC" -> {
-                    if (dataOut.getInteger("totalNum") < 1) {
+                    if (dataOut.getJsonArray("data").size() < 1) {
                         return
                     }
                     dataOut.getJsonArray("data").forEachIndexed { index, mutableEntry ->
@@ -210,8 +211,12 @@ class CallLogDao @Autowired constructor(
         }
         // 对方号码
         callLog_s.peer_number = obj.getString("anotherNm")
-        // 通信时长
-        callLog_s.duration_in_second = obj.getString("commTime")
+        // 对方归属地
+        callLog_s.homearea = ""
+        val commTime = obj.getString("commTime")
+
+        // 通信时长  // 示例数据：“2小时26分钟58秒”
+        callLog_s.duration_in_second = splitHms(commTime).toString()
         //通信类型 （通话地类型 e.g.省内漫游、 国内被叫）
         callLog_s.location_type = obj.getString("commType")
         // 费用 原始数据单位是元  转换成分后存储
@@ -237,6 +242,8 @@ class CallLogDao @Autowired constructor(
         }
         // 对方号码
         callLog_s.peer_number = obj.getString("othernum")
+        // 对方归属地
+        callLog_s.homearea = obj.getString("homearea")
         // 通信时长
         callLog_s.duration_in_second = obj.getString("calllonghour")
         //通信类型 （通话地类型 e.g.省内漫游、 国内被叫）

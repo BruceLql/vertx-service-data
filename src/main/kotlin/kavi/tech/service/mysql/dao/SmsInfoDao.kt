@@ -55,7 +55,7 @@ class SmsInfoDao @Autowired constructor(
             when (operator) {
                 // 移动数据提取
                 "CMCC" -> {
-                    if (dataOut.getInteger("totalNum") < 1) {
+                    if (dataOut.getJsonArray("data").size() < 1) {
                         return
                     }
                     dataOut.getJsonArray("data").forEachIndexed { index, mutableEntry ->
@@ -212,6 +212,9 @@ class SmsInfoDao @Autowired constructor(
         // 费用 原始数据单位是元  转换成分后存储
         smsInfo.fee = (obj.getString("commFee").toDouble() * (100)).toInt()
 
+        // 预留字段
+        smsInfo.carrier_001 = ""
+        smsInfo.carrier_002 = ""
     }
 
     /**
@@ -241,6 +244,10 @@ class SmsInfoDao @Autowired constructor(
         smsInfo.peer_number = obj.getString("othernum")
         // 费用 原始数据单位是元  转换成分后存储
         smsInfo.fee = (obj.getString("fee").toDouble() * (100)).toInt()
+
+        // 预留字段
+        smsInfo.carrier_001 = ""
+        smsInfo.carrier_002 = ""
 
     }
 

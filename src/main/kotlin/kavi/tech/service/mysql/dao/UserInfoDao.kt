@@ -6,6 +6,7 @@ import io.vertx.ext.sql.ResultSet
 import io.vertx.rxjava.ext.asyncsql.AsyncSQLClient
 import io.vertx.rxjava.ext.sql.SQLConnection
 import kavi.tech.service.common.extension.logger
+import kavi.tech.service.common.extension.splitYmd
 import kavi.tech.service.common.strategry.HashStrategy
 import kavi.tech.service.mysql.component.AbstractDao
 import kavi.tech.service.mysql.component.SQL
@@ -31,7 +32,7 @@ class UserInfoDao @Autowired constructor(
         data.forEach {
             userInfo.mobile = it.getString("mobile")
             userInfo.task_id = it.getString("mid")
-            userInfo.province = it.getString("operator")  // CMCC 移动
+            userInfo.carrier = it.getString("operator")  // CMCC 移动
             val dataOut = it.getJsonObject("data")
             if (dataOut.isEmpty) {
                 return
@@ -40,11 +41,15 @@ class UserInfoDao @Autowired constructor(
             userInfo.state = dataOut.getString("status")
             userInfo.reliability = dataOut.getString("realNameInfo")
             userInfo.brand = dataOut.getString("brand")
-//            userInfo.package_name = dataOut.getString("package_name")
+            userInfo.package_name = ""
             userInfo.in_net_date = dataOut.getString("inNetDate")
             userInfo.net_age = dataOut.getString("netAge")
-            userInfo.net_age = dataOut.getString("netAge")
+            if(userInfo.carrier.equals("CMCC")){
+                userInfo.net_age = splitYmd(dataOut.getString("netAge")).toString()
+            }
+
             userInfo.level = dataOut.getString("starLevel")
+            userInfo.user_lever = dataOut.getString("level")
             userInfo.star_score = dataOut.getString("star_score")
             userInfo.user_email = dataOut.getString("email")
             userInfo.zip_code = dataOut.getString("zipCode")
