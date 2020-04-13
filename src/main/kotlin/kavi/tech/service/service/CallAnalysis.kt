@@ -55,6 +55,24 @@ class CallAnalysis {
                         var becountLessSixMonthAvg: Int = becountLessSixMonth(mobile,task_id)/6 // 近6个月被叫通话次数
 
 
+                        var countLessOneMonthAll: Int = countLessOneMonthAll(mobile,task_id) // 近1月通话次数
+                        var countLessThreeMonthAll: Int = countLessThreeMonthAll(mobile,task_id) // 近3月通话次数
+                        var countLessSixMonthAll: Int = countLessSixMonthAll(mobile,task_id) // 近6月通话次数
+
+                        var countLessThreeMonthAllAvg: Int = countLessThreeMonthAll /3 // 近3月平均通话次数
+                        var countLessSixMonthAllAvg: Int = countLessSixMonthAll/6 // 近6月平均通话次数
+
+
+                        var countLessOneMonthAllTime: Int = countLessOneMonthAllTime(mobile,task_id) // 近1月通话时长
+                        var countLessThreeMonthAllTime: Int = countLessThreeMonthAllTime(mobile,task_id) // 近3月通话时长
+
+                        var countLessSixMonthAllTime: Int = countLessSixMonthAllTime(mobile,task_id) // 近6月通话时长
+
+                        var countLessThreeMonthAllTimeAvg: Int = countLessThreeMonthAllTime/3 // 近3月平均通话时长（秒）
+                        var countLessSixMonthAllTimeAvg: Int = countLessSixMonthAllTime/6// 近6月平均通话时长（秒）
+
+
+
 
 
 
@@ -270,6 +288,227 @@ class CallAnalysis {
                     "DATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))\n" +
                     "and  mobile = " + mobile
         "and task_id = " + taskId
+        var result: Int = 0
+        carrierResultDataDao.customizeSQL(sql).subscribe { list ->
+            var first: Int = list[0]?.getInteger("countTime")
+            result = first
+        }
+        return result
+    }
+
+    /**
+     *近1月通话次数
+     */
+    fun countLessOneMonthAll(mobile: String,taskId: String ): Int {
+        var sql: String =
+                "SELECT\n" +
+                "COUNT(*) as coutnTime \n" +
+                "\n" +
+                "FROM\n" +
+                "\tcarrier_voicecall\n" +
+                "where \n" +
+                " (\n" +
+                "\n" +
+                " DATE(date_add(now(), interval -30 day))<\n" +
+                "DATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))\n" +
+                "and  \n" +
+                "mobile = \n" + mobile
+                "and task_id =  " + taskId
+                "\n" +
+                ") or (\n" +
+                "\n" +
+                " DATE(date_add(now(), interval -30 day))<\n" +
+                "DATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))\n" +
+                "and  \n" +
+                "\n" +
+                "peer_number = \n"  + mobile
+                "and task_id =  " + taskId
+                ")\n"
+
+        var result: Int = 0
+        carrierResultDataDao.customizeSQL(sql).subscribe { list ->
+            var first: Int = list[0]?.getInteger("countTime")
+            result = first
+        }
+        return result
+    }
+
+    /**
+     *近3月通话次数
+     */
+    fun countLessThreeMonthAll(mobile: String,taskId: String ): Int {
+        var sql: String =
+            "SELECT\n" +
+                    "COUNT(*) as coutnTime \n" +
+                    "\n" +
+                    "FROM\n" +
+                    "\tcarrier_voicecall\n" +
+                    "where \n" +
+                    " (\n" +
+                    "\n" +
+                    " DATE(date_add(now(), interval -90 day))<\n" +
+                    "DATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))\n" +
+                    "and  \n" +
+                    "mobile = \n" + mobile
+        "and task_id =  " + taskId
+        "\n" +
+                ") or (\n" +
+                "\n" +
+                " DATE(date_add(now(), interval -90 day))<\n" +
+                "DATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))\n" +
+                "and  \n" +
+                "\n" +
+                "peer_number = \n"  + mobile
+        "and task_id =  " + taskId
+        ")\n"
+
+        var result: Int = 0
+        carrierResultDataDao.customizeSQL(sql).subscribe { list ->
+            var first: Int = list[0]?.getInteger("countTime")
+            result = first
+        }
+        return result
+    }
+
+    /**
+     *近6月通话次数
+     */
+    fun countLessSixMonthAll(mobile: String,taskId: String ): Int {
+        var sql: String =
+            "SELECT\n" +
+                    "COUNT(*) as coutnTime \n" +
+                    "\n" +
+                    "FROM\n" +
+                    "\tcarrier_voicecall\n" +
+                    "where \n" +
+                    " (\n" +
+                    "\n" +
+                    " DATE(date_add(now(), interval -180 day))<\n" +
+                    "DATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))\n" +
+                    "and  \n" +
+                    "mobile = \n" + mobile
+        "and task_id =  " + taskId
+        "\n" +
+                ") or (\n" +
+                "\n" +
+                " DATE(date_add(now(), interval -180 day))<\n" +
+                "DATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))\n" +
+                "and  \n" +
+                "\n" +
+                "peer_number = \n"  + mobile
+        "and task_id =  " + taskId
+        ")\n"
+
+        var result: Int = 0
+        carrierResultDataDao.customizeSQL(sql).subscribe { list ->
+            var first: Int = list[0]?.getInteger("countTime")
+            result = first
+        }
+        return result
+    }
+
+    /**
+     *近1月通话时长（秒）
+     */
+    fun countLessOneMonthAllTime(mobile: String,taskId: String ): Int {
+        var sql: String = "\n" +
+                "SELECT\n" +
+                "SUM(duration_in_second) as countTime\n" +
+                "\n" +
+                "FROM\n" +
+                "\tcarrier_voicecall\n" +
+                "where \n" +
+                " (\n" +
+                "\n" +
+                " DATE(date_add(now(), interval -30 day))<\n" +
+                "DATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))\n" +
+                "and  \n" +
+                "mobile =  " + mobile
+                "and task_id =  " + taskId
+                "\n" +
+                ") or (\n" +
+                "\n" +
+                " DATE(date_add(now(), interval -30 day))<\n" +
+                "DATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))\n" +
+                "and  \n" +
+                "\n" +
+                "peer_number =  " + mobile
+                "and task_id =  " + taskId
+                ")\n"
+
+        var result: Int = 0
+        carrierResultDataDao.customizeSQL(sql).subscribe { list ->
+            var first: Int = list[0]?.getInteger("countTime")
+            result = first
+        }
+        return result
+    }
+    /**
+     *近3月通话时长（秒）（秒）
+     */
+    fun countLessThreeMonthAllTime(mobile: String,taskId: String ): Int {
+        var sql: String = "\n" +
+                "SELECT\n" +
+                "SUM(duration_in_second) as countTime\n" +
+                "\n" +
+                "FROM\n" +
+                "\tcarrier_voicecall\n" +
+                "where \n" +
+                " (\n" +
+                "\n" +
+                " DATE(date_add(now(), interval -90 day))<\n" +
+                "DATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))\n" +
+                "and  \n" +
+                "mobile =  " + mobile
+                "and task_id =  " + taskId
+                "\n" +
+                ") or (\n" +
+                "\n" +
+                " DATE(date_add(now(), interval -90 day))<\n" +
+                "DATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))\n" +
+                "and  \n" +
+                "\n" +
+                "peer_number =  " + mobile
+                "and task_id =  " + taskId
+                ")\n"
+
+        var result: Int = 0
+        carrierResultDataDao.customizeSQL(sql).subscribe { list ->
+            var first: Int = list[0]?.getInteger("countTime")
+            result = first
+        }
+        return result
+    }
+
+    /**
+     *近6月通话时长（秒）（秒）（秒）
+     */
+    fun countLessSixMonthAllTime(mobile: String,taskId: String ): Int {
+        var sql: String = "\n" +
+                "SELECT\n" +
+                "SUM(duration_in_second) as countTime\n" +
+                "\n" +
+                "FROM\n" +
+                "\tcarrier_voicecall\n" +
+                "where \n" +
+                " (\n" +
+                "\n" +
+                " DATE(date_add(now(), interval -180 day))<\n" +
+                "DATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))\n" +
+                "and  \n" +
+                "mobile =  " + mobile
+        "and task_id =  " + taskId
+        "\n" +
+                ") or (\n" +
+                "\n" +
+                " DATE(date_add(now(), interval -180 day))<\n" +
+                "DATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))\n" +
+                "and  \n" +
+                "\n" +
+                "peer_number =  " + mobile
+        "and task_id =  " + taskId
+        ")\n"
+
         var result: Int = 0
         carrierResultDataDao.customizeSQL(sql).subscribe { list ->
             var first: Int = list[0]?.getInteger("countTime")
