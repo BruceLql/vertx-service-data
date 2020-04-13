@@ -49,12 +49,6 @@ class FriendSummaryService {
                         var contactPersonTenHomeArea:String = contactPersonTenHomeArea(mobile,task_id)//近180天的联系次数最多的号码归属地（0-180天）
                         var attributionMobilePhoneNumberHun:Boolean = attributionMobilePhoneNumberHun(mobile,task_id)//近180天的朋友圈中心城市是否与手机归属地一致（0-180天）
                         var contactPersonHun:Int = contactPersonHun(mobile,task_id)//近180天的互有主叫和被叫的联系人电话号码数目（去重）（0-180天）
-
-
-
-
-
-
                     }
                 }
         }
