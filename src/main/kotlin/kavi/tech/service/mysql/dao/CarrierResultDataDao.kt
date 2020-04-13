@@ -148,7 +148,6 @@ class CarrierResultDataDao @Autowired constructor(
                 this.assistantSave(carrierResultDatas, obj)
                 carrierResultDataList.add(carrierResultDatas)
             }
-
         }
         log.info("carrierResultDataList:${carrierResultDataList.size}" + carrierResultDataList.toString())
 //        selectBeforeInsert(carrierResultDataList[0]).subscribe({

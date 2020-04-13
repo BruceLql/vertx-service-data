@@ -22,7 +22,7 @@ class MainVerticle : LauncherVerticle() {
     override fun start() {
         super.start()
 //        vertx.deployVerticle(webVerticle)
-        friendSummaryService.countLess3Attribution()
+//        friendSummaryService.countLess3Attribution()
     }
 
     companion object {

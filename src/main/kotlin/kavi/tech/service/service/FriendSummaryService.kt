@@ -22,7 +22,7 @@ import java.util.stream.Collectors
 @Service
 class FriendSummaryService {
     @Autowired
-    private lateinit var carrierResultDataDao : CarrierResultDataDao
+    private lateinit var carrierResultDataDao: CarrierResultDataDao
 
 
     fun toCleaningCircleFriendsData(data: List<JsonObject>) {
@@ -35,12 +35,13 @@ class FriendSummaryService {
             carrierResultData.task_id = i.getString("task_id")
 
             carrierResultDataDao.selectBeforeInsert(carrierResultData)
-                .subscribe {list ->
+                .subscribe { list ->
                     if (list.isNotEmpty()) {
                         val callLogList = list.map { it.mapTo(CallLog::class.java) }
-                        var countLess3Months = countLess3Months(callLogList)//统计 近90天月联系人数量（去重）(0-90天)
-                        var countLess3MonthsGoupy = countLess3MonthsGoupy(callLogList)//近90天联系人数量（联系10次以上，去重）（0-90天）
-                        var countLess3Attribution = countLess3Attribution()//近90天联系次数最多的号码归属地（0-90天）
+                        var countLess3Months: Long = countLess3Months(callLogList)//统计 近90天月联系人数量（去重）(0-90天)
+                        var countLess3MonthsGoupy:Int = countLess3MonthsGoupy(callLogList)//近90天联系人数量（联系10次以上，去重）（0-90天）
+                        var countLess3Attribution:String = countLess3Attribution()//近90天联系次数最多的号码归属地（0-90天）
+                        var attributionMobilePhoneNumber:Boolean = attributionMobilePhoneNumber()//近90天朋友圈中心城市是否与手机归属地一致（0-90天）
 
                         //TODO
 
@@ -73,7 +74,7 @@ class FriendSummaryService {
     /**
      * 近90天联系人数量（联系10次以上，去重）（0-90天）
      */
-    fun countLess3MonthsGoupy(callLogList: List<CallLog>): MutableList<CallLog>? {
+    fun countLess3MonthsGoupy(callLogList: List<CallLog>): Int {
 
         var plusMonths: Date = DateTime().plusMonths(3).toDate()
         callLogList.run {
@@ -97,9 +98,9 @@ class FriendSummaryService {
                 .collect(Collectors.groupingBy(CallLog::mobile, Collectors.counting()))
             /** 筛选出 大于10次的*/
             var iterator = collectToFinalResult.iterator()
-            while (iterator.hasNext()){
+            while (iterator.hasNext()) {
                 var next = iterator.next()
-                if(next.value<10){
+                if (next.value < 10) {
                     iterator.remove()
                 }
             }
@@ -108,7 +109,7 @@ class FriendSummaryService {
             collectMiddleList = collectMiddleList.stream().filter {
                 conformRulesKMobileList.contains(it.mobile)
             }.collect(Collectors.toList())
-            return collectMiddleList
+            return collectMiddleList.size
         }
 
     }
@@ -116,8 +117,8 @@ class FriendSummaryService {
     /***
      * 近90天联系次数最多的号码归属地（0-90天）
      */
-    fun countLess3Attribution(): JsonObject {
-        var sql:String = "SELECT\n" +
+    fun countLess3Attribution(): String {
+        var sql: String = "SELECT\n" +
                 "\tMAX(location)\n" +
                 "FROM\n" +
                 "\tcarrier_voicecall\n" +
@@ -125,12 +126,50 @@ class FriendSummaryService {
                 " DATE(date_add(now(), interval -90 day))<\n" +
                 "DATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))"
         var result: JsonObject = JsonObject()
-         carrierResultDataDao.customizeSQL(sql).subscribe{
-            list->
-             var first:JsonObject = list.first()
-             result = first
-         }
-       return result
+        carrierResultDataDao.customizeSQL(sql).subscribe { list ->
+            var first: JsonObject = list.first()
+            result = first
+        }
+        return result.toString()
+
+    }
+
+    /***
+     * 近90天朋友圈中心城市是否与手机归属地一致（0-90天）
+     */
+    fun attributionMobilePhoneNumber(): Boolean {
+        var sql: String = "SELECT \n" +
+                "(\n" +
+                "CASE\n" +
+                "WHEN carrier_baseinfo.city is null THEN 0\n" +
+                "WHEN c.homearea is null THEN 0\n" +
+                "WHEN carrier_baseinfo.city  <=> c.homearea  THEN true\n" +
+                "ELSE FALSE\n" +
+                "END\n" +
+                ")\n" +
+                " as result" +
+                "from \n" +
+                "(\n" +
+                "SELECT carrier_voicecall.homearea, b.mobile from  carrier_voicecall ,\n" +
+                "(\n" +
+                "SELECT\n" +
+                "\tMAX(mobile) as mobile\n" +
+                "FROM\n" +
+                "\tcarrier_voicecall\n" +
+                "where \n" +
+                " DATE(date_add(now(), interval -90 day))<\n" +
+                " DATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time)))\n" +
+                "as b\n" +
+                " WHERE carrier_voicecall.mobile = b.mobile \n" +
+                ") as c \n" +
+                "LEFT JOIN carrier_baseinfo on c.mobile = carrier_baseinfo.mobile\n" +
+                "LIMIT 1 "
+        var result: JsonObject = JsonObject()
+        carrierResultDataDao.customizeSQL(sql).subscribe { list ->
+            var first: JsonObject = list.first()
+            result = first
+        }
+        return result.getBoolean("result")
 
     }
 
