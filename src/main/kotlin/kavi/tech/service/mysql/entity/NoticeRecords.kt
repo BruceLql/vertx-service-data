@@ -13,7 +13,7 @@ data class NoticeRecords(
     var task_id: String? = null,                // 创建任务时的monoId
     var mobile: String? = null,                 // 手机号码
     var back_url: String? = null,             // 回调地址 数据推送地址
-    var result: String? = null,           // 单项数据结果
+    var result: String? = null,           // 完整数据结果
     var carrier_001: String? = null,      // 预留1
     var carrier_002: String? = null       // 预留2
 ) : AbstractEntity() {

@@ -20,7 +20,7 @@ class NoticeRecordsDao @Autowired constructor(
     /**
      * 新增记录
      * */
-    private fun insert(noticeRecords: NoticeRecords): Single<Void> {
+    public fun insert(noticeRecords: NoticeRecords): Single<NoticeRecords> {
         val sql = SQL.init {
             INSERT_INTO(noticeRecords.tableName())
             noticeRecords.preInsert().forEach { (t, u) -> VALUES(t, u) }
@@ -28,7 +28,9 @@ class NoticeRecordsDao @Autowired constructor(
         println("insert sql：$sql")
         return this.client.rxGetConnection().flatMap { conn ->
 
-            conn.rxExecute(sql).doAfterTerminate(conn::close)
+            conn.rxUpdate(sql).map {
+                noticeRecords.apply { this.id =it.keys.getLong(0) }
+            }.doAfterTerminate(conn::close)
 
         }
     }

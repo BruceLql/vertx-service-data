@@ -20,7 +20,7 @@ class QueryRecordsDao @Autowired constructor(
     /**
      * 新增记录
      * */
-    private fun insert(queryRecords: QueryRecords): Single<Void> {
+    public fun insert(queryRecords: QueryRecords): Single<QueryRecords> {
         val sql = SQL.init {
             INSERT_INTO(queryRecords.tableName())
             queryRecords.preInsert().forEach { (t, u) -> VALUES(t, u) }
@@ -28,11 +28,12 @@ class QueryRecordsDao @Autowired constructor(
         println("insert sql：$sql")
         return this.client.rxGetConnection().flatMap { conn ->
 
-            conn.rxExecute(sql).doAfterTerminate(conn::close)
+            conn.rxUpdate(sql).map {
+                queryRecords.apply { this.id = it.keys.getLong(0) }
+            }.doAfterTerminate(conn::close)
 
         }
     }
-
 
 
 }
