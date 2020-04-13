@@ -10,7 +10,6 @@ import kavi.tech.service.mysql.component.AbstractDao
 import kavi.tech.service.mysql.component.SQL
 import kavi.tech.service.mysql.entity.CallLog
 import kavi.tech.service.mysql.entity.ExpenseCalendar
-import kavi.tech.service.mysql.entity.PaymentRecord
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
 import rx.Single
@@ -142,7 +141,7 @@ class ExpenseCalendarDao @Autowired constructor(
     }
 
     /**
-     * 移动-短信数据提取
+     * 移动-消费（月账单）数据提取
      */
     private fun cmcc(expenseCalendar: ExpenseCalendar, obj: JsonObject) {
 
@@ -162,7 +161,7 @@ class ExpenseCalendarDao @Autowired constructor(
     }
 
     /**
-     * 联通-短信数据提取
+     * 联通-消费（月账单）数据提取
      */
     private fun cucc(expenseCalendar: ExpenseCalendar, obj: JsonObject) {
         // 账单月
@@ -171,7 +170,7 @@ class ExpenseCalendarDao @Autowired constructor(
         expenseCalendar.bill_start_date = obj.getString("billStartDate")
         // 交费渠道
         expenseCalendar.bill_end_date = obj.getString("billEndDate")
-
+        val billFee = obj.getInteger("billFee")
         // 金额费用 原始数据单位是元  转换成分后存储
         expenseCalendar.bill_fee = (obj.getInteger("billFee") * 100).toInt()
         // 预留字段
@@ -182,7 +181,7 @@ class ExpenseCalendarDao @Autowired constructor(
     }
 
     /**
-     * 电信-短信数据提取
+     * 电信-消费（月账单）数据提取
      */
     private fun ctcc(expenseCalendar: ExpenseCalendar, obj: JsonObject) {
 

@@ -40,6 +40,7 @@ class CallLogDao @Autowired constructor(
         println(" 通话记录存入mysql: .....")
         val callLogList = ArrayList<CallLog>()
         data.forEach {
+            println("通话记录 ${it.toString()}")
             // 运营商类型
             val operator = it.getString("operator")
             val mobile = it.getString("mobile")
@@ -49,27 +50,46 @@ class CallLogDao @Autowired constructor(
             if (dataOut.isEmpty) {
                 return
             }
-            if (dataOut.getInteger("totalNum") < 1) {
-                return
-            }
-            dataOut.getJsonArray("data").forEachIndexed { index, mutableEntry ->
-                val callLog_s = CallLog()
-                callLog_s.mobile = mobile
-                callLog_s.bill_month = bill_month
-                callLog_s.task_id = task_id
-                val obj = JsonObject(mutableEntry.toString())
-                when (operator) {
-                    // 移动数据提取
-                    "CMCC" -> cmcc(callLog_s, obj)
-                    // 联通数据提取
-                    "CUCC" -> cucc(callLog_s, obj)
-                    // 电信数据提取
-                    "CTCC" -> ctcc(callLog_s, obj)
+
+
+            when (operator) {
+                // 移动数据提取
+                "CMCC" -> {
+                    if (dataOut.getInteger("totalNum") < 1) {
+                        return
+                    }
+                    dataOut.getJsonArray("data").forEachIndexed { index, mutableEntry ->
+                        val callLog_s = CallLog()
+                        callLog_s.mobile = mobile
+                        callLog_s.bill_month = bill_month
+                        callLog_s.task_id = task_id
+                        val obj = JsonObject(mutableEntry.toString())
+                        cmcc(callLog_s, obj)
+
+                        callLogList.add(callLog_s)
+
+                    }
                 }
 
+                // 联通数据提取
+                "CUCC" -> {
+                    dataOut.getJsonObject("pageMap").getJsonArray("result").forEachIndexed { index, mutableEntry ->
+                        val callLog_s = CallLog()
+                        callLog_s.mobile = mobile
+                        callLog_s.bill_month = bill_month
+                        callLog_s.task_id = task_id
+                        val obj = JsonObject(mutableEntry.toString())
+                        cucc(callLog_s, obj)
 
-                callLogList.add(callLog_s)
+                        callLogList.add(callLog_s)
+
+                    }
+                }
+                // 电信数据提取
+                "CTCC" -> {
+                }
             }
+
 
         }
         println("callLogList:${callLogList.size}" + callLogList.toString())
@@ -174,14 +194,20 @@ class CallLogDao @Autowired constructor(
     }
 
     /**
-     * 移动-短信数据提取
+     * 移动-通话数据提取
      */
     private fun cmcc(callLog_s: CallLog, obj: JsonObject) {
 
         callLog_s.time = obj.getString("startTime")
         callLog_s.location = obj.getString("commPlac")
         // （DIAL-主叫; DIALED-被叫）
-        callLog_s.dial_type = obj.getString("commMode")
+        callLog_s.dial_type = when (obj.getString("commMode")) {
+            "主叫" -> "DIAL"
+            "VOLTE主叫" -> "DIAL"
+            "被叫" -> "DIALED"
+            "VOLTE被叫" -> "DIALED"
+            else -> obj.getString("commMode")
+        }
         // 对方号码
         callLog_s.peer_number = obj.getString("anotherNm")
         // 通信时长
@@ -197,14 +223,18 @@ class CallLogDao @Autowired constructor(
     }
 
     /**
-     * 联通-短信数据提取
+     * 联通-通话数据提取
      */
     private fun cucc(callLog_s: CallLog, obj: JsonObject) {
 
-        callLog_s.time = obj.getString("calldate")+" "+obj.getString("calltime")
+        callLog_s.time = obj.getString("calldate") + " " + obj.getString("calltime")
         callLog_s.location = obj.getString("calledhome")
         // （DIAL-主叫; DIALED-被叫）
-        callLog_s.dial_type = obj.getString("calltypeName")
+        callLog_s.dial_type = when (obj.getString("calltypeName")) {
+            "主叫" -> "DIAL"
+            "被叫" -> "DIALED"
+            else -> obj.getString("calltypeName")
+        }
         // 对方号码
         callLog_s.peer_number = obj.getString("othernum")
         // 通信时长

@@ -51,25 +51,49 @@ class SmsInfoDao @Autowired constructor(
             if (dataOut.isEmpty) {
                 return
             }
-            if (dataOut.getInteger("totalNum") < 1) {
-                return
-            }
-            dataOut.getJsonArray("data").forEachIndexed { index, mutableEntry ->
-                val smsInfo_s = SmsInfo()
-                smsInfo_s.mobile = mobile
-                smsInfo_s.bill_month = bill_month
-                smsInfo_s.task_id = task_id
-                val obj = JsonObject(mutableEntry.toString())
-                when (operator) {
-                    // 移动数据提取
-                    "CMCC" -> cmcc(smsInfo_s, obj)
-                    // 联通数据提取
-                    "CUCC" -> cucc(smsInfo_s, obj)
-                    // 电信数据提取
-                    "CTCC" -> ctcc(smsInfo_s, obj)
+
+            when (operator) {
+                // 移动数据提取
+                "CMCC" -> {
+                    if (dataOut.getInteger("totalNum") < 1) {
+                        return
+                    }
+                    dataOut.getJsonArray("data").forEachIndexed { index, mutableEntry ->
+                        val smsInfo_s = SmsInfo()
+                        smsInfo_s.mobile = mobile
+                        smsInfo_s.bill_month = bill_month
+                        smsInfo_s.task_id = task_id
+                        val obj = JsonObject(mutableEntry.toString())
+
+                        cmcc(smsInfo_s, obj)
+                        smsInfoList.add(smsInfo_s)
+                    }
                 }
-                smsInfoList.add(smsInfo_s)
+
+                // 联通数据提取
+                "CUCC" -> {
+                    val pageMap = dataOut.getJsonObject("pageMap")
+                    println("===== pageMap:$pageMap")
+                    println("===== pageMap.result:${pageMap.getJsonArray("result")}")
+                    dataOut.getJsonObject("pageMap").getJsonArray("result").forEachIndexed { index, mutableEntry ->
+                        val smsInfo_s = SmsInfo()
+                        smsInfo_s.mobile = mobile
+                        smsInfo_s.bill_month = bill_month
+                        smsInfo_s.task_id = task_id
+                        val obj = JsonObject(mutableEntry.toString())
+
+                        cucc(smsInfo_s, obj)
+                        smsInfoList.add(smsInfo_s)
+                    }
+
+                }
+
+                // 电信数据提取
+                "CTCC" -> {
+                }
+
             }
+
 
         }
         println("smsInfoList:${smsInfoList.size}" + smsInfoList.toString())
@@ -176,7 +200,11 @@ class SmsInfoDao @Autowired constructor(
         // 通信方式 （SMS-短信; MSS-彩信）
         smsInfo.msg_type = obj.getString("infoType")
         // 接收类型 SEND-发送; RECEIVE-收取
-        smsInfo.send_type = obj.getString("commMode")
+        smsInfo.send_type = when (obj.getString("commMode")) {
+            "接收" -> "RECEIVE"
+            "发送" -> "SEND"
+            else -> obj.getString("commMode")
+        }
         // 业务名称 （e.g. 点对点(网内)）
         smsInfo.service_name = obj.getString("meal")
         // 对方号码
@@ -193,24 +221,26 @@ class SmsInfoDao @Autowired constructor(
         smsInfo.time = obj.getString("smsdate") + " " + obj.getString("smstime")
         // 通信地点 无数据
         smsInfo.location = ""
-        // 通信方式 （SMS-短信; MSS-彩信）
-        smsInfo.msg_type = obj.getString("businesstype") //(01-国内短信/02-国际短信/03-国内彩信)
+        // 通信方式 （SMS-短信; MSS-彩信） //(01-国内短信/02-国际短信/03-国内彩信)
+        smsInfo.msg_type = when (obj.getString("businesstype")) {
+            "01" -> "SMS"
+            "02" -> "SMS"
+            "03" -> "MSS"
+            else -> obj.getString("businesstype")
+        }
         // 接收类型 (SEND-发送; RECEIVE-收取)
-        when (obj.getString("smstype")) {
+        smsInfo.send_type = when (obj.getString("smstype")) {
             // 1接收
-            "1" -> {
-                smsInfo.send_type = "RECEIVE"
-            }
-            else -> {
-                smsInfo.send_type = "SEND"
-            }
+            "1" -> "RECEIVE"
+            "2" -> "SEND"
+            else -> obj.getString("smstype")
         }
         // 业务名称 （e.g. 点对点(网内)）
         smsInfo.service_name = ""
         // 对方号码
         smsInfo.peer_number = obj.getString("othernum")
         // 费用 原始数据单位是元  转换成分后存储
-        smsInfo.fee = (obj.getString("Fee").toDouble() * (100)).toInt()
+        smsInfo.fee = (obj.getString("fee").toDouble() * (100)).toInt()
 
     }
 

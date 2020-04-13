@@ -25,7 +25,7 @@ class InternetInfoDao @Autowired constructor(
     /**
      * 新增记录
      * */
-    private fun insert( internetInfo: InternetInfo ,conn: SQLConnection): Single<InternetInfo> {
+    private fun insert(internetInfo: InternetInfo, conn: SQLConnection): Single<InternetInfo> {
         val sql_str = SQL.init {
             INSERT_INTO(internetInfo.tableName())
             internetInfo.preInsert().forEach { t, u -> VALUES(t, u) }
@@ -40,7 +40,7 @@ class InternetInfoDao @Autowired constructor(
         println(" 上网记录存入mysql: .....")
         val internetInfoList = ArrayList<InternetInfo>()
         data.forEach {
-            println("internetData：" + it.toString())
+            println("internetData：$it")
             // 运营商类型  移动：CMCC 联通：CUCC 电信：CTCC
             val operator = it.getString("operator")
             val mobile = it.getString("mobile")
@@ -50,25 +50,45 @@ class InternetInfoDao @Autowired constructor(
             if (dataOut.isEmpty) {
                 return
             }
-            if (dataOut.getInteger("totalNum") < 1) {
-                return
-            }
-            dataOut.getJsonArray("data").forEachIndexed { index, mutableEntry ->
-                val InternetInfo_s = InternetInfo()
-                InternetInfo_s.mobile = mobile
-                InternetInfo_s.bill_month = bill_month
-                InternetInfo_s.task_id = task_id
-                val obj = JsonObject(mutableEntry.toString())
-                when (operator) {
-                    // 移动数据提取
-                    "CMCC" -> cmcc(InternetInfo_s, obj)
-                    // 联通数据提取
-                    "CUCC" -> cucc(InternetInfo_s, obj)
-                    // 电信数据提取
-                    "CTCC" -> ctcc(InternetInfo_s, obj)
+
+            when (operator) {
+                // 移动数据提取
+                "CMCC" -> {
+                    // 可能出现 不返回字段 totalNum ，所以增加缺失值1
+                    if (dataOut.getInteger("totalNum")?:1 < 1) {
+                        return
+                    }
+                    dataOut.getJsonArray("data").forEachIndexed { index, mutableEntry ->
+                        val InternetInfo_s = InternetInfo()
+                        InternetInfo_s.mobile = mobile
+                        InternetInfo_s.bill_month = bill_month
+                        InternetInfo_s.task_id = task_id
+                        val obj = JsonObject(mutableEntry.toString())
+
+                        cmcc(InternetInfo_s, obj)
+                        internetInfoList.add(InternetInfo_s)
+                    }
                 }
-                internetInfoList.add(InternetInfo_s)
+                // 联通数据提取
+                "CUCC" -> {
+                    dataOut.getJsonArray("pagelist").forEachIndexed{ index, mutableEntry ->
+                        val InternetInfo_s = InternetInfo()
+                        InternetInfo_s.mobile = mobile
+                        InternetInfo_s.bill_month = bill_month
+                        InternetInfo_s.task_id = task_id
+                        val obj = JsonObject(mutableEntry.toString())
+
+                        cucc(InternetInfo_s, obj)
+                        internetInfoList.add(InternetInfo_s)
+                    }
+
+
+                }
+                // 电信数据提取
+                "CTCC" -> {}
             }
+
+
 
         }
         println("smsInfoList:${internetInfoList.size}" + internetInfoList.toString())
@@ -169,7 +189,7 @@ class InternetInfoDao @Autowired constructor(
     }
 
     /**
-     * 移动-短信数据提取
+     * 移动-上网记录数据提取
      */
     private fun cmcc(internetInfo: InternetInfo, obj: JsonObject) {
         internetInfo.start_time = obj.getString("startTime")
@@ -186,8 +206,14 @@ class InternetInfoDao @Autowired constructor(
         // 套餐优惠
         internetInfo.meal = obj.getString("meal")
 
+        val commFee = when (obj.getString("commFee")) {
+            null -> "0.00"
+            "" -> "0.00"
+            else -> obj.getString("commFee")
+        }
+
         // 费用 原始数据单位是元  转换成分后存储
-        internetInfo.comm_fee = (obj.getString("commFee").toDouble() * 100).toInt()
+        internetInfo.comm_fee = (commFee.toDouble() * 100).toInt()
         // 预留字段
         internetInfo.carrier_001 = ""
         internetInfo.carrier_002 = ""
@@ -195,24 +221,34 @@ class InternetInfoDao @Autowired constructor(
     }
 
     /**
-     * 联通-短信数据提取
+     * 联通-上网记录数据提取
      */
     private fun cucc(internetInfo: InternetInfo, obj: JsonObject) {
         internetInfo.start_time = obj.getString("begindateformat") + " " + obj.getString("begintimeformat")
         // 通信地点 无数据
         internetInfo.comm_plac = obj.getString("homearea")
         // 上网方式
-        internetInfo.net_play_type = obj.getString("roamstatformat") //(国际漫游/国内)
+        internetInfo.net_play_type = obj.getString("roamstat") //(国际漫游/国内)
         // 网络类型
         internetInfo.net_type = obj.getString("nettypeformat") //4g网络
-        // 总时长
+        // 总时长 单位s
         internetInfo.comm_time = obj.getString("longhour")
         // 总流量
-        internetInfo.sum_flow = obj.getString("sumFlow")
+        val pertotalsm = when (obj.getString("pertotalsm")) {
+            null -> "0.00"
+            "" -> "0.00"
+            else -> obj.getString("pertotalsm")
+        }
+        internetInfo.sum_flow = (pertotalsm.toDouble()*100).toInt().toString()
         // 套餐优惠
         internetInfo.meal = obj.getString("deratefee")
         // 费用 原始数据单位是元  转换成分后存储
-        internetInfo.comm_fee = (obj.getString("totalfee").toDouble() * 100).toInt()
+        val totalfee = when (obj.getString("totalfee")) {
+            null -> "0.00"
+            "" -> "0.00"
+            else -> obj.getString("totalfee")
+        }
+        internetInfo.comm_fee = (totalfee.toDouble() * 100).toInt()
         // 预留字段
         internetInfo.carrier_001 = ""
         internetInfo.carrier_002 = ""
@@ -221,7 +257,7 @@ class InternetInfoDao @Autowired constructor(
     }
 
     /**
-     * 电信-短信数据提取
+     * 电信-上网记录数据提取
      */
     private fun ctcc(internetInfo: InternetInfo, obj: JsonObject) {
 

@@ -159,23 +159,28 @@ class PaymentRecordDao @Autowired constructor(
     }
 
     /**
-     * 移动-短信数据提取
+     * 移动-充值缴费数据提取
      */
     private fun cmcc(paymentRecord: PaymentRecord, obj: JsonObject) {
 
         // 交费日期
-        paymentRecord.recharge_time = obj.getString("payDate")
+        paymentRecord.recharge_time = obj.getString("payDate")?:""
         // 交费方式
-        paymentRecord.type = obj.getString("payTypeName")
+        paymentRecord.type = obj.getString("payTypeName")?:""
         // 交费渠道
         paymentRecord.pay_chanel = obj.getString("payChannel")
         // 支付状态
-        paymentRecord.pay_flag = obj.getString("payFlag")
+        paymentRecord.pay_flag = obj.getString("payFlag")?:""
         // 支付地址
-        paymentRecord.pay_addr = obj.getString("payAddr")
+        paymentRecord.pay_addr = obj.getString("payAddr")?:""
 
         // 金额费用 原始数据单位是元  转换成分后存储
-        paymentRecord.amount_money = (obj.getString("payFee").toDouble() * 100).toInt()
+        val commFee = when (obj.getString("payFee")) {
+            null -> "0.00"
+            "" -> "0.00"
+            else -> obj.getString("payFee")
+        }
+        paymentRecord.amount_money = (commFee.toDouble() * 100).toInt()
         // 预留字段
         paymentRecord.carrier_001 = ""
         paymentRecord.carrier_002 = ""
@@ -183,22 +188,28 @@ class PaymentRecordDao @Autowired constructor(
     }
 
     /**
-     * 联通-短信数据提取
+     * 联通-充值缴费数据提取
      */
     private fun cucc(paymentRecord: PaymentRecord, obj: JsonObject) {
         // 交费日期
-        paymentRecord.recharge_time = obj.getString("paydate")
+        paymentRecord.recharge_time = obj.getString("paydate")?:""
         // 交费方式
-        paymentRecord.type = obj.getString("payment")
+        paymentRecord.type = obj.getString("payment")?:""
         // 交费渠道
-        paymentRecord.pay_chanel = obj.getString("paychannel")
+        paymentRecord.pay_chanel = obj.getString("paychannel")?:""
         // 支付状态 暂无
         paymentRecord.pay_flag = ""
         // 支付地址 暂无
         paymentRecord.pay_addr = ""
 
         // 金额费用 原始数据单位是元  转换成分后存储
-        paymentRecord.amount_money = (obj.getString("payfee").toDouble() * 100).toInt()
+        val commFee = when (obj.getString("payfee")) {
+            null -> "0.00"
+            "" -> "0.00"
+            else -> obj.getString("payfee")
+        }
+
+        paymentRecord.amount_money = (commFee.toDouble() * 100).toInt()
         // 预留字段
         paymentRecord.carrier_001 = ""
         paymentRecord.carrier_002 = ""
@@ -207,7 +218,7 @@ class PaymentRecordDao @Autowired constructor(
     }
 
     /**
-     * 电信-短信数据提取
+     * 电信-充值缴费数据提取
      */
     private fun ctcc(paymentRecord: PaymentRecord, obj: JsonObject) {
 
