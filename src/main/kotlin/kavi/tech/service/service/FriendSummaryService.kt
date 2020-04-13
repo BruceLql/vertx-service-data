@@ -45,8 +45,15 @@ class FriendSummaryService {
                         var countLess3Attribution:String = countLess3Attribution(mobile,task_id)//近90天联系次数最多的号码归属地（0-90天）
                         var attributionMobilePhoneNumber:Boolean = attributionMobilePhoneNumber(mobile,task_id)//近90天朋友圈中心城市是否与手机归属地一致（0-90天）
                         var contactPerson:Int = contactPerson(mobile,task_id)//近90天互有主叫和被叫的联系人电话号码数目（去重）
+                        var contactPersonTen:Int = contactPersonTen(mobile,task_id)//近180天的联系人数量（联系10次以上，去重）（0-180天）
+                        var contactPersonTenHomeArea:String = contactPersonTenHomeArea(mobile,task_id)//近180天的联系次数最多的号码归属地（0-180天）
+                        var attributionMobilePhoneNumberHun:Boolean = attributionMobilePhoneNumberHun(mobile,task_id)//近180天的朋友圈中心城市是否与手机归属地一致（0-180天）
+                        var contactPersonHun:Int = contactPersonHun(mobile,task_id)//近180天的互有主叫和被叫的联系人电话号码数目（去重）（0-180天）
 
-                        //TODO
+
+
+
+
 
                     }
                 }
@@ -189,11 +196,126 @@ class FriendSummaryService {
         var sql: String = "SELECT DISTINCT carrier_voicecall.mobile from carrier_voicecall ,\n" +
                 "(\n" +
                 "SELECT DISTINCT peer_number,mobile from carrier_voicecall\n" +
-                "\n" +
+                "  where DATE(date_add(now(), interval -90 day))<\n" +
+                " DATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))" +
+
                 ") as b where carrier_voicecall.mobile = b.peer_number \n" +
                 "and  carrier_voicecall.peer_number = b.mobile " +
                 "and b.mobile = " + mobile
-                "and b.task_id =" + taskId
+                "and b.task_id =" + taskId +
+                        " and  DATE(date_add(now(), interval -90 day))<\n" +
+                        " DATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))"
+        var result: Int = 0
+        carrierResultDataDao.customizeSQL(sql).subscribe { list ->
+            var first: Int = list.size
+            result = first
+        }
+        return result
+    }
+
+    /***
+     *  近180天的联系人数量（联系10次以上，去重）（0-180天）
+     */
+    fun contactPersonTen(mobile: String,taskId: String): Int {
+        var sql: String = "SELECT\n" +
+                "mobile, peer_number\n" +
+                "FROM\n" +
+                "\tcarrier_voicecall\n" +
+                "where \n" +
+                " DATE(date_add(now(), interval -180 day))<\n" +
+                "DATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))\n" +
+                "and  mobile = \n" + mobile
+                "and task_id = \n" + taskId
+                "GROUP BY mobile HAVING(COUNT(DISTINCT(peer_number)) > 10)"
+        var result: Int = 0
+        carrierResultDataDao.customizeSQL(sql).subscribe { list ->
+            var first: Int = list.size
+            result = first
+        }
+        return result
+    }
+  /***
+     * 近180天的联系次数最多的号码归属地（0-180天）
+     */
+    fun contactPersonTenHomeArea(mobile: String,taskId: String): String {
+        var sql: String =  "\n" +
+                "SELECT\n" +
+                "homearea\n" +
+                "FROM\n" +
+                "\tcarrier_voicecall\n" +
+                "where \n" +
+                " DATE(date_add(now(), interval -180 day))<\n" +
+                "DATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))\n" +
+                "and  mobile = \n" + mobile
+                "and task_id = \n" + taskId
+                "GROUP BY mobile HAVING(MAX(DISTINCT(peer_number)))"
+        var result: String = ""
+        carrierResultDataDao.customizeSQL(sql).subscribe { list ->
+            var first: String = list[0]?.toString()
+            result = first
+        }
+        return result
+    }
+
+    /***
+     * 近180天的朋友圈中心城市是否与手机归属地一致（0-180天）
+     */
+    fun attributionMobilePhoneNumberHun(mobile: String,taskId: String ): Boolean {
+        var sql: String = "SELECT \n" +
+                "(\n" +
+                "CASE\n" +
+                "WHEN carrier_baseinfo.city is null THEN 0\n" +
+                "WHEN c.homearea is null THEN 0\n" +
+                "WHEN carrier_baseinfo.city  <=> c.homearea  THEN true\n" +
+                "ELSE FALSE\n" +
+                "END\n" +
+                ")\n" +
+                " as result" +
+                "from \n" +
+                "(\n" +
+                "SELECT carrier_voicecall.homearea, b.mobile from  carrier_voicecall ,\n" +
+                "(\n" +
+                "SELECT\n" +
+                "\tMAX(mobile) as mobile\n" +
+                "FROM\n" +
+                "\tcarrier_voicecall\n" +
+                "where \n" +
+                " DATE(date_add(now(), interval -180 day))<\n" +
+                " DATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))" +
+                " and carrier_voicecall.mobile = \n" + mobile
+        " and carrier_voicecall.task_id = " +  taskId
+        ")\n" +
+                "as b\n" +
+                " WHERE carrier_voicecall.mobile = b.mobile \n" +
+                " and carrier_voicecall.mobile = \n" + mobile
+        " and carrier_voicecall.task_id = " +  taskId
+        ") as c \n" +
+                "LEFT JOIN carrier_baseinfo on c.mobile = carrier_baseinfo.mobile\n" +
+                "LIMIT 1 "
+        var result: JsonObject = JsonObject()
+        carrierResultDataDao.customizeSQL(sql).subscribe { list ->
+            var first: JsonObject = list.first()
+            result = first
+        }
+        return result.getBoolean("result")
+    }
+
+    /***
+     *  近180天的互有主叫和被叫的联系人电话号码数目（去重）（0-180天）
+     */
+    fun contactPersonHun(mobile: String,taskId: String): Int {
+        var sql: String = "SELECT DISTINCT carrier_voicecall.mobile from carrier_voicecall ,\n" +
+                "(\n" +
+                "SELECT DISTINCT peer_number,mobile from carrier_voicecall\n" +
+                "  where DATE(date_add(now(), interval -180 day))<\n" +
+                " DATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))" +
+
+                ") as b where carrier_voicecall.mobile = b.peer_number \n" +
+                "and  carrier_voicecall.peer_number = b.mobile " +
+                "and b.mobile = " + mobile
+        "and b.task_id =" + taskId +
+                " and  DATE(date_add(now(), interval -90 day))<\n" +
+                " DATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))"
         var result: Int = 0
         carrierResultDataDao.customizeSQL(sql).subscribe { list ->
             var first: Int = list.size
