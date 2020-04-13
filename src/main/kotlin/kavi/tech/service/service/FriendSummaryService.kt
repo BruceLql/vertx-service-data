@@ -31,8 +31,10 @@ class FriendSummaryService {
         }
         data.forEach { i ->
             val carrierResultData = CarrierResultData()
-            carrierResultData.mobile = i.getString("mobile")
-            carrierResultData.task_id = i.getString("task_id")
+            var mobile = i.getString("mobile")
+            carrierResultData.mobile = mobile
+            var task_id = i.getString("task_id")
+            carrierResultData.task_id = task_id
 
             carrierResultDataDao.selectBeforeInsert(carrierResultData)
                 .subscribe { list ->
@@ -40,8 +42,9 @@ class FriendSummaryService {
                         val callLogList = list.map { it.mapTo(CallLog::class.java) }
                         var countLess3Months: Long = countLess3Months(callLogList)//统计 近90天月联系人数量（去重）(0-90天)
                         var countLess3MonthsGoupy:Int = countLess3MonthsGoupy(callLogList)//近90天联系人数量（联系10次以上，去重）（0-90天）
-                        var countLess3Attribution:String = countLess3Attribution()//近90天联系次数最多的号码归属地（0-90天）
-                        var attributionMobilePhoneNumber:Boolean = attributionMobilePhoneNumber()//近90天朋友圈中心城市是否与手机归属地一致（0-90天）
+                        var countLess3Attribution:String = countLess3Attribution(mobile,task_id)//近90天联系次数最多的号码归属地（0-90天）
+                        var attributionMobilePhoneNumber:Boolean = attributionMobilePhoneNumber(mobile,task_id)//近90天朋友圈中心城市是否与手机归属地一致（0-90天）
+                        var contactPerson:Int = contactPerson(mobile,task_id)//近90天互有主叫和被叫的联系人电话号码数目（去重）
 
                         //TODO
 
@@ -117,14 +120,16 @@ class FriendSummaryService {
     /***
      * 近90天联系次数最多的号码归属地（0-90天）
      */
-    fun countLess3Attribution(): String {
+    fun countLess3Attribution(mobile: String,taskId: String ): String {
         var sql: String = "SELECT\n" +
                 "\tMAX(location)\n" +
                 "FROM\n" +
                 "\tcarrier_voicecall\n" +
                 "where \n" +
                 " DATE(date_add(now(), interval -90 day))<\n" +
-                "DATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))"
+                "DATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))" +
+                "AND mobile = " + mobile
+                "AND task_id = " + taskId
         var result: JsonObject = JsonObject()
         carrierResultDataDao.customizeSQL(sql).subscribe { list ->
             var first: JsonObject = list.first()
@@ -137,7 +142,7 @@ class FriendSummaryService {
     /***
      * 近90天朋友圈中心城市是否与手机归属地一致（0-90天）
      */
-    fun attributionMobilePhoneNumber(): Boolean {
+    fun attributionMobilePhoneNumber(mobile: String,taskId: String ): Boolean {
         var sql: String = "SELECT \n" +
                 "(\n" +
                 "CASE\n" +
@@ -158,9 +163,14 @@ class FriendSummaryService {
                 "\tcarrier_voicecall\n" +
                 "where \n" +
                 " DATE(date_add(now(), interval -90 day))<\n" +
-                " DATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time)))\n" +
+                " DATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))" +
+                " and carrier_voicecall.mobile = \n" + mobile
+                " and carrier_voicecall.task_id = " +  taskId
+                ")\n" +
                 "as b\n" +
                 " WHERE carrier_voicecall.mobile = b.mobile \n" +
+                        " and carrier_voicecall.mobile = \n" + mobile
+                 " and carrier_voicecall.task_id = " +  taskId
                 ") as c \n" +
                 "LEFT JOIN carrier_baseinfo on c.mobile = carrier_baseinfo.mobile\n" +
                 "LIMIT 1 "
@@ -170,7 +180,28 @@ class FriendSummaryService {
             result = first
         }
         return result.getBoolean("result")
-
     }
+
+    /***
+     *  近90天互有主叫和被叫的联系人电话号码数目（去重）（0-90天）
+     */
+    fun contactPerson(mobile: String,taskId: String): Int {
+        var sql: String = "SELECT DISTINCT carrier_voicecall.mobile from carrier_voicecall ,\n" +
+                "(\n" +
+                "SELECT DISTINCT peer_number,mobile from carrier_voicecall\n" +
+                "\n" +
+                ") as b where carrier_voicecall.mobile = b.peer_number \n" +
+                "and  carrier_voicecall.peer_number = b.mobile " +
+                "and b.mobile = " + mobile
+                "and b.task_id =" + taskId
+        var result: Int = 0
+        carrierResultDataDao.customizeSQL(sql).subscribe { list ->
+            var first: Int = list.size
+            result = first
+        }
+        return result
+    }
+
+
 
 }
