@@ -223,8 +223,8 @@ class CallAnalysisService {
                     "where \n" +
                     " DATE(date_add(now(), interval -30 day))<\n" +
                     "DATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))\n" +
-                    "and  mobile = \n" + mobile
-        "and task_id = \"" + taskId
+                    "and  mobile = '$mobile' \n" +
+        "and task_id = '$taskId' \""
         var result: Int = 0
        return  carrierResultDataDao.customizeSQL(sql)
             .map {
@@ -247,8 +247,8 @@ class CallAnalysisService {
                     "where \n" +
                     " DATE(date_add(now(), interval -30 day))<\n" +
                     "DATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))\n" +
-                    "and  peer_number = \n" + mobile
-        "and task_id = \"" + taskId
+                    "and  peer_number = '$mobile'  \n" +
+        "and task_id = '$taskId'  \""
         var result: Int = 0
        return carrierResultDataDao.customizeSQL(sql)
             .map {
@@ -270,8 +270,8 @@ class CallAnalysisService {
                     "where \n" +
                     " DATE(date_add(now(), interval -90 day))<\n" +
                     "DATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))\n" +
-                    "and  mobile = \n" + mobile
-        "and task_id = \"" + taskId
+                    "and  mobile = '$mobile'  \n" +
+        "and task_id = '$taskId'  \""
 
         return carrierResultDataDao.customizeSQL(sql)
             .map {
@@ -293,8 +293,8 @@ class CallAnalysisService {
                     "where \n" +
                     " DATE(date_add(now(), interval -90 day))<\n" +
                     "DATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))\n" +
-                    "and  peer_number = \n" + mobile
-        "and task_id = \"" + taskId
+                    "and  peer_number = '$mobile'  \n" +
+        "and task_id = '$taskId'  \""
         var result: Int = 0
        return carrierResultDataDao.customizeSQL(sql).
             map {
@@ -314,8 +314,8 @@ class CallAnalysisService {
                     "where \n" +
                     " DATE(date_add(now(), interval -180 day))<\n" +
                     "DATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))\n" +
-                    "and  peer_number = \n" + mobile
-        "and task_id = \"" + taskId
+                    "and  peer_number = '$mobile'  \n" +
+        "and task_id = '$taskId'  \""
         var result: Int = 0
         return carrierResultDataDao.customizeSQL(sql).
             map {
@@ -336,8 +336,8 @@ class CallAnalysisService {
                     "where \n" +
                     " DATE(date_add(now(), interval -180 day))<\n" +
                     "DATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))\n" +
-                    "and  mobile = \n" + mobile
-        "and task_id = \"" + taskId
+                    "and  mobile = '$mobile' \n" +
+        "and task_id = '$taskId'  \""
 //        var result: Int = 0
        return carrierResultDataDao.customizeSQL(sql)
             .map {
@@ -359,8 +359,8 @@ class CallAnalysisService {
                     "where \n" +
                     " DATE(date_add(now(), interval -30 day))<\n" +
                     "DATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))\n" +
-                    "and  mobile = " + mobile
-        "and task_id = " + taskId
+                    "and  mobile = '$mobile'  " +
+        "and task_id = '$taskId'  "
         var result: Int = 0
        return  carrierResultDataDao.customizeSQL(sql)
             .map {
@@ -380,8 +380,8 @@ class CallAnalysisService {
                     "where \n" +
                     " DATE(date_add(now(), interval -90 day))<\n" +
                     "DATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))\n" +
-                    "and  mobile = " + mobile
-        "and task_id = " + taskId
+                    "and  mobile = '$mobile'  " +
+        "and task_id = '$taskId'  "
         var result: Int = 0
        return carrierResultDataDao.customizeSQL(sql)
            .map {
@@ -401,8 +401,8 @@ class CallAnalysisService {
                     "where \n" +
                     " DATE(date_add(now(), interval -180 day))<\n" +
                     "DATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))\n" +
-                    "and  mobile = " + mobile
-        "and task_id = " + taskId
+                    "and  mobile = '$mobile' "
+        "and task_id = '$taskId' "
         var result: Int = 0
        return carrierResultDataDao.customizeSQL(sql)
             .map {
@@ -426,8 +426,8 @@ class CallAnalysisService {
                     " DATE(date_add(now(), interval -30 day))<\n" +
                     "DATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))\n" +
                     "and  \n" +
-                    "mobile = \n" + mobile
-        "and task_id =  " + taskId
+                    "mobile = '$mobile' \n" +
+        "and task_id =  '$taskId'  " +
         "\n" +
                 ") or (\n" +
                 "\n" +
@@ -435,8 +435,8 @@ class CallAnalysisService {
                 "DATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))\n" +
                 "and  \n" +
                 "\n" +
-                "peer_number = \n" + mobile
-        "and task_id =  " + taskId
+                "peer_number = '$mobile' \n" +
+        "and task_id =  '$taskId'  "
         ")\n"
 
         return carrierResultDataDao.customizeSQL(sql)
@@ -461,8 +461,8 @@ class CallAnalysisService {
                     " DATE(date_add(now(), interval -90 day))<\n" +
                     "DATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))\n" +
                     "and  \n" +
-                    "mobile = \n" + mobile
-        "and task_id =  " + taskId
+                    "mobile = '$mobile'  \n" +
+        "and task_id =  '$taskId' " +
         "\n" +
                 ") or (\n" +
                 "\n" +
@@ -470,8 +470,8 @@ class CallAnalysisService {
                 "DATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))\n" +
                 "and  \n" +
                 "\n" +
-                "peer_number = \n" + mobile
-        "and task_id =  " + taskId
+                "peer_number = '$mobile'  \n" +
+        "and task_id =  '$taskId'  "
         ")\n"
 
         var result: Int = 0
@@ -497,8 +497,8 @@ class CallAnalysisService {
                     " DATE(date_add(now(), interval -180 day))<\n" +
                     "DATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))\n" +
                     "and  \n" +
-                    "mobile = \n" + mobile
-        "and task_id =  " + taskId
+                    "mobile = '$mobile'  \n" +
+        "and task_id =  '$taskId' " +
         "\n" +
                 ") or (\n" +
                 "\n" +
@@ -506,8 +506,8 @@ class CallAnalysisService {
                 "DATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))\n" +
                 "and  \n" +
                 "\n" +
-                "peer_number = \n" + mobile
-        "and task_id =  " + taskId
+                "peer_number = '$mobile' \n" +
+        "and task_id =  '$taskId'  "
         ")\n"
 
         var result: Int = 0
@@ -534,8 +534,8 @@ class CallAnalysisService {
                 " DATE(date_add(now(), interval -30 day))<\n" +
                 "DATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))\n" +
                 "and  \n" +
-                "mobile =  " + mobile
-        "and task_id =  " + taskId
+                "mobile =  '$mobile'  " +
+        "and task_id = '$taskId'  " +
         "\n" +
                 ") or (\n" +
                 "\n" +
@@ -543,8 +543,8 @@ class CallAnalysisService {
                 "DATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))\n" +
                 "and  \n" +
                 "\n" +
-                "peer_number =  " + mobile
-        "and task_id =  " + taskId
+                "peer_number =  '$mobile'  " +
+        "and task_id =  '$taskId' "
         ")\n"
 
         return carrierResultDataDao.customizeSQL(sql)
@@ -570,8 +570,8 @@ class CallAnalysisService {
                 " DATE(date_add(now(), interval -90 day))<\n" +
                 "DATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))\n" +
                 "and  \n" +
-                "mobile =  " + mobile
-        "and task_id =  " + taskId
+                "mobile = '$mobile'  " +
+        "and task_id = '$taskId'  "
         "\n" +
                 ") or (\n" +
                 "\n" +
@@ -579,8 +579,8 @@ class CallAnalysisService {
                 "DATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))\n" +
                 "and  \n" +
                 "\n" +
-                "peer_number =  " + mobile
-        "and task_id =  " + taskId
+                "peer_number =  '$mobile'  " +
+        "and task_id = '$taskId'  "
         ")\n"
 
 
@@ -606,8 +606,8 @@ class CallAnalysisService {
                 " DATE(date_add(now(), interval -180 day))<\n" +
                 "DATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))\n" +
                 "and  \n" +
-                "mobile =  " + mobile
-        "and task_id =  " + taskId
+                "mobile = '$mobile'  " +
+        "and task_id = '$taskId'   " +
         "\n" +
                 ") or (\n" +
                 "\n" +

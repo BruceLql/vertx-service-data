@@ -48,15 +48,11 @@ class FriendSummaryService {
                     var countLess3Months: Single<Int> = countLess3Months(mobile, task_id)//统计 近90天月联系人数量（去重）(0-90天)
                     var countLess3MonthsGoupy:  Single<Int> = countLess3MonthsGoupy(mobile, task_id)//近90天联系人数量（联系10次以上，去重）（0-90天）
                     var countLess3Attribution:  Single<String>  = countLess3Attribution(mobile, task_id)//近90天联系次数最多的号码归属地（0-90天）
-//                    var attributionMobilePhoneNumber:  Single<Boolean>  =
-//                        attributionMobilePhoneNumber(mobile, task_id)//近90天朋友圈中心城市是否与手机归属地一致（0-90天）
+                    var attributionMobilePhoneNumber: Single<Long>  = attributionMobilePhoneNumber(mobile, task_id)//近90天朋友圈中心城市是否与手机归属地一致（0-90天）
                     var contactPerson: Single<Int> = contactPerson(mobile, task_id)//近90天互有主叫和被叫的联系人电话号码数目（去重）
-
-                    var contactPersonLessSixMonth: Single<Int> =
-                        contactPersonLessSixMonth(mobile, task_id)//近180天的联系人数量重）（0-180天）
+                    var contactPersonLessSixMonth: Single<Int> = contactPersonLessSixMonth(mobile, task_id)//近180天的联系人数量重）（0-180天）
                     var contactPersonTen: Single<Int> = contactPersonTen(mobile, task_id)//近180天的联系人数量（联系10次以上，去重）（0-180天）
-                    var contactPersonTenHomeArea: Single<String> =
-                        contactPersonTenHomeArea(mobile, task_id)//近180天的联系次数最多的号码归属地（0-180天）
+                    var contactPersonTenHomeArea: Single<String> = contactPersonTenHomeArea(mobile, task_id)//近180天的联系次数最多的号码归属地（0-180天）
                     var attributionMobilePhoneNumberHun:  Single<Long> =
                         attributionMobilePhoneNumberHun(mobile, task_id)//近180天的朋友圈中心城市是否与手机归属地一致（0-180天）
                     var contactPersonHun:  Single<Int> = contactPersonHun(mobile, task_id)//近180天的互有主叫和被叫的联系人电话号码数目（去重）（0-180天）
@@ -71,31 +67,24 @@ class FriendSummaryService {
                         countLess3Attribution.map {
                             JsonObject().put("friend_city_center_3m",it)
                         }.toObservable(),
-
-//                        attributionMobilePhoneNumber.map {
-//                            JsonObject().put("is_city_match_friend_city_center_3m",it)
-//                        }.toObservable(),
-
+                        attributionMobilePhoneNumber.map {
+                            JsonObject().put("is_city_match_friend_city_center_3m",it)
+                        }.toObservable(),
                         contactPerson.map {
                             JsonObject().put("inter_peer_num_3m",it)
                         }.toObservable(),
-
                         contactPersonLessSixMonth.map {
                             JsonObject().put("friend_num_6m",it)
                         }.toObservable(),
-
                         contactPersonTen.map {
                             JsonObject().put("good_friend_num_6m",it)
                         }.toObservable(),
-
                         contactPersonTenHomeArea.map {
                             JsonObject().put("friend_city_center_6m",it)
                         }.toObservable(),
-
                         attributionMobilePhoneNumberHun.map {
                             JsonObject().put("is_city_match_friend_city_center_6m",it)
                         }.toObservable(),
-
                         contactPersonHun.map {
                             JsonObject().put("inter_peer_num_6m",it)
                         }.toObservable()
@@ -108,7 +97,7 @@ class FriendSummaryService {
                                 jsonObject.put("friend_num_3m", json.getInteger("friend_num_3m"))
                                 jsonObject.put("good_friend_num_3m", json.getInteger("good_friend_num_3m"))
                                 jsonObject.put("friend_city_center_3m", json.getString("friend_city_center_3m"))
-//                                jsonObject.put("is_city_match_friend_city_center_3m", json.getBoolean("is_city_match_friend_city_center_3m"))
+                                jsonObject.put("is_city_match_friend_city_center_3m", json.getBoolean("is_city_match_friend_city_center_3m"))
                                 jsonObject.put("inter_peer_num_3m", json.getInteger("inter_peer_num_3m"))
                                 jsonObject.put("friend_num_6m", json.getInteger("friend_num_6m"))
                                 jsonObject.put("good_friend_num_6m", json.getInteger("good_friend_num_6m"))
@@ -234,7 +223,7 @@ class FriendSummaryService {
     /***
      * 近90天朋友圈中心城市是否与手机归属地一致（0-90天）
      */
-    fun attributionMobilePhoneNumber(mobile: String, taskId: String): Single<Boolean> {
+    fun attributionMobilePhoneNumber(mobile: String, taskId: String): Single<Long> {
         log.info("近90天朋友圈中心城市是否与手机归属地一致（0-90天）")
         var sql: String = "SELECT \n" +
                 "  (\n" +
@@ -265,7 +254,7 @@ class FriendSummaryService {
 
         return carrierResultDataDao.customizeSQL(sql)
             .map {
-                it.first().getBoolean("result")
+                it.first().getLong("result")
             }.doOnError {
                 log.info("近90天朋友圈中心城市是否与手机归属地一致（0-90天）")
                 print(it.printStackTrace())
