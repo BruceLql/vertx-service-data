@@ -140,8 +140,8 @@ class InternetInfoDao @Autowired constructor(
                 BATCH_INTO_VALUES(
 
                     '"' + ss["task_id"].toString() + '"',
-                    '"' + ss["mobile"].toString() + '"',
                     '"' + ss["bill_month"].toString() + '"',
+                    '"' + ss["mobile"].toString() + '"',
                     '"' + ss["start_time"].toString() + '"',
                     '"' + ss["comm_plac"].toString() + '"',
                     '"' + ss["net_play_type"].toString() + '"',
