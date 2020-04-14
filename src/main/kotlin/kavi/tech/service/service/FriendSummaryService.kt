@@ -95,9 +95,8 @@ class FriendSummaryService {
                         }.toObservable()
                     )
                     //TODO 需要梳理逻辑
-                    Observable.concat(list).toList()
-                        .subscribe ({ it->
-
+                    return Observable.concat(list).toList()
+                        .map {
                             var jsonObject: JsonObject = JsonObject()
                             jsonObject.put("friend_num_3m", it[0].getInteger("friend_num_3m"))
                             jsonObject.put("good_friend_num_3m", it[1].getInteger("good_friend_num_3m"))
@@ -129,17 +128,22 @@ class FriendSummaryService {
 //                                    print("插入成功"+ result)
 //                                }
 //                            }
-                    },{
-                            print(it.printStackTrace())
-                        })
+                             this.client.rxGetConnection().flatMap { it ->
+                                carrierResultDataDao.insert(it, carrierResultData)
+                            }
+                        }.toSingle()
+//                        .subscribe ({ it->
+//
+//                    },{
+//                            print(it.printStackTrace())
+//                        })
                 }
+
             }
             , {
                 print("查询数据出错=======" + it.printStackTrace())
             })
-        return this.client.rxGetConnection().flatMap { it ->
-            carrierResultDataDao.insert(it, carrierResultData)
-        }
+
 
     }
 
