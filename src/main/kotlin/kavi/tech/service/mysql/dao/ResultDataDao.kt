@@ -30,17 +30,19 @@ class ResultDataDao @Autowired constructor(
         return this.client.rxGetConnection().flatMap { conn ->
 
             conn.rxExecute(sql).doAfterTerminate(conn::close)
-
         }
     }
 
     /**
      * 查询已清洗的数据结果
      * */
-    private fun selectData(where: List<Serializable>): Single<ResultData> {
+    public fun selectData(where: List<Serializable>): Single<io.vertx.ext.sql.ResultSet> {
         val sql = SQL.init { SELECT("*"); FROM(ResultData.tableName); WHERES(where) }
         print("selectData sql:$sql")
-        return this.one(sql)
+        return this.client.rxGetConnection().flatMap { conn ->
+
+            conn.rxQuery(sql).doAfterTerminate(conn::close)
+        }
         }
 
 

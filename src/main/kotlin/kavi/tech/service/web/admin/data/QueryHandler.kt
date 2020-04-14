@@ -1,19 +1,29 @@
 package kavi.tech.service.web.admin.data
 
 import io.vertx.core.http.HttpMethod
+import io.vertx.core.json.JsonArray
 import io.vertx.core.json.JsonObject
 import io.vertx.ext.web.RoutingContext
 import kavi.tech.service.common.extension.logger
-import kavi.tech.service.common.extension.regexInt
 import kavi.tech.service.common.extension.regexPhone
-import kavi.tech.service.mysql.dao.CallLogDao
+import kavi.tech.service.mysql.component.SQL
+import kavi.tech.service.mysql.dao.QueryRecordsDao
+import kavi.tech.service.mysql.dao.ResultDataDao
+import kavi.tech.service.mysql.entity.QueryRecords
+import kavi.tech.service.mysql.entity.ResultData
 import org.springframework.beans.factory.annotation.Autowired
+import rx.Single
 import tech.kavi.vs.web.ControllerHandler
 import tech.kavi.vs.web.HandlerRequest
 
+/**
+ * @param mobile 必传参数 手机号
+ *
+ */
 @HandlerRequest(path = "/query", method = HttpMethod.POST)
 class QueryHandler @Autowired constructor(
-    private val callLogDao: CallLogDao
+    private val queryRecordsDao: QueryRecordsDao,
+    private val resultDataDao: ResultDataDao
 ) : ControllerHandler() {
     private val log = logger(this::class)
     /**
@@ -27,6 +37,10 @@ class QueryHandler @Autowired constructor(
         log.info("=========/data/notice==============")
         // result 返回值
         val result = JsonObject()
+        val data = JsonObject()
+        result.put("status", "0")
+        result.put("message", "success")
+
         try {
             val params: JsonObject = event.bodyAsJson
             println(params.toString())
@@ -38,29 +52,65 @@ class QueryHandler @Autowired constructor(
             if (!regexPhone(mobile)) {
                 throw IllegalArgumentException("(手机号)参数不合法！")
             }
-            if(task_id.isNotEmpty()){
-                println("=================")
+            val queryRecord = QueryRecords()
+            queryRecord.mobile = mobile
+            if (task_id.isNotEmpty()) {
+                queryRecord.task_id = task_id
             }
+            // 获取数据的方式 1:推送 2：主动查询
+            queryRecord.type = 2
+            // 状态 0：success 1:error
+            queryRecord.status = 0
+            // 保存请求记录
+//            queryRecordsDao.insert(queryRecord).flatMap {
+            queryLastestTaskId(queryRecord).flatMap {
+                // 返回手机号和 任务ID
+                result.put("mobile", mobile)
+                result.put("task_id", it.getString("task_id"))
+                resultDataDao.selectData(listOf(Pair("task_id", it.getString("task_id")), Pair("mobile", mobile)))
 
-            // TODO  数据推送
+            }.subscribe({
 
-            callLogDao.select("select * from  carrier_voicecall limit 10").subscribe({
+                it.results.forEach { it ->
 
-                println(it.toString())
-            }, {
-                it.printStackTrace()
-            })
+                    val value = it.getValue(4).toString()
+                    // .toString().let { values_bef -> values_bef.substring(0, values_bef.length - 1).substring(1) }
+                    // 数据最终转换成Json 类型
+                    val valueFinal = when (value[0]) {
+                        '{' -> JsonObject(value)
+                        '[' -> JsonArray(value)
+                        else -> value
+                    }
+                    data.put(it.getString(3), valueFinal)
+                }
+                result.put("data", data)
+                //  数据返回
+                event.response().end(result.toString())
+
+            }, { it.printStackTrace() })
 
 
-
-
-
-            event.response().end(result.put("message", "query success").toString())
         } catch (e: Exception) {
             e.printStackTrace()
             result.put("message", e.message ?: "异常，请联系管理员排查")
             event.response().setStatusCode(500).end(result.toString()) // 返回数据
         }
-
     }
+
+    /**
+     * 查询最近一次的采集结果的任务ID
+     */
+    fun queryLastestTaskId(queryRecord: QueryRecords): Single<JsonObject> {
+
+        val sql = SQL.init {
+            SELECT("task_id")
+            FROM(ResultData.tableName)
+            WHERE(Pair("mobile", queryRecord.mobile))
+            ORDER_BY("created_at")
+        } + " DESC"
+        println("queryLastestTaskId:$sql")
+        return queryRecordsDao.one(sql)
+    }
+
 }
+
