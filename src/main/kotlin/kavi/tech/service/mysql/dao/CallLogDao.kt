@@ -207,6 +207,7 @@ class CallLogDao @Autowired constructor(
             "VOLTE主叫" -> "DIAL"
             "被叫" -> "DIALED"
             "VOLTE被叫" -> "DIALED"
+            "呼转" -> "DIALED"
             else -> obj.getString("commMode")
         }
         // 对方号码
@@ -238,6 +239,8 @@ class CallLogDao @Autowired constructor(
         callLog_s.dial_type = when (obj.getString("calltypeName")) {
             "主叫" -> "DIAL"
             "被叫" -> "DIALED"
+            "呼叫转移" -> "DIALED"
+            "呼转" -> "DIALED"
             else -> obj.getString("calltypeName")
         }
         // 对方号码
