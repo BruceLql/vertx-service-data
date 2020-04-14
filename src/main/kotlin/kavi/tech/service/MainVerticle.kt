@@ -25,8 +25,8 @@ class MainVerticle : LauncherVerticle() {
     override fun start() {
         super.start()
 //        vertx.deployVerticle(webVerticle)
-        friendSummaryService.toCleaningCircleFriendsData("14779716260", "5e9426345a33e0024df2f20c")
-//        callAnalysisService.toCleaningCircleFriendsData("14779716260", "5e9426345a33e0024df2f20c")
+//        friendSummaryService.toCleaningCircleFriendsData("14779716260", "5e9426345a33e0024df2f20c")
+        callAnalysisService.toCleaningCircleFriendsData("14779716260", "5e9426345a33e0024df2f20c")
 
     }
 

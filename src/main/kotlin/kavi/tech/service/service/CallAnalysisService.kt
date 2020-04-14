@@ -1,5 +1,6 @@
 package kavi.tech.service.service
 
+import io.vertx.codegen.CodeGenProcessor.log
 import io.vertx.core.json.JsonObject
 import kavi.tech.service.mysql.dao.CarrierResultDataDao
 import kavi.tech.service.mysql.entity.CarrierResultData
@@ -91,7 +92,7 @@ class CallAnalysisService {
                         var countLessThreeMonthTimeAvg: Int = countLessThreeMonthTime / 3 // 近3月主叫月均通话时长（秒） --
                         var countLessSixMonthTimeAvg: Int = countLessSixMonthTime / 6 // 近6月主叫月均通话时长（秒）（秒） --
 
-                        var countLessThreeMonthAllTimeAvg: Int = countLessThreeMonthAllTime / 3 // 近3月平均通话时长（秒）
+                        var countLessThreeMonthAllTimeAvg: Int = countLessThreeMonthAllTime.toInt() / 3 // 近3月平均通话时长（秒）
                         var countLessSixMonthAllTimeAvg: Int = countLessSixMonthAllTime / 6 // 近6月平均通话时长（秒）
 
                         var countLessThreeMonthAllAvg: Int = countLessThreeMonthAll / 3 // 近3月平均通话次数
@@ -215,6 +216,7 @@ class CallAnalysisService {
      * 近1月通话总次数（近1月是指近30天，即0-30天）
      */
     fun countLessOneMonth(mobile: String, taskId: String): Single<Int> {
+        log.info("近1月主叫通话次数")
         var sql: String =
             "SELECT\n" +
                     "COUNT(id) as countTime \n" +
@@ -229,7 +231,10 @@ class CallAnalysisService {
        return  carrierResultDataDao.customizeSQL(sql)
             .map {
                 it[0].getInteger("countTime")
-            }
+            }.doOnError {
+               log.info("近1月主叫通话次数")
+               print(it.printStackTrace())
+           }
     }
 
     /***
@@ -239,6 +244,7 @@ class CallAnalysisService {
      * 近1个月被叫通话次数（近1月是指近30天，即0-30天）
      */
     fun becountLessOneMonth(mobile: String, taskId: String): Single<Int> {
+        log.info("近1个月被叫通话次数")
         var sql: String =
             "SELECT\n" +
                     "COUNT(id) as countTime \n" +
@@ -253,7 +259,10 @@ class CallAnalysisService {
        return carrierResultDataDao.customizeSQL(sql)
             .map {
                 it[0].getInteger("countTime")
-            }
+            }.doOnError {
+               log.info("近1个月被叫通话次数")
+               print(it.printStackTrace())
+           }
     }
 
     /***
@@ -262,6 +271,7 @@ class CallAnalysisService {
      * 近3月通话总次数（近3月是指近三月的数据，即0-90天）
      */
     fun countLessThreeMonth(mobile: String, taskId: String): Single<Int> {
+        log.info("近3月主叫通话次数")
         var sql: String =
             "SELECT\n" +
                     "COUNT(id) as countTime\n" +
@@ -276,6 +286,9 @@ class CallAnalysisService {
         return carrierResultDataDao.customizeSQL(sql)
             .map {
                 it[0].getInteger("countTime")
+            }.doOnError {
+                log.info("近3月主叫通话次数")
+                print(it.printStackTrace())
             }
     }
 
@@ -285,6 +298,7 @@ class CallAnalysisService {
      * 近3个月被叫通话次数（近3月是指近三月的数据，即0-90天）
      */
     fun becountLessThreeMonth(mobile: String, taskId: String): Single<Int> {
+        log.info("近3个月被叫通话次数")
         var sql: String =
             "SELECT\n" +
                     "COUNT(id) as countTime\n" +
@@ -299,13 +313,17 @@ class CallAnalysisService {
        return carrierResultDataDao.customizeSQL(sql).
             map {
                 it[0]?.getInteger("countTime")
-            }
+            }.doOnError {
+           log.info("近3个月被叫通话次数")
+           print(it.printStackTrace())
+       }
     }
 
     /***
      * 近6个月被叫通话次数（近6月是指近六月的数据，即0-180天）
      */
     fun becountLessSixMonth(mobile: String, taskId: String): Single<Int> {
+        log.info("近6个月被叫通话次数（近6月是指近六月的数据，即0-180天）")
         var sql: String =
             "SELECT\n" +
                     "COUNT(id) AS countTime\n" +
@@ -320,7 +338,10 @@ class CallAnalysisService {
         return carrierResultDataDao.customizeSQL(sql).
             map {
                 it[0]?.getInteger("countTime")
-            }
+            }.doOnError {
+            log.info("近6个月被叫通话次数（近6月是指近六月的数据，即0-180天）")
+            print(it.printStackTrace())
+        }
 
     }
 
@@ -328,6 +349,7 @@ class CallAnalysisService {
      * 近6月主叫通话次数（近6月是指近六月的数据，即0-180天）
      */
     fun countLessSixMonth(mobile: String, taskId: String): Single<Int> {
+        log.info("近6月主叫通话次数（近6月是指近六月的数据，即0-180天）")
         var sql: String =
             "SELECT\n" +
                     "COUNT(id) as countTime\n" +
@@ -342,7 +364,10 @@ class CallAnalysisService {
        return carrierResultDataDao.customizeSQL(sql)
             .map {
                 it[0].getInteger("countTime")
-            }
+            }.doOnError {
+               log.info("近6月主叫通话次数（近6月是指近六月的数据，即0-180天）")
+               print(it.printStackTrace())
+           }
 
     }
 
@@ -351,6 +376,7 @@ class CallAnalysisService {
      *近1月主叫通话时长（秒）
      */
     fun countLessOneMonthTime(mobile: String, taskId: String): Single<Int> {
+        log.info("近1月主叫通话时长（秒）")
         var sql: String =
             "SELECT\n" +
                     "SUM(duration_in_second) as countTime\n" +
@@ -365,13 +391,17 @@ class CallAnalysisService {
        return  carrierResultDataDao.customizeSQL(sql)
             .map {
                 it[0]?.getInteger("countTime")
-            }
+            }.doOnError {
+               log.info("近1月主叫通话时长（秒）")
+               print(it.printStackTrace())
+           }
     }
 
     /**
      *近3月主叫通话时长（秒）
      */
     fun countLessThreeMonthTime(mobile: String, taskId: String): Single<Int> {
+        log.info("近3月主叫通话时长（秒）")
         var sql: String =
             "SELECT\n" +
                     "SUM(duration_in_second) as countTime\n" +
@@ -386,6 +416,9 @@ class CallAnalysisService {
        return carrierResultDataDao.customizeSQL(sql)
            .map {
                it[0]?.getInteger("countTime")
+           }.doOnError {
+               log.info("近3月主叫通话时长（秒）")
+               print(it.printStackTrace())
            }
     }
 
@@ -393,6 +426,7 @@ class CallAnalysisService {
      *近6月主叫通话时长（秒）
      */
     fun countLessSixMonthTime(mobile: String, taskId: String): Single<Int> {
+        log.info("近6月主叫通话时长（秒）")
         var sql: String =
             "SELECT\n" +
                     "SUM(duration_in_second) as countTime\n" +
@@ -407,13 +441,17 @@ class CallAnalysisService {
        return carrierResultDataDao.customizeSQL(sql)
             .map {
                 it[0]?.getInteger("countTime")
-            }
+            }.doOnError {
+               log.info("近6月主叫通话时长（秒）")
+               print(it.printStackTrace())
+           }
     }
 
     /**
      *近1月通话次数
      */
     fun countLessOneMonthAll(mobile: String, taskId: String): Single<Int> {
+        log.info("近1月通话次数")
         var sql: String =
             "SELECT\n" +
                     "COUNT(*) as coutnTime \n" +
@@ -436,12 +474,15 @@ class CallAnalysisService {
                 "and  \n" +
                 "\n" +
                 "peer_number = '$mobile' \n" +
-        "and task_id =  '$taskId'  "
+        "and task_id =  '$taskId'  " +
         ")\n"
 
         return carrierResultDataDao.customizeSQL(sql)
             .map {
                 it[0]?.getInteger("countTime")
+            }.doOnError {
+                log.info("近1月通话次数")
+                print(it.printStackTrace())
             }
     }
 
@@ -449,6 +490,7 @@ class CallAnalysisService {
      *近3月通话次数
      */
     fun countLessThreeMonthAll(mobile: String, taskId: String): Single<Int> {
+        log.info("近3月通话次数")
         var sql: String =
             "SELECT\n" +
                     "COUNT(*) as coutnTime \n" +
@@ -471,13 +513,16 @@ class CallAnalysisService {
                 "and  \n" +
                 "\n" +
                 "peer_number = '$mobile'  \n" +
-        "and task_id =  '$taskId'  "
+        "and task_id =  '$taskId'  " +
         ")\n"
 
         var result: Int = 0
         return carrierResultDataDao.customizeSQL(sql)
             .map {
                 it[0]?.getInteger("countTime")
+            }.doOnError {
+                log.info("近3月通话次数")
+                print(it.printStackTrace())
             }
     }
 
@@ -485,6 +530,7 @@ class CallAnalysisService {
      *近6月通话次数
      */
     fun countLessSixMonthAll(mobile: String, taskId: String): Single<Int> {
+        log.info("近6月通话次数")
         var sql: String =
             "SELECT\n" +
                     "COUNT(*) as coutnTime \n" +
@@ -507,13 +553,16 @@ class CallAnalysisService {
                 "and  \n" +
                 "\n" +
                 "peer_number = '$mobile' \n" +
-        "and task_id =  '$taskId'  "
+        "and task_id =  '$taskId'  " +
         ")\n"
 
         var result: Int = 0
         return carrierResultDataDao.customizeSQL(sql)
             .map {
                 it[0]?.getInteger("countTime")
+            }.doOnError {
+                log.info("近6月通话次数")
+                print(it.printStackTrace())
             }
 
     }
@@ -522,6 +571,7 @@ class CallAnalysisService {
      *近1月通话时长（秒）
      */
     fun countLessOneMonthAllTime(mobile: String, taskId: String): Single<Int> {
+        log.info("近1月通话时长（秒）")
         var sql: String = "\n" +
                 "SELECT\n" +
                 "SUM(duration_in_second) as countTime\n" +
@@ -544,12 +594,15 @@ class CallAnalysisService {
                 "and  \n" +
                 "\n" +
                 "peer_number =  '$mobile'  " +
-        "and task_id =  '$taskId' "
+        "and task_id =  '$taskId' " +
         ")\n"
 
         return carrierResultDataDao.customizeSQL(sql)
             .map {
                 it[0]?.getInteger("countTime")
+            }.doOnError {
+                log.info("近1月通话时长（秒）")
+                print(it.printStackTrace())
             }
 
     }
@@ -558,6 +611,7 @@ class CallAnalysisService {
      *近3月通话时长（秒）（秒）
      */
     fun countLessThreeMonthAllTime(mobile: String, taskId: String): Single<Int> {
+        log.info("近3月通话时长（秒）（秒）")
         var sql: String = "\n" +
                 "SELECT\n" +
                 "SUM(duration_in_second) as countTime\n" +
@@ -571,7 +625,7 @@ class CallAnalysisService {
                 "DATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))\n" +
                 "and  \n" +
                 "mobile = '$mobile'  " +
-        "and task_id = '$taskId'  "
+        "and task_id = '$taskId'  " +
         "\n" +
                 ") or (\n" +
                 "\n" +
@@ -580,13 +634,15 @@ class CallAnalysisService {
                 "and  \n" +
                 "\n" +
                 "peer_number =  '$mobile'  " +
-        "and task_id = '$taskId'  "
+        "and task_id = '$taskId'  " +
         ")\n"
-
 
         return carrierResultDataDao.customizeSQL(sql)
             .map {
-                it[0].getInteger("countTime")
+                it[0].getString("countTime").toInt()
+            }.doOnError {
+                log.info("近3月通话时长（秒）（秒）")
+                print(it.printStackTrace())
             }
     }
 
@@ -594,6 +650,7 @@ class CallAnalysisService {
      *近6月通话时长（秒）（秒）（秒）
      */
     fun countLessSixMonthAllTime(mobile: String, taskId: String): Single<Int> {
+        log.info("近6月通话时长（秒）（秒）（秒）")
         var sql: String = "\n" +
                 "SELECT\n" +
                 "SUM(duration_in_second) as countTime\n" +
@@ -615,13 +672,16 @@ class CallAnalysisService {
                 "DATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))\n" +
                 "and  \n" +
                 "\n" +
-                "peer_number =  " + mobile
-        "and task_id =  " + taskId
+                "peer_number = '$mobile' " +
+        "and task_id =  '$taskId'  "  +
         ")\n"
 
         return carrierResultDataDao.customizeSQL(sql)
             .map {
-                it[0].getInteger("countTime")
+                it[0].getString("countTime").toInt()
+            }.doOnError {
+                log.info("近6月通话时长（秒）（秒）（秒）")
+                print(it.printStackTrace())
             }
     }
 
