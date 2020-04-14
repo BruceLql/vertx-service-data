@@ -1,12 +1,12 @@
 package kavi.tech.service.service
 
+import io.vertx.codegen.CodeGenProcessor.log
 import io.vertx.core.json.JsonObject
 import kavi.tech.service.mysql.dao.CarrierResultDataDao
 import kavi.tech.service.mysql.entity.CarrierResultData
 import org.apache.commons.lang3.StringUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
-import rx.Single
 import java.util.*
 
 /**
@@ -38,32 +38,32 @@ class FriendSummaryService {
             .subscribe({ list ->
                 print(list)
                 if (list.isNotEmpty()) {
-                    var countLess3Months: Single<Int> = countLess3Months(mobile, task_id)//统计 近90天月联系人数量（去重）(0-90天)
-                    var countLess3MonthsGoupy:  Single<Int> = countLess3MonthsGoupy(mobile, task_id)//近90天联系人数量（联系10次以上，去重）（0-90天）
-                    var countLess3Attribution:  Single<String>  = countLess3Attribution(mobile, task_id)//近90天联系次数最多的号码归属地（0-90天）
-                    var attributionMobilePhoneNumber:  Single<Boolean>  =
+                    var countLess3Months: Int = countLess3Months(mobile, task_id)//统计 近90天月联系人数量（去重）(0-90天)
+                    var countLess3MonthsGoupy:  Int = countLess3MonthsGoupy(mobile, task_id)//近90天联系人数量（联系10次以上，去重）（0-90天）
+                    var countLess3Attribution:  String  = countLess3Attribution(mobile, task_id)//近90天联系次数最多的号码归属地（0-90天）
+                    var attributionMobilePhoneNumber:  Boolean  =
                         attributionMobilePhoneNumber(mobile, task_id)//近90天朋友圈中心城市是否与手机归属地一致（0-90天）
-                    var contactPerson: Single<Int> = contactPerson(mobile, task_id)//近90天互有主叫和被叫的联系人电话号码数目（去重）
+                    var contactPerson: Int = contactPerson(mobile, task_id)//近90天互有主叫和被叫的联系人电话号码数目（去重）
 
-                    var contactPersonLessSixMonth: Single<Int> =
+                    var contactPersonLessSixMonth: Int =
                         contactPersonLessSixMonth(mobile, task_id)//近180天的联系人数量重）（0-180天）
-                    var contactPersonTen: Single<Int> = contactPersonTen(mobile, task_id)//近180天的联系人数量（联系10次以上，去重）（0-180天）
-                    var contactPersonTenHomeArea: Single<String> =
+                    var contactPersonTen: Int = contactPersonTen(mobile, task_id)//近180天的联系人数量（联系10次以上，去重）（0-180天）
+                    var contactPersonTenHomeArea: String =
                         contactPersonTenHomeArea(mobile, task_id)//近180天的联系次数最多的号码归属地（0-180天）
-                    var attributionMobilePhoneNumberHun:  Single<Boolean> =
+                    var attributionMobilePhoneNumberHun:  Boolean =
                         attributionMobilePhoneNumberHun(mobile, task_id)//近180天的朋友圈中心城市是否与手机归属地一致（0-180天）
-                    var contactPersonHun:  Single<Int> = contactPersonHun(mobile, task_id)//近180天的互有主叫和被叫的联系人电话号码数目（去重）（0-180天）
+                    var contactPersonHun:  Int = contactPersonHun(mobile, task_id)//近180天的互有主叫和被叫的联系人电话号码数目（去重）（0-180天）
 
-                    jsonObject.put("friend_num_3m", countLess3Months.map {it.toInt()})
-                    jsonObject.put("good_friend_num_3m", countLess3MonthsGoupy.map {it.toInt()})
-                    jsonObject.put("friend_city_center_3m", countLess3Attribution.map {it.toString()})
-                    jsonObject.put("is_city_match_friend_city_center_3m", attributionMobilePhoneNumber.map{it})
-                    jsonObject.put("inter_peer_num_3m", contactPerson.map {it.toInt()})
-                    jsonObject.put("friend_num_6m", contactPersonLessSixMonth.map {it.toInt()})
-                    jsonObject.put("good_friend_num_6m", contactPersonTen.map {it.toInt()})
-                    jsonObject.put("friend_city_center_6m", contactPersonTenHomeArea.map {it.toString()})
-                    jsonObject.put("is_city_match_friend_city_center_6m", attributionMobilePhoneNumberHun.map{it})
-                    jsonObject.put("inter_peer_num_6m", contactPersonHun.map {it.toInt()})
+                    jsonObject.put("friend_num_3m", countLess3Months)
+                    jsonObject.put("good_friend_num_3m", countLess3MonthsGoupy)
+                    jsonObject.put("friend_city_center_3m", countLess3Attribution)
+                    jsonObject.put("is_city_match_friend_city_center_3m", attributionMobilePhoneNumber)
+                    jsonObject.put("inter_peer_num_3m", contactPerson)
+                    jsonObject.put("friend_num_6m", contactPersonLessSixMonth)
+                    jsonObject.put("good_friend_num_6m", contactPersonTen)
+                    jsonObject.put("friend_city_center_6m", contactPersonTenHomeArea)
+                    jsonObject.put("is_city_match_friend_city_center_6m", attributionMobilePhoneNumberHun)
+                    jsonObject.put("inter_peer_num_6m", contactPersonHun)
                     carrierResultData.task_id = task_id
                     carrierResultData.mobile = mobile
                     carrierResultData.item = "friend_circle"
@@ -81,7 +81,8 @@ class FriendSummaryService {
     /**
      * 统计 近90天月联系人数量（去重）(0-90天)
      */
-    fun countLess3Months(mobile: String, taskId: String): Single<Int> {
+    fun countLess3Months(mobile: String, taskId: String): Int {
+        log.info("统计 近90天月联系人数量（去重）(0-90天)")
         var sql: String = "SELECT \n" +
                 "\t COUNT(DISTINCT peer_number) as \"countTime\"\n" +
                 "\t\tFROM\n" +
@@ -91,19 +92,21 @@ class FriendSummaryService {
                 "\t\tDATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))\n" +
                 "\t\tand  mobile =  \n" + mobile
         "and task_id =  " + taskId
-
-        return carrierResultDataDao.customizeSQL(sql)
+         var result:Int = 0
+         carrierResultDataDao.customizeSQL(sql)
             .map {
                 it[0]?.getInteger("countTime")
-            }
-
+            }.subscribe {
+                 result = it
+             }
+        return result
     }
 
     /**
      * 近90天联系人数量（联系10次以上，去重）（0-90天）
      */
-    fun countLess3MonthsGoupy(mobile: String, taskId: String): Single<Int> {
-
+    fun countLess3MonthsGoupy(mobile: String, taskId: String): Int {
+        log.info("近90天联系人数量（联系10次以上，去重） ")
         var sql: String = "SELECT\n" +
                 "\tCOUNT(DISTINCT peer_number) as countTime\n" +
                 "FROM\n" +
@@ -124,17 +127,21 @@ class FriendSummaryService {
                 "\tpeer_number\n" +
                 "HAVING\n" +
                 "\t(COUNT(peer_number) > 10)"
-
-        return carrierResultDataDao.customizeSQL(sql)
+        var result:Int = 0
+         carrierResultDataDao.customizeSQL(sql)
             .map {
                 it[0]?.getInteger("countTime")
-            }
+            }.subscribe {
+                  result =it
+             }
+        return result
     }
 
     /***
      * 近90天联系次数最多的号码归属地（0-90天）
      */
-    fun countLess3Attribution(mobile: String, taskId: String): Single<String> {
+    fun countLess3Attribution(mobile: String, taskId: String): String {
+        log.info("近90天联系次数最多的号码归属地（0-90天）")
         var sql: String = "SELECT homearea from (\n" +
                 "\n" +
                 "SELECT \n" +
@@ -166,16 +173,21 @@ class FriendSummaryService {
                 "\n" +
                 ") as c \n" +
                 "HAVING(MAX(countTime))"
-        return carrierResultDataDao.customizeSQL(sql)
+        var result:String = ""
+         carrierResultDataDao.customizeSQL(sql)
             .map {
                 it.firstOrNull().toString()
-            }
+            }.subscribe {
+                 result = it
+             }
+        return result
     }
 
     /***
      * 近90天朋友圈中心城市是否与手机归属地一致（0-90天）
      */
-    fun attributionMobilePhoneNumber(mobile: String, taskId: String): Single<Boolean> {
+    fun attributionMobilePhoneNumber(mobile: String, taskId: String): Boolean {
+        log.info("近90天朋友圈中心城市是否与手机归属地一致（0-90天）")
         var sql: String = "SELECT \n" +
                 "  (\n" +
                 "\tCASE\n" +
@@ -202,17 +214,21 @@ class FriendSummaryService {
         "GROUP BY peer_number\n" +
                 "  ) as bb\n" +
                 ") as c LEFT JOIN carrier_baseinfo on carrier_baseinfo.mobile = c.peer_number"
-
-        return carrierResultDataDao.customizeSQL(sql)
+        var result:Boolean = false
+         carrierResultDataDao.customizeSQL(sql)
             .map {
                 it.first().getBoolean("result")
-            }
+            }.subscribe {
+                 result = it
+             }
+        return result
     }
 
     /***
      *  近90天互有主叫和被叫的联系人电话号码数目（去重）（0-90天）
      */
-    fun contactPerson(mobile: String, taskId: String): Single<Int> {
+    fun contactPerson(mobile: String, taskId: String): Int {
+        log.info("近90天互有主叫和被叫的联系人电话号码数目（去重）（0-90天）")
         var sql: String = "SELECT COUNT(*)  as \"countTime\"\n" +
                 "from ( \n" +
                 "SELECT \n" +
@@ -235,17 +251,21 @@ class FriendSummaryService {
                 "\t\t\t\t DATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))\n" +
                 ") as b \n"
         var result: Int = 0
-        return carrierResultDataDao.customizeSQL(sql)
+         carrierResultDataDao.customizeSQL(sql)
             .map {
                 it[0]?.getInteger("countTime")
-            }
+            }.subscribe {
+                 result = it
+             }
+        return result
     }
 
 
     /***
      *  近180天的联系人数量
      */
-    fun contactPersonLessSixMonth(mobile: String, taskId: String): Single<Int> {
+    fun contactPersonLessSixMonth(mobile: String, taskId: String): Int {
+        log.info("近180天的联系人数量")
         var sql: String = "SELECT \n" +
                 "\t COUNT(DISTINCT peer_number) as \"countTime\"\n" +
                 "\t\tFROM\n" +
@@ -255,17 +275,21 @@ class FriendSummaryService {
                 "\t\tDATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))\n" +
                 "\t\tand  mobile =  \n" + mobile
         "and task_id =  " + taskId
-
-        return carrierResultDataDao.customizeSQL(sql)
+        var result: Int = 0
+         carrierResultDataDao.customizeSQL(sql)
             .map {
                 it[0]?.getInteger("countTime")
+            }.subscribe {
+                result = it
             }
+        return result
     }
 
     /***
      *  近180天的联系人数量（联系10次以上，去重）（0-180天）
      */
-    fun contactPersonTen(mobile: String, taskId: String): Single<Int> {
+    fun contactPersonTen(mobile: String, taskId: String): Int {
+        log.info("近180天的联系人数量（联系10次以上，去重）（0-180天）")
         var sql: String = "SELECT\n" +
                 "\tCOUNT(DISTINCT peer_number) as countTime\n" +
                 "FROM\n" +
@@ -286,16 +310,21 @@ class FriendSummaryService {
                 "\tpeer_number\n" +
                 "HAVING\n" +
                 "\t(COUNT(peer_number) > 10)"
-        return carrierResultDataDao.customizeSQL(sql)
+        var result: Int = 0
+         carrierResultDataDao.customizeSQL(sql)
             .map {
                 it[0]?.getInteger("countTime")
-            }
+            }.subscribe {
+                 result = it
+             }
+        return result
     }
 
     /***
      * 近180天的联系次数最多的号码归属地（0-180天）
      */
-    fun contactPersonTenHomeArea(mobile: String, taskId: String): Single<String> {
+    fun contactPersonTenHomeArea(mobile: String, taskId: String): String {
+        log.info("近180天的联系次数最多的号码归属地（0-180天）")
         var sql: String = "SELECT homearea from (\n" +
                 "\n" +
                 "SELECT \n" +
@@ -327,18 +356,21 @@ class FriendSummaryService {
                 "\n" +
                 ") as c \n" +
                 "HAVING(MAX(countTime))"
-
-        return carrierResultDataDao.customizeSQL(sql)
+        var result: String = ""
+         carrierResultDataDao.customizeSQL(sql)
             .map {
                 it[0]?.toString()
-            }
-
+            }.subscribe {
+                 result = it
+             }
+        return result
     }
 
     /***
      * 近180天的朋友圈中心城市是否与手机归属地一致（0-180天）
      */
-    fun attributionMobilePhoneNumberHun(mobile: String, taskId: String): Single<Boolean> {
+    fun attributionMobilePhoneNumberHun(mobile: String, taskId: String): Boolean {
+        log.info("近180天的朋友圈中心城市是否与手机归属地一致（0-180天）")
         var sql: String = "SELECT \n" +
                 "  (\n" +
                 "\tCASE\n" +
@@ -365,18 +397,21 @@ class FriendSummaryService {
         "GROUP BY peer_number\n" +
                 "  ) as bb\n" +
                 ") as c LEFT JOIN carrier_baseinfo on carrier_baseinfo.mobile = c.peer_number"
-
-        return carrierResultDataDao.customizeSQL(sql)
+        var result: Boolean = false
+         carrierResultDataDao.customizeSQL(sql)
             .map {
                 it[0]?.getBoolean("result")
-            }
-
+            }.subscribe {
+                 result = it
+             }
+        return result
     }
 
     /***
      *  近180天的互有主叫和被叫的联系人电话号码数目（去重）（0-180天）
      */
-    fun contactPersonHun(mobile: String, taskId: String): Single<Int> {
+    fun contactPersonHun(mobile: String, taskId: String): Int {
+        log.info("近180天的互有主叫和被叫的联系人电话号码数目（去重）（0-180天）")
         var sql: String = "SELECT COUNT(*)  as \"countTime\"\n" +
                 "from ( \n" +
                 "SELECT \n" +
@@ -398,9 +433,13 @@ class FriendSummaryService {
         "\t\t\t\t and  DATE(date_add(now(), interval -180 day))<\n" +
                 "\t\t\t\t DATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))\n" +
                 ") as b \n"
-        return carrierResultDataDao.customizeSQL(sql)
+        var result: Int = 0
+         carrierResultDataDao.customizeSQL(sql)
             .map {
                 it[0]?.getInteger("countTime")
-            }
+            }.subscribe {
+                 result = it
+             }
+        return result
     }
 }

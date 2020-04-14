@@ -22,7 +22,8 @@ class MainVerticle : LauncherVerticle() {
     override fun start() {
         super.start()
 //        vertx.deployVerticle(webVerticle)
-        friendSummaryService.toCleaningCircleFriendsData("14779716260" , "5e9426345a33e0024df2f20c")
+        friendSummaryService.countLess3Months("14779716260", "5e9426345a33e0024df2f20c")
+
     }
 
     companion object {
