@@ -25,6 +25,8 @@ class CallAnalysis {
         if (data.isEmpty()) {
             throw IllegalAccessException("数据为空！")
         }
+        val carrierResultDataList = ArrayList<CarrierResultData>()
+
         data.forEach { i ->
             val carrierResultData = CarrierResultData()
             var mobile = i.getString("mobile")
@@ -73,6 +75,12 @@ class CallAnalysis {
 
                         var countLessThreeMonthAllTimeAvg: Int = countLessThreeMonthAllTime / 3 // 近3月平均通话时长（秒）
                         var countLessSixMonthAllTimeAvg: Int = countLessSixMonthAllTime / 6// 近6月平均通话时长（秒）
+
+//                        carrierResultData.task_id = task_id
+//                        carrierResultData.mobile = mobile
+//                        carrierResultData.item = "friend_circle"
+//                        carrierResultData.result = "friend_circle"
+
                     }
                 }
         }

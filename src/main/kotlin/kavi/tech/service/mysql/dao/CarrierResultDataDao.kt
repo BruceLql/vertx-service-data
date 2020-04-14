@@ -77,7 +77,7 @@ class CarrierResultDataDao @Autowired constructor(
     }
 
     /**
-     * 批量新增通话记录
+     * 批量新增数据解析记录
      * */
     fun insertBybatch(carrierResultData: CarrierResultData, valueList: List<CarrierResultData>): Single<UpdateResult> {
 
