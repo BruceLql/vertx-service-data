@@ -18,7 +18,7 @@ import rx.Single
  * @Versin 1.0
  */
 @Service
-class CallAnalysis {
+class CallAnalysisService {
 
     @Autowired
     private lateinit var carrierResultDataDao: CarrierResultDataDao
@@ -29,7 +29,6 @@ class CallAnalysis {
         }
         val carrierResultDataList = ArrayList<CarrierResultData>()
 
-        var jsonObject: JsonObject = JsonObject()
         val carrierResultData = CarrierResultData()
         carrierResultData.mobile = mobile
         carrierResultData.task_id = task_id
@@ -77,6 +76,7 @@ class CallAnalysis {
             .subscribe(
                 { item ->
                     item.map { json ->
+                        var jsonObject: JsonObject = JsonObject()
                         val countLessThreeMonthAllTime = json.getInteger("call_time_3m") //近3月通话时长（秒）
                         val countLessSixMonthAllTime = json.getInteger("call_time_6m") // 近6月通话时长（秒）
                         val countLessThreeMonthAll = json.getInteger("call_cnt_3m") //近3月通话次数
