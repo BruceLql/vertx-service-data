@@ -91,7 +91,10 @@ class CarrierResultDataDao @Autowired constructor(
                 "mobile",
                 "item",
                 "result",
+                "carrier_001",
+                "carrier_002",
                 "created_at",
+                "updated_at",
                 "deleted_at"
             )
             log.info("valueList:$valueList")
@@ -104,7 +107,10 @@ class CarrierResultDataDao @Autowired constructor(
                     '"' + ss["mobile"].toString() + '"',
                     '"' + ss["item"].toString() + '"',
                     '"' + ss["result"].toString() + '"',
+                    '"' + ss["carrier_001"].toString() + '"',
+                    '"' + ss["carrier_002"].toString() + '"',
                     '"' + ss["created_at"].toString() + '"',
+                    '"' + ss["updated_at"].toString() + '"',
                     '"' + ss["deleted_at"].toString() + '"'
                 )
             }

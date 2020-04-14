@@ -1,8 +1,10 @@
 package kavi.tech.service.service
 
+import com.google.gson.Gson
 import io.vertx.codegen.CodeGenProcessor.log
 import io.vertx.core.json.Json
 import io.vertx.core.json.JsonObject
+import io.vertx.rxjava.ext.asyncsql.AsyncSQLClient
 import kavi.tech.service.mysql.dao.CarrierResultDataDao
 import kavi.tech.service.mysql.entity.CarrierResultData
 import org.apache.commons.lang3.StringUtils
@@ -10,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import rx.Observable
 import rx.Single
-import java.util.*
 
 /**
  * @packageName kavi.tech.service.service
@@ -25,12 +26,16 @@ class FriendSummaryService {
     @Autowired
     private lateinit var carrierResultDataDao: CarrierResultDataDao
 
+    @Autowired
+    private lateinit var client: AsyncSQLClient
 
-    fun toCleaningCircleFriendsData(mobile: String, task_id: String) {
+
+    fun toCleaningCircleFriendsData(mobile: String, task_id: String):Single<CarrierResultData> {
         if (StringUtils.isBlank(mobile) || StringUtils.isBlank(task_id)) {
             throw IllegalAccessException("数据为空！")
         }
 
+        val jsonResultDataList = ArrayList<JsonObject>()
         val carrierResultDataList = ArrayList<CarrierResultData>()
         val carrierResultData = CarrierResultData()
 
@@ -91,35 +96,51 @@ class FriendSummaryService {
                     )
                     //TODO 需要梳理逻辑
                     Observable.concat(list).toList()
-                        .subscribe { it->
-                            it.map { json->
-                                var jsonObject: JsonObject = JsonObject()
-                                jsonObject.put("friend_num_3m", json.getInteger("friend_num_3m"))
-                                jsonObject.put("good_friend_num_3m", json.getInteger("good_friend_num_3m"))
-                                jsonObject.put("friend_city_center_3m", json.getString("friend_city_center_3m"))
-                                jsonObject.put("is_city_match_friend_city_center_3m", json.getBoolean("is_city_match_friend_city_center_3m"))
-                                jsonObject.put("inter_peer_num_3m", json.getInteger("inter_peer_num_3m"))
-                                jsonObject.put("friend_num_6m", json.getInteger("friend_num_6m"))
-                                jsonObject.put("good_friend_num_6m", json.getInteger("good_friend_num_6m"))
-                                jsonObject.put("friend_city_center_6m", json.getString("friend_city_center_6m"))
-                                jsonObject.put("is_city_match_friend_city_center_6m", json.getLong("is_city_match_friend_city_center_6m"))
-                                jsonObject.put("inter_peer_num_6m", json.getInteger("inter_peer_num_6m"))
+                        .subscribe ({ it->
 
-                                carrierResultData.task_id = task_id
-                                carrierResultData.mobile = mobile
-                                carrierResultData.item = "friend_circle"
-                                carrierResultData.result = jsonObject.toString()
-                                carrierResultDataList.add(carrierResultData)
-                            }
-                        }
-                    log.info("查询数据逻辑结束=======" + carrierResultDataList.size)
-                    log.info("查询数据逻辑结束=======" + Json.encode(carrierResultDataList))
+                            var jsonObject: JsonObject = JsonObject()
+                            jsonObject.put("friend_num_3m", it[0].getInteger("friend_num_3m"))
+                            jsonObject.put("good_friend_num_3m", it[1].getInteger("good_friend_num_3m"))
+                            jsonObject.put("friend_city_center_3m", it[2].getString("friend_city_center_3m"))
+                            jsonObject.put("is_city_match_friend_city_center_3m", it[3].getLong("is_city_match_friend_city_center_3m"))
+                            jsonObject.put("inter_peer_num_3m", it[4].getInteger("inter_peer_num_3m"))
+                            jsonObject.put("friend_num_6m", it[5].getInteger("friend_num_6m"))
+                            jsonObject.put("good_friend_num_6m", it[6].getInteger("good_friend_num_6m"))
+                            jsonObject.put("friend_city_center_6m", it[7].getString("friend_city_center_6m"))
+                            jsonObject.put("is_city_match_friend_city_center_6m", it[8].getLong("is_city_match_friend_city_center_6m"))
+                            jsonObject.put("inter_peer_num_6m", it[9].getInteger("inter_peer_num_6m"))
+                            jsonResultDataList.add(jsonObject)
+                            log.info("查询数据逻辑结束=======001" + Json.encode(jsonResultDataList))
+                            log.info("查询数据逻辑结束=======" + jsonResultDataList.size)
+                            log.info("查询数据逻辑结束=======" + Json.encode(jsonResultDataList))
+
+                            carrierResultData.task_id = task_id
+                            carrierResultData.mobile = mobile
+                            carrierResultData.item = "friend_circle"
+//                            carrierResultData.result = Json.encode(jsonResultDataList)
+                            carrierResultData.result = Gson().toJson(jsonResultDataList)
+                            log.info("result=======" + carrierResultData.result)
+//                            carrierResultDataList.add(carrierResultData)
+                            //插入数据
+//                            carrierResultDataDao.insertBybatch(carrierResultData, carrierResultDataList)
+//                            client.getConnection {
+//                                carrierResultDataDao.insert(it.result(), carrierResultData).subscribe {
+//                                    var result = it.result
+//                                    print("插入成功"+ result)
+//                                }
+//                            }
+                    },{
+                            print(it.printStackTrace())
+                        })
                 }
-            }, {
+            }
+            , {
                 print("查询数据出错=======" + it.printStackTrace())
             })
-        //插入数据
-        carrierResultDataDao.insertBybatch(carrierResultData, carrierResultDataList)
+        return this.client.rxGetConnection().flatMap { it ->
+            carrierResultDataDao.insert(it, carrierResultData)
+        }
+
     }
 
     /**

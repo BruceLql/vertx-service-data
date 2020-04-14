@@ -2,6 +2,7 @@ package kavi.tech.service.service
 
 import io.vertx.codegen.CodeGenProcessor.log
 import io.vertx.core.json.JsonObject
+import io.vertx.rxjava.ext.asyncsql.AsyncSQLClient
 import kavi.tech.service.mysql.dao.CarrierResultDataDao
 import kavi.tech.service.mysql.entity.CarrierResultData
 import org.apache.commons.lang3.StringUtils
@@ -24,13 +25,17 @@ class CallAnalysisService {
     @Autowired
     private lateinit var carrierResultDataDao: CarrierResultDataDao
 
+    @Autowired
+    private lateinit var  client: AsyncSQLClient
+
     fun toCleaningCircleFriendsData(mobile: String, task_id: String) {
         if (StringUtils.isBlank(mobile) || StringUtils.isBlank(task_id)) {
             throw IllegalAccessException("数据为空！")
         }
-        val carrierResultDataList = ArrayList<CarrierResultData>()
+        val carrierResultDataList = ArrayList<JsonObject>()
 
         val carrierResultData = CarrierResultData()
+        val carrierResultDataToInsertlist = ArrayList<CarrierResultData>()
         carrierResultData.mobile = mobile
         carrierResultData.task_id = task_id
 
@@ -123,47 +128,47 @@ class CallAnalysisService {
 //                        var countLessThreeMonthAllTime: Single<Int> = countLessThreeMonthAllTime(mobile, task_id) // 近3月通话时长 ----
 //                        var countLessSixMonthAllTime: Single<Int> = countLessSixMonthAllTime(mobile, task_id) // 近6月通话时长
 
-                        jsonObject.put(" call_cnt_1m", countLessOneMonthAll.map { it.toInt() }) // 近1月通话次数
+//                        jsonObject.put(" call_cnt_1m", countLessOneMonthAll.map { it.toInt() }) // 近1月通话次数
                         jsonObject.put("call_cnt_3m", countLessThreeMonthAll)  // 近3月通话次数
                         jsonObject.put("call_cnt_6m", countLessSixMonthAll) //近6月通话次数
                         jsonObject.put("avg_call_cnt_3m", countLessThreeMonthAllAvg) // 近3月平均通话次数
                         jsonObject.put("avg_call_cnt_6m", countLessSixMonthAllAvg) // 近6月平均通话次数
-                        jsonObject.put("call_time_1m", countLessOneMonthAllTime.map { it.toInt() }) // 近1月通话时长（秒）
+//                        jsonObject.put("call_time_1m", countLessOneMonthAllTime.map { it.toInt() }) // 近1月通话时长（秒）
                         jsonObject.put("call_time_3m ", countLessThreeMonthAllTime) // 近3月通话时长（秒）
                         jsonObject.put("call_time_6m", countLessSixMonthAllTime) // 近6月通话时长
                         jsonObject.put("avg_call_time_3m", countLessThreeMonthAllTimeAvg) // 近3月平均通话时长
                         jsonObject.put("avg_call_time_6m ", countLessSixMonthAllTimeAvg) //近6月平均通话时长
-                        jsonObject.put("call_dial_cnt_1m", countLessOneMonth.map { it.toInt() }) // 近1月主叫通话次数
+//                        jsonObject.put("call_dial_cnt_1m", countLessOneMonth.map { it.toInt() }) // 近1月主叫通话次数
                         jsonObject.put("call_dial_cnt_3m", countLessThreeMonth)//近3月主叫通话次数
                         jsonObject.put("call_dial_cnt_6m", countLessSixMonth)//近6月主叫通话次数
                         jsonObject.put("avg_call_dial_cnt_3m", countLessThreeMonthAvg)//近3月主叫月均通话次数
                         jsonObject.put("avg_call_dial_cnt_6m", countLessSixMonthAvg) //近6月主叫月均通话次数
-                        jsonObject.put("call_dial_time_1m", countLessOneMonthTime.map { it.toInt() })//近1月主叫通话时长
+//                        jsonObject.put("call_dial_time_1m", countLessOneMonthTime.map { it.toInt() })//近1月主叫通话时长
                         jsonObject.put("call_dial_time_3m", countLessThreeMonthTime)//近3月主叫通话时长
                         jsonObject.put("call_dial_time_6m", countLessSixMonthTime)//近6月主叫通话时长
                         jsonObject.put("avg_call_dial_time_3m", countLessThreeMonthTimeAvg)//近3月主叫月均通话时长
                         jsonObject.put("avg_call_dial_time_6m", countLessSixMonthTimeAvg)//近6月主叫月均通话时长
-                        jsonObject.put("call_dialed_cnt_1m", becountLessOneMonth.map { it.toInt() })//近1个月被叫通话次数
+//                        jsonObject.put("call_dialed_cnt_1m", becountLessOneMonth.map { it.toInt() })//近1个月被叫通话次数
                         jsonObject.put("call_dialed_cnt_3m", becountLessThreeMonth)//近3个月被叫通话次数
                         jsonObject.put("call_dialed_cnt_6m", becountLessSixMonth)//近6个月被叫通话次数
                         jsonObject.put("avg_call_dialed_cnt_3m", becountLessThreeMonthAvg)//近3月被叫月均通话次数
                         jsonObject.put("avg_call_dialed_cnt_6m", becountLessSixMonthAvg)//近6月被叫月均通话次数
                         //TODO 少 小昌那边的 五个数据
 
-                        carrierResultData.task_id = task_id
-                        carrierResultData.mobile = mobile
-                        carrierResultData.item = "call_risk_analysis"
-                        carrierResultData.result = jsonObject.toString()
-                        carrierResultDataList.add(carrierResultData)
+                        carrierResultDataList.add(jsonObject)
                     }
-
+                    carrierResultData.task_id = task_id
+                    carrierResultData.mobile = mobile
+                    carrierResultData.item = "call_risk_analysis"
+                    carrierResultData.result = carrierResultDataList.toString()
+                    carrierResultDataToInsertlist.add(carrierResultData)
+                    //插入数据
+                    carrierResultDataDao.insertBybatch(carrierResultData, carrierResultDataToInsertlist)
                 }, {
                     it.printStackTrace()
                 }
-
             )
-        //插入数据
-        carrierResultDataDao.insertBybatch(carrierResultData, carrierResultDataList)
+
     }
 
 
