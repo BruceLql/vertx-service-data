@@ -247,7 +247,7 @@ class FriendSummaryService {
                 "\tDATE(date_add(now(), interval -90 day))<\n" +
                 "\t DATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))\n" +
                 "\tand carrier_voicecall.mobile = '$mobile' " +
-        "\tand carrier_voicecall.task_id =  '$taskId' "
+        "\tand carrier_voicecall.task_id =  '$taskId' " +
         "GROUP BY peer_number\n" +
                 "  ) as bb\n" +
                 ") as c LEFT JOIN carrier_baseinfo on carrier_baseinfo.mobile = c.peer_number"
