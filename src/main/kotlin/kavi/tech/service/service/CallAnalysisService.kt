@@ -89,19 +89,19 @@ class CallAnalysisService {
                         val countLessThreeMonthTime = json.getInteger("call_dial_time_3m")  //近3月主叫通话时长
                         val countLessSixMonthTime = json.getInteger("call_dial_time_6m")  //近6月主叫通话时长
 
-                        var countLessThreeMonthTimeAvg: Int = countLessThreeMonthTime / 3 // 近3月主叫月均通话时长（秒） --
-                        var countLessSixMonthTimeAvg: Int = countLessSixMonthTime / 6 // 近6月主叫月均通话时长（秒）（秒） --
+                        var countLessThreeMonthTimeAvg: Int = countLessThreeMonthTime?:0 / 3 // 近3月主叫月均通话时长（秒） --
+                        var countLessSixMonthTimeAvg: Int = countLessSixMonthTime?:0 / 6 // 近6月主叫月均通话时长（秒）（秒） --
 
-                        var countLessThreeMonthAllTimeAvg: Int = countLessThreeMonthAllTime.toInt() / 3 // 近3月平均通话时长（秒）
-                        var countLessSixMonthAllTimeAvg: Int = countLessSixMonthAllTime / 6 // 近6月平均通话时长（秒）
+                        var countLessThreeMonthAllTimeAvg: Int = countLessThreeMonthAllTime.toInt()?:0 / 3 // 近3月平均通话时长（秒）
+                        var countLessSixMonthAllTimeAvg: Int = countLessSixMonthAllTime?:0 / 6 // 近6月平均通话时长（秒）
 
-                        var countLessThreeMonthAllAvg: Int = countLessThreeMonthAll / 3 // 近3月平均通话次数
-                        var countLessSixMonthAllAvg: Int = countLessSixMonthAll / 6 // 近6月平均通话次数
+                        var countLessThreeMonthAllAvg: Int = countLessThreeMonthAll?:0 / 3 // 近3月平均通话次数
+                        var countLessSixMonthAllAvg: Int = countLessSixMonthAll?:0 / 6 // 近6月平均通话次数
 
-                        var becountLessThreeMonthAvg: Int = becountLessThreeMonth / 3 // 近3月被叫月均通话次数 --
-                        var becountLessSixMonthAvg: Int = becountLessSixMonth / 6 // 近6月被叫月均通话次数--
-                        var countLessThreeMonthAvg: Int = countLessThreeMonth / 3 // 近3月主叫月均通话次数  --
-                        var countLessSixMonthAvg: Int = countLessSixMonth / 6  // 近6月主叫月均通话次数 --
+                        var becountLessThreeMonthAvg: Int = becountLessThreeMonth?:0 / 3 // 近3月被叫月均通话次数 --
+                        var becountLessSixMonthAvg: Int = becountLessSixMonth?:0 / 6 // 近6月被叫月均通话次数--
+                        var countLessThreeMonthAvg: Int = countLessThreeMonth?:0 / 3 // 近3月主叫月均通话次数  --
+                        var countLessSixMonthAvg: Int = countLessSixMonth?:0 / 6  // 近6月主叫月均通话次数 --
 
 
                         var countLessOneMonth: Single<Int> =
@@ -281,7 +281,7 @@ class CallAnalysisService {
                     " DATE(date_add(now(), interval -90 day))<\n" +
                     "DATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))\n" +
                     "and  mobile = '$mobile'  \n" +
-        "and task_id = '$taskId'  \""
+        "and task_id = '$taskId' "
 
         return carrierResultDataDao.customizeSQL(sql)
             .map {
@@ -308,7 +308,7 @@ class CallAnalysisService {
                     " DATE(date_add(now(), interval -90 day))<\n" +
                     "DATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))\n" +
                     "and  peer_number = '$mobile'  \n" +
-        "and task_id = '$taskId'  \""
+        "and task_id = '$taskId' "
         var result: Int = 0
        return carrierResultDataDao.customizeSQL(sql).
             map {
@@ -333,7 +333,7 @@ class CallAnalysisService {
                     " DATE(date_add(now(), interval -180 day))<\n" +
                     "DATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))\n" +
                     "and  peer_number = '$mobile'  \n" +
-        "and task_id = '$taskId'  \""
+        "and task_id = '$taskId'  "
         var result: Int = 0
         return carrierResultDataDao.customizeSQL(sql).
             map {
@@ -359,7 +359,7 @@ class CallAnalysisService {
                     " DATE(date_add(now(), interval -180 day))<\n" +
                     "DATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))\n" +
                     "and  mobile = '$mobile' \n" +
-        "and task_id = '$taskId'  \""
+        "and task_id = '$taskId' "
 //        var result: Int = 0
        return carrierResultDataDao.customizeSQL(sql)
             .map {
@@ -415,7 +415,7 @@ class CallAnalysisService {
         var result: Int = 0
        return carrierResultDataDao.customizeSQL(sql)
            .map {
-               it[0]?.getInteger("countTime")
+               it[0]?.getString("countTime").toInt()
            }.doOnError {
                log.info("近3月主叫通话时长（秒）")
                print(it.printStackTrace())
@@ -440,7 +440,7 @@ class CallAnalysisService {
         var result: Int = 0
        return carrierResultDataDao.customizeSQL(sql)
             .map {
-                it[0]?.getInteger("countTime")
+                it[0]?.getString("countTime").toInt()
             }.doOnError {
                log.info("近6月主叫通话时长（秒）")
                print(it.printStackTrace())
