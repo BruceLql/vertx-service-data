@@ -1,6 +1,7 @@
 package kavi.tech.service.service
 
 import io.vertx.codegen.CodeGenProcessor.log
+import io.vertx.core.json.Json
 import io.vertx.core.json.JsonObject
 import kavi.tech.service.mysql.dao.CarrierResultDataDao
 import kavi.tech.service.mysql.entity.CarrierResultData
@@ -41,7 +42,9 @@ class FriendSummaryService {
                 print(it.printStackTrace())
             }
             .subscribe({ list ->
-                if (list.isNotEmpty()) {
+                if (list.isNotEmpty())
+                {
+                    log.info("查询数据逻辑real 开始=======")
                     var countLess3Months: Single<Int> = countLess3Months(mobile, task_id)//统计 近90天月联系人数量（去重）(0-90天)
                     var countLess3MonthsGoupy:  Single<Int> = countLess3MonthsGoupy(mobile, task_id)//近90天联系人数量（联系10次以上，去重）（0-90天）
                     var countLess3Attribution:  Single<String>  = countLess3Attribution(mobile, task_id)//近90天联系次数最多的号码归属地（0-90天）
@@ -57,7 +60,7 @@ class FriendSummaryService {
                     var attributionMobilePhoneNumberHun:  Single<Long> =
                         attributionMobilePhoneNumberHun(mobile, task_id)//近180天的朋友圈中心城市是否与手机归属地一致（0-180天）
                     var contactPersonHun:  Single<Int> = contactPersonHun(mobile, task_id)//近180天的互有主叫和被叫的联系人电话号码数目（去重）（0-180天）
-
+                    log.info("查询数据逻辑开始=======")
                     var list = listOf(
                         countLess3Months.map {
                             JsonObject().put("friend_num_3m",it)
@@ -97,6 +100,7 @@ class FriendSummaryService {
                             JsonObject().put("inter_peer_num_6m",it)
                         }.toObservable()
                     )
+                    //TODO 需要梳理逻辑
                     Observable.concat(list).toList()
                         .subscribe { it->
                             it.map { json->
@@ -119,13 +123,14 @@ class FriendSummaryService {
                                 carrierResultDataList.add(carrierResultData)
                             }
                         }
+                    log.info("查询数据逻辑结束=======" + carrierResultDataList.size)
+                    log.info("查询数据逻辑结束=======" + Json.encode(carrierResultDataList))
                 }
             }, {
-                print("====" + it.printStackTrace())
+                print("查询数据出错=======" + it.printStackTrace())
             })
         //插入数据
         carrierResultDataDao.insertBybatch(carrierResultData, carrierResultDataList)
-//        }
     }
 
     /**
@@ -464,7 +469,7 @@ class FriendSummaryService {
                 " where DATE(date_add(now(), interval -180 day))<\n" +
                 " DATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))\n" +
                 "and mobile = '$mobile'  " +
-        "and task_id = '$taskId'   " + taskId
+        "and task_id = '$taskId'   " +
         "\n" +
                 "union \n" +
                 "\n" +
@@ -473,7 +478,7 @@ class FriendSummaryService {
                 " from carrier_voicecall \n" +
                 "where \n" +
                 "carrier_voicecall.peer_number = '$mobile'  " +
-        "and carrier_voicecall.task_id = '$taskId'  " + taskId
+        "and carrier_voicecall.task_id = '$taskId'  " +
         "\t\t\t\t and  DATE(date_add(now(), interval -180 day))<\n" +
                 "\t\t\t\t DATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))\n" +
                 ") as b \n"
