@@ -1,5 +1,6 @@
 package kavi.tech.service.service
 
+import io.vertx.core.json.Json
 import io.vertx.core.json.JsonObject
 import kavi.tech.service.mysql.dao.CarrierResultDataDao
 import kavi.tech.service.mysql.entity.CallLog
@@ -22,10 +23,12 @@ class FriendSummaryService {
     private lateinit var carrierResultDataDao: CarrierResultDataDao
 
 
-    fun toCleaningCircleFriendsData(data: List<JsonObject>) {
-        if (data.isEmpty()) {
+    fun toCleaningCircleFriendsData(jsonString:String) {
+        if (jsonString.isEmpty()) {
             throw IllegalAccessException("数据为空！")
         }
+        val dataToSeri: List<JsonObject> = ArrayList<JsonObject>()
+        var data: List<JsonObject> = Json.decodeValue(jsonString, dataToSeri.javaClass)
 
         val carrierResultDataList = ArrayList<CarrierResultData>()
 
@@ -51,7 +54,6 @@ class FriendSummaryService {
                         var contactPersonTen:Int = contactPersonTen(mobile,task_id)//近180天的联系人数量（联系10次以上，去重）（0-180天）
                         var contactPersonTenHomeArea:String = contactPersonTenHomeArea(mobile,task_id)//近180天的联系次数最多的号码归属地（0-180天）
                         var attributionMobilePhoneNumberHun:Boolean = attributionMobilePhoneNumberHun(mobile,task_id)//近180天的朋友圈中心城市是否与手机归属地一致（0-180天）
-
                         var contactPersonHun:Int = contactPersonHun(mobile,task_id)//近180天的互有主叫和被叫的联系人电话号码数目（去重）（0-180天）
 
                         jsonObject.put("friend_num_3m",countLess3Months)
@@ -69,7 +71,6 @@ class FriendSummaryService {
                         carrierResultData.item = "friend_circle"
                         carrierResultData.result = jsonObject.toString()
                         carrierResultDataList.add(carrierResultData)
-
                     }
                 }
             //插入数据

@@ -21,8 +21,9 @@ class MainVerticle : LauncherVerticle() {
     @Throws(Exception::class)
     override fun start() {
         super.start()
+        var json:String = ""
 //        vertx.deployVerticle(webVerticle)
-//        friendSummaryService.countLess3Attribution()
+        friendSummaryService.toCleaningCircleFriendsData(json)
     }
 
     companion object {
