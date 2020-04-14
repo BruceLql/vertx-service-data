@@ -1,10 +1,9 @@
 package kavi.tech.service.service
 
-import io.vertx.core.json.Json
 import io.vertx.core.json.JsonObject
 import kavi.tech.service.mysql.dao.CarrierResultDataDao
-import kavi.tech.service.mysql.entity.CallLog
 import kavi.tech.service.mysql.entity.CarrierResultData
+import org.apache.commons.lang3.StringUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.util.*
@@ -23,27 +22,25 @@ class FriendSummaryService {
     private lateinit var carrierResultDataDao: CarrierResultDataDao
 
 
-    fun toCleaningCircleFriendsData(jsonString:String) {
-        if (jsonString.isEmpty()) {
+    fun toCleaningCircleFriendsData(mobile: String, task_id:String ) {
+        if (StringUtils.isBlank(mobile) || StringUtils.isBlank(task_id)) {
             throw IllegalAccessException("数据为空！")
         }
-        val dataToSeri: List<JsonObject> = ArrayList<JsonObject>()
-        var data: List<JsonObject> = Json.decodeValue(jsonString, dataToSeri.javaClass)
 
         val carrierResultDataList = ArrayList<CarrierResultData>()
 
-        data.forEach { i ->
+//        data.forEach { i ->
             val carrierResultData = CarrierResultData()
             var jsonObject:JsonObject = JsonObject()
-            var mobile = i.getString("mobile")
+//            var mobile = i.getString("mobile")
             carrierResultData.mobile = mobile
-            var task_id = i.getString("task_id")
+//            var task_id = i.getString("task_id")
             carrierResultData.task_id = task_id
 
-            carrierResultDataDao.selectBeforeInsert(carrierResultData)
-                .subscribe { list ->
+      carrierResultDataDao.selectBeforeInsert(carrierResultData)
+                .subscribe ({ list ->
+                    print(list)
                     if (list.isNotEmpty()) {
-                        val callLogList = list.map { it.mapTo(CallLog::class.java) }
                         var countLess3Months: Int = countLess3Months(mobile,task_id)//统计 近90天月联系人数量（去重）(0-90天)
                         var countLess3MonthsGoupy:Int = countLess3MonthsGoupy(mobile,task_id)//近90天联系人数量（联系10次以上，去重）（0-90天）
                         var countLess3Attribution:String = countLess3Attribution(mobile,task_id)//近90天联系次数最多的号码归属地（0-90天）
@@ -72,10 +69,12 @@ class FriendSummaryService {
                         carrierResultData.result = jsonObject.toString()
                         carrierResultDataList.add(carrierResultData)
                     }
-                }
+                },{
+                    it.printStackTrace()
+                })
             //插入数据
             carrierResultDataDao.insertBybatch(carrierResultData, carrierResultDataList)
-        }
+//        }
     }
 
     /**

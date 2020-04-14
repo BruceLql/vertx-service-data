@@ -8,6 +8,7 @@ import io.vertx.rxjava.ext.asyncsql.AsyncSQLClient
 import io.vertx.rxjava.ext.sql.SQLConnection
 import kavi.tech.service.mysql.component.AbstractDao
 import kavi.tech.service.mysql.component.SQL
+import kavi.tech.service.mysql.entity.CallLog
 import kavi.tech.service.mysql.entity.CarrierResultData
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
@@ -48,7 +49,7 @@ class CarrierResultDataDao @Autowired constructor(
 
         val sql = SQL.init {
            SELECT("*")
-            FROM(CarrierResultData.tableName)
+            FROM(CallLog.tableName)
             WHERE(Pair("task_id",carrierResultData.task_id))
             WHERE(Pair("mobile",carrierResultData.mobile))
         }
