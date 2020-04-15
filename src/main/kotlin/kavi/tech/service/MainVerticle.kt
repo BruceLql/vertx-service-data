@@ -1,6 +1,5 @@
 package kavi.tech.service
 
-import io.vertx.core.json.Json
 import kavi.tech.service.service.CallAnalysisService
 import kavi.tech.service.service.FriendSummaryService
 import kavi.tech.service.web.WebVerticle
@@ -25,18 +24,18 @@ class MainVerticle : LauncherVerticle() {
     @Throws(Exception::class)
     override fun start() {
         super.start()
-//        vertx.deployVerticle(webVerticle)
-//        friendSummaryService.toCleaningCircleFriendsData("18705188170", "5e9426345a33e0024df2f20c").subscribe({
+        vertx.deployVerticle(webVerticle)
+//        friendSummaryService.toCleaningCircleFriendsData("14779716260", "5e9426345a33e0024df2f20c").subscribe({
 //            println("-------${Json.encode(it)}")
 //        },{
 //            it.printStackTrace()
 //        })
 
-        callAnalysisService.toCleaningCircleFriendsData("14779716260", "5e9426345a33e0024df2f20c").subscribe({
-            println("-------${Json.encode(it)}")
-        },{
-            it.printStackTrace()
-        })
+//        callAnalysisService.toCleaningCircleFriendsData("14779716260", "5e9426345a33e0024df2f20c").subscribe({
+//            println("-------${Json.encode(it)}")
+//        },{
+//            it.printStackTrace()
+//        })
 
     }
 
