@@ -1,6 +1,5 @@
 package kavi.tech.service
 
-import com.google.gson.Gson
 import kavi.tech.service.service.CallAnalysisService
 import kavi.tech.service.service.FriendSummaryService
 import kavi.tech.service.web.WebVerticle
@@ -55,8 +54,28 @@ class MainVerticle : LauncherVerticle() {
             println("-------${it[7].rows}")
             println("-------${it[8].rows}")
             println("-------${it[9].rows}")
-            println("-------${it[9].rows}")
-            println("-------" + Gson().toJson(it))
+            println("-------${it[10].rows}")
+            println("-------${it[11].rows}")
+            println("-------${it[12].rows}")
+            println("-------${it[13].rows}")
+            println("-------${it[14].rows}")
+            println("-------${it[15].rows}")
+            println("-------${it[16].rows}")
+            println("-------${it[17].rows}")
+            println("-------${it[18].rows}")
+            println("-------${it[19].rows}")
+            println("-------${it[20].rows}")
+            println("-------${it[21].rows}")
+            println("-------${it[22].rows}")
+            println("-------${it[23].rows}")
+            println("-------${it[24].rows}")
+            println("-------${it[25].rows[0]}")
+            println("-------${it[26].rows[0]}")
+            println("-------${it[27].rows[0]}")
+            println("-------${it[28].rows[0]}")
+            println("-------${it[29].rows[0]}")
+            println("-------${it[30].rows[0]}")
+//            println("-------" + Gson().toJson(it))
             
 
         },{
