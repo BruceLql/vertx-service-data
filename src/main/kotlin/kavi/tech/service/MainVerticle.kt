@@ -25,7 +25,7 @@ class MainVerticle : LauncherVerticle() {
     @Throws(Exception::class)
     override fun start() {
         super.start()
-//        vertx.deployVerticle(webVerticle)
+        vertx.deployVerticle(webVerticle)
 //        friendSummaryService.toCleaningCircleFriendsData("14779716260", "5e9426345a33e0024df2f20c")?.subscribe({
 //            println("-------${Json.encode(it)}")
 //    //            println("-------${it[0].rows[0]}")
@@ -44,8 +44,8 @@ class MainVerticle : LauncherVerticle() {
 //        })
 //        callAnalysisService.toCleaningCircleFriendsData("14779716260", "5e9426345a33e0024df2f20c")
 
-        callAnalysisService.toCleaningCircleFriendsData("14779716260", "5e9426345a33e0024df2f20c")?.subscribe({
-            println("-------${Json.encode(it)}")
+//        callAnalysisService.toCleaningCircleFriendsData("14779716260", "5e9426345a33e0024df2f20c")?.subscribe({
+//            println("-------${Json.encode(it)}")
 
 //            println("-------${it[0].rows}")
 //            println("-------${it[1].rows}")
