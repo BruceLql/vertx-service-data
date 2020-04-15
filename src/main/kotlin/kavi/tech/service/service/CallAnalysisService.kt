@@ -84,10 +84,10 @@ class CallAnalysisService {
             jsonObject.put("avg_call_cnt_3m", it[3].rows[0].getValue("avg_call_cnt_3m")) // 近3月平均通话次数
             jsonObject.put("avg_call_cnt_6m", it[4].rows[0].getValue("avg_call_cnt_6m")) // 近6月平均通话次数
             jsonObject.put("call_time_1m", it[5].rows[0].getValue("call_time_1m")) // 近1月通话时长（秒）
-            jsonObject.put("call_time_3m ", it[6].rows[0].getValue("call_time_3m")) // 近3月通话时长（秒）
+            jsonObject.put("call_time_3m", it[6].rows[0].getValue("call_time_3m")) // 近3月通话时长（秒）
             jsonObject.put("call_time_6m", it[7].rows[0].getValue("call_time_6m")) // 近6月通话时长
             jsonObject.put("avg_call_time_3m", it[8].rows[0].getValue("avg_call_time_3m")) // 近3月平均通话时长
-            jsonObject.put("avg_call_time_6m ", it[9].rows[0].getValue("avg_call_time_6m")) //近6月平均通话时长
+            jsonObject.put("avg_call_time_6m", it[9].rows[0].getValue("avg_call_time_6m")) //近6月平均通话时长
             jsonObject.put("call_dial_cnt_1m", it[10].rows[0].getValue("call_dial_cnt_1m")) // 近1月主叫通话次数
             jsonObject.put("call_dial_cnt_3m", it[11].rows[0].getValue("call_dial_cnt_3m"))//近3月主叫通话次数
             jsonObject.put("call_dial_cnt_6m", it[12].rows[0].getValue("call_dial_cnt_6m"))//近6月主叫通话次数
@@ -475,7 +475,7 @@ class CallAnalysisService {
         log.info("近3月主叫月均通话时长")
         var sql: String =
             "SELECT\n" +
-                    "SUM(duration_in_second)/3 as avg_call_dial_time_3m\n" +
+                    "IFNULL(SUM(duration_in_second)/3,0)  as avg_call_dial_time_3m\n" +
                     "FROM\n" +
                     "\tcarrier_voicecall\n" +
                     "where \n" +
@@ -877,7 +877,7 @@ class CallAnalysisService {
         log.info("近6月平均通话时长（秒）")
         var sql: String = "\n" +
                 "SELECT\n" +
-                "SUM(duration_in_second) as call_time_6m\n" +
+                "SUM(duration_in_second) as avg_call_time_6m\n" +
                 "\n" +
                 "FROM\n" +
                 "\tcarrier_voicecall\n" +
