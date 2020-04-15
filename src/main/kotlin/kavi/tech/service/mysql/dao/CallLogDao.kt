@@ -234,7 +234,8 @@ class CallLogDao @Autowired constructor(
         // 对方归属地
         callLog_s.homearea = obj.getString("homearea")
         // 通信时长
-        callLog_s.duration_in_second = obj.getString("calllonghour")
+        val calllonghour = obj.getString("calllonghour")
+        callLog_s.duration_in_second = splitHms(calllonghour).toString()
         //通信类型 （通话地类型 e.g.省内漫游、 国内被叫）
         callLog_s.location_type = obj.getString("landtype")
         // 费用 原始数据单位是元  转换成分后存储

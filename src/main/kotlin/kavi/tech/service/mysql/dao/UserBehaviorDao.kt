@@ -29,7 +29,7 @@ class UserBehaviorDao @Autowired constructor
      */
     fun getCellBehavior(mobile: String, taskId: String): Single<List<JsonObject>> {
         //获取最近6个月时间
-        val dateList = DateUtils.getPreMothInCurrentMoth(6, DateUtils.Companion.DatePattern.YYYY_MM.value)
+        val dateList = DateUtils.getPreMothInCurrentMoth(6, DateUtils.DatePattern.YYYY_MM.value)
         return this.client.rxGetConnection().flatMap { conn ->
             val list =
                 (0..5).map { d -> sqlExecuteQuery(conn, mobile, taskId, dateList[d]).map { it.rows[0] }.toObservable() }
@@ -42,7 +42,7 @@ class UserBehaviorDao @Autowired constructor
      * sql查询
      */
     fun sqlExecuteQuery(conn: SQLConnection, mobile: String, taskId: String, moth: String): Single<ResultSet> {
-        val sql = "select\n" +
+        val sql = "select distinct\n" +
                 "    (select count(*) from carrier_sms cs where cs.mobile='$mobile' and cs.task_id='$taskId' and cs.bill_month='$moth' and cs.deleted_at=0) as sms_cnt,\n" +
                 "    '$mobile' as cell_phone_num,\n" +
                 "    b.net_flow,\n" +

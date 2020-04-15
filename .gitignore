@@ -5,4 +5,5 @@
 .vertx
 build
 out
+.DS_Store
 #config.json

@@ -86,7 +86,7 @@ class InternetInfoDao @Autowired constructor(
 
             }
         }
-        println("smsInfoList:${internetInfoList.size}" + internetInfoList.toString())
+        println("internetInfoList:${internetInfoList.size}" + internetInfoList.toString())
         if (internetInfoList.size > 0) {
             return insertBybatch(InternetInfo(), internetInfoList)
         } else {
@@ -151,7 +151,7 @@ class InternetInfoDao @Autowired constructor(
             val startTime = System.currentTimeMillis()
             conn.rxUpdate(sql).doAfterTerminate {
                 conn.close()
-                println("执行时间：${System.currentTimeMillis() - startTime}ms")
+                println("上网流量批量插入 执行时间：${System.currentTimeMillis() - startTime}ms")
             }
         }
 
@@ -187,7 +187,7 @@ class InternetInfoDao @Autowired constructor(
         // 总时长
         internetInfo.comm_time = obj.getString("commTime")
         // 总流量
-        internetInfo.sum_flow = obj.getString("sumFlow")
+        internetInfo.sum_flow = obj.getString("sumFlow").replace("KB","")
 
         // 套餐优惠
         internetInfo.meal = obj.getString("meal")

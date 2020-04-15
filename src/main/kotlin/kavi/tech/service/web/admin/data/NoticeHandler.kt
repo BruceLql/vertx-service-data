@@ -5,11 +5,17 @@ import io.vertx.core.json.JsonObject
 import io.vertx.ext.mongo.FindOptions
 import io.vertx.ext.sql.UpdateResult
 import io.vertx.ext.web.RoutingContext
+import io.vertx.rxjava.ext.web.client.WebClient
+import kavi.tech.service.common.extension.GZIPUtils
 import kavi.tech.service.common.extension.logger
 import kavi.tech.service.common.extension.regexPhone
 import kavi.tech.service.mongo.model.*
 import kavi.tech.service.mysql.dao.*
 import kavi.tech.service.mysql.entity.NoticeRecords
+import kavi.tech.service.service.CallAnalysisService
+import kavi.tech.service.service.ContactsRegionService
+import kavi.tech.service.service.FriendSummaryService
+import kavi.tech.service.service.UserBehaviorService
 import org.springframework.beans.factory.annotation.Autowired
 import rx.Observable
 import rx.Single
@@ -35,10 +41,18 @@ class NoticeHandler @Autowired constructor(
     val dataPaymentRecordDao: DataPaymentRecordModel,
     val dataSmsInfoDao: DataSmsInfoModel,
     val dataUserInfoDao: DataUserInfoModel,
-    val noticeRecordsDao: NoticeRecordsDao
+    val noticeRecordsDao: NoticeRecordsDao,
+    val callAnalysisService: CallAnalysisService,
+    val contactsRegionService: ContactsRegionService,
+    val friendSummaryService: FriendSummaryService,
+    val userBehaviorService: UserBehaviorService
+
 
 ) : ControllerHandler() {
     private val log = logger(this::class)
+
+    @Autowired
+    private lateinit var rxClient: WebClient
     /**
      * 爬虫程序执行完毕后通知
      * @author max
@@ -50,6 +64,8 @@ class NoticeHandler @Autowired constructor(
         log.info("=========/data/notice==============")
         // result 返回值
         val result = JsonObject()
+        // 推送数据结果
+        val resultSend = JsonObject()
         // notice 通知记录
         val noticeRecords = NoticeRecords()
         try {
@@ -84,18 +100,39 @@ class NoticeHandler @Autowired constructor(
 
             query.put("mobile", mobile).put("mid", task_id)
 
-            // TODO  数据提取 根据传进来的task_id开始从mongo中读取数据 以及简单清洗后存入Mysql
-            dataBegin(query, FindOptions()).subscribe({
-                // TODO  调用数据清洗服务 结果封装到 result
+            //   数据提取 根据传进来的task_id开始从mongo中读取数据 以及简单清洗后存入Mysql
+            dataBegin(query, FindOptions()).flatMap {
 
+                //   调用数据清洗服务 结果封装到 result
+                dataClear(mobile, task_id)
+            }.subscribe({
 
-                // TODO  数据推送服务
+                resultSend.put("data", it)
+                    .put("mobile", mobile)
+                    .put("task_id", task_id)
+                    .put("return_code", "00000")
+                    .put("message", "成功")
+                    .put("operation_time", System.currentTimeMillis())
+                // TODO  数据推送服务  resultSend
+                println("推送前结果： $resultSend")
+                var pushData = GZIPUtils().uncompressToString(GZIPUtils().compress(resultSend.toString()))
+                println("压缩后结果： $pushData")
+
+                println("推送地址 : $back_url")
+                rxClient.post(back_url).send { res ->
+                    if(res.succeeded()){
+                        println("推送成功")
+                    }else{
+                        println("推送失败")
+                    }
+                }
+
+                event.response().end("==================")
 
             }, { it.printStackTrace() })
 
 
-
-            event.response().end(result.put("message", "notice success").toString())
+//            event.response().end(result.put("message", "notice success").toString())
         } catch (e: Exception) {
             e.printStackTrace()
             result.put("message", e.message ?: "异常，请联系管理员排查")
@@ -104,6 +141,9 @@ class NoticeHandler @Autowired constructor(
 
     }
 
+    /**
+     * 数据提取 根据传进来的task_id开始从mongo中读取数据 以及简单清洗后存入Mysql
+     */
     fun dataBegin(query: JsonObject, findOptions: FindOptions): Single<List<UpdateResult>> {
 
         return Observable.concat(
@@ -124,6 +164,30 @@ class NoticeHandler @Autowired constructor(
 
             )
         ).toList().toSingle()
+
+    }
+
+    /**
+     * 数据清洗服务调用
+     */
+    fun dataClear(mobile: String, task_id: String): Single<JsonObject> {
+
+        return Observable.concat(
+            listOf(
+                callAnalysisService.toCleaningCircleFriendsData(mobile, task_id).toObservable(),
+                contactsRegionService.getContactRegion(mobile, task_id).toObservable(),
+                userBehaviorService.getCellBehavior(mobile, task_id).toObservable(),
+                friendSummaryService.toCleaningCircleFriendsData(mobile, task_id)?.toObservable()
+
+            )
+        ).toList().toSingle().map {
+            var jsonObject = JsonObject()
+            jsonObject.put("call_risk_analysis", it[0])
+            jsonObject.put("contact_region", it[1])
+            jsonObject.put("cell_behavior", it[2])
+            jsonObject.put("friend_circle", JsonObject().put("summary", it[3]))
+
+        }
 
     }
 }
