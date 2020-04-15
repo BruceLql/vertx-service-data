@@ -80,8 +80,8 @@ class CallAnalysisService {
             jsonObject.put("call_cnt_1m", if (it[0].rows.size==0) 0 else it[0].rows[0].getValue("call_cnt_1m")) // 近1月通话次数
             jsonObject.put("call_cnt_3m", if (it[1].rows.size==0) 0 else it[1].rows[0].getValue("call_cnt_3m"))  // 近3月通话次数
             jsonObject.put("call_cnt_6m", if (it[2].rows.size==0) 0 else it[2].rows[0].getValue("call_cnt_6m")) //近6月通话次数
-            jsonObject.put("avg_call_cnt_3m", if (it[3].rows.size==0) 0 else it[3].rows[0].getString("avg_call_cnt_3m")) // 近3月平均通话次数
-            jsonObject.put("avg_call_cnt_6m", if (it[4].rows.size==0) 0 else it[4].rows[0].getString("avg_call_cnt_6m")) // 近6月平均通话次数
+            jsonObject.put("avg_call_cnt_3m", if (it[3].rows.size==0) 0 else it[3].rows[0].getString("avg_call_cnt_3m").toFloat()) // 近3月平均通话次数
+            jsonObject.put("avg_call_cnt_6m", if (it[4].rows.size==0) 0 else it[4].rows[0].getString("avg_call_cnt_6m").toFloat()) // 近6月平均通话次数
             jsonObject.put("call_time_1m", if (it[5].rows.size==0) 0 else it[5].rows[0].getDouble("call_time_1m")) // 近1月通话时长（秒）
             jsonObject.put("call_time_3m", if (it[6].rows.size==0) 0 else it[6].rows[0].getDouble("call_time_3m")) // 近3月通话时长（秒）
             jsonObject.put("call_time_6m", if (it[7].rows.size==0) 0 else it[7].rows[0].getDouble("call_time_6m")) // 近6月通话时长
