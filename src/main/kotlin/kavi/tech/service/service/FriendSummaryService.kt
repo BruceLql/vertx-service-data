@@ -1,6 +1,7 @@
 package kavi.tech.service.service
 
 import io.vertx.codegen.CodeGenProcessor.log
+import io.vertx.core.json.JsonObject
 import io.vertx.ext.sql.ResultSet
 import io.vertx.rxjava.ext.asyncsql.AsyncSQLClient
 import io.vertx.rxjava.ext.sql.SQLConnection
@@ -30,27 +31,39 @@ class FriendSummaryService {
     /**
      * 获取统计数据 朋友圈联系人数量（friend_circle.summary）
      */
-    fun toCleaningCircleFriendsData(mobile: String, task_id: String): Single<List<ResultSet>> {
+    fun toCleaningCircleFriendsData(mobile: String, task_id: String): Single<JsonObject>? {
         if (StringUtils.isBlank(mobile) || StringUtils.isBlank(task_id)) {
             throw IllegalAccessException("数据为空！")
         }
-
-        return this.client.rxGetConnection().flatMap { conn->
+        var json = JsonObject()
+        return this.client.rxGetConnection().flatMap { conn ->
             Observable.concat(
                 listOf(
-                    countLess3Months(conn,mobile,task_id).toObservable(),
-                    countLess3MonthsGoupy(conn,mobile,task_id).toObservable(),
-                    countLess3Attribution(conn,mobile,task_id).toObservable(),
-                    attributionMobilePhoneNumber(conn,mobile,task_id).toObservable(),
-                    contactPerson(conn,mobile,task_id).toObservable(),
-                    contactPersonLessSixMonth(conn,mobile,task_id).toObservable(),
-                    contactPersonTen(conn,mobile,task_id).toObservable(),
-                    contactPersonTenHomeArea(conn,mobile,task_id).toObservable(),
-                    attributionMobilePhoneNumberHun(conn,mobile,task_id).toObservable(),
-                    contactPersonHun(conn,mobile,task_id).toObservable()
-
+                    countLess3Months(conn, mobile, task_id).toObservable(),
+                    countLess3MonthsGoupy(conn, mobile, task_id).toObservable(),
+                    countLess3Attribution(conn, mobile, task_id).toObservable(),
+                    attributionMobilePhoneNumber(conn, mobile, task_id).toObservable(),
+                    contactPerson(conn, mobile, task_id).toObservable(),
+                    contactPersonLessSixMonth(conn, mobile, task_id).toObservable(),
+                    contactPersonTen(conn, mobile, task_id).toObservable(),
+                    contactPersonTenHomeArea(conn, mobile, task_id).toObservable(),
+                    attributionMobilePhoneNumberHun(conn, mobile, task_id).toObservable(),
+                    contactPersonHun(conn, mobile, task_id).toObservable()
                 )
             ).toList().toSingle()
+        }
+            .map {
+                json.put("friend_num_3m",it[0].rows[0].getValue("friend_num_3m"))
+                json.put("good_friend_num_3m",it[1].rows[0].getValue("good_friend_num_3m") )
+                json.put("friend_city_center_3m", it[2].rows[0].getValue("friend_city_center_3m"))
+                json.put("is_city_match_friend_city_center_3m",it[3].rows[0].getValue("is_city_match_friend_city_center_3m") )
+                json.put("inter_peer_num_3m", it[4].rows[0].getValue("inter_peer_num_3m"))
+                json.put("friend_num_6m", it[5].rows[0].getValue("friend_num_6m"))
+                json.put("good_friend_num_6m", it[6].rows[0].getValue("good_friend_num_6m"))
+                json.put("friend_city_center_6m", it[7].rows[0].getValue("friend_city_center_6m"))
+                json.put("is_city_match_friend_city_center_6m", it[8].rows[0].getValue("is_city_match_friend_city_center_6m"))
+                json.put("inter_peer_num_6m", it[9].rows[0].getValue("inter_peer_num_6m"))
+
         }
     }
 
