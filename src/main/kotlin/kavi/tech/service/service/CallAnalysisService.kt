@@ -77,38 +77,38 @@ class CallAnalysisService {
             ).toList().toSingle()
         }.map {
 
-            jsonObject.put("call_cnt_1m", it[0].rows[0].getValue("call_cnt_1m")) // 近1月通话次数
-            jsonObject.put("call_cnt_3m", it[1].rows[0].getValue("call_cnt_3m"))  // 近3月通话次数
-            jsonObject.put("call_cnt_6m", it[2].rows[0].getValue("call_cnt_6m")) //近6月通话次数
-            jsonObject.put("avg_call_cnt_3m", it[3].rows[0].getValue("avg_call_cnt_3m")) // 近3月平均通话次数
-            jsonObject.put("avg_call_cnt_6m", it[4].rows[0].getValue("avg_call_cnt_6m")) // 近6月平均通话次数
-            jsonObject.put("call_time_1m", it[5].rows[0].getValue("call_time_1m")) // 近1月通话时长（秒）
-            jsonObject.put("call_time_3m", it[6].rows[0].getValue("call_time_3m")) // 近3月通话时长（秒）
-            jsonObject.put("call_time_6m", it[7].rows[0].getValue("call_time_6m")) // 近6月通话时长
-            jsonObject.put("avg_call_time_3m", it[8].rows[0].getValue("avg_call_time_3m")) // 近3月平均通话时长
-            jsonObject.put("avg_call_time_6m", it[9].rows[0].getValue("avg_call_time_6m")) //近6月平均通话时长
-            jsonObject.put("call_dial_cnt_1m", it[10].rows[0].getValue("call_dial_cnt_1m")) // 近1月主叫通话次数
-            jsonObject.put("call_dial_cnt_3m", it[11].rows[0].getValue("call_dial_cnt_3m"))//近3月主叫通话次数
-            jsonObject.put("call_dial_cnt_6m", it[12].rows[0].getValue("call_dial_cnt_6m"))//近6月主叫通话次数
-            jsonObject.put("avg_call_dial_cnt_3m", it[13].rows[0].getValue("avg_call_dial_cnt_3m"))//近3月主叫月均通话次数
-            jsonObject.put("avg_call_dial_cnt_6m", it[14].rows[0].getValue("avg_call_dial_cnt_6m")) //近6月主叫月均通话次数
-            jsonObject.put("call_dial_time_1m", it[15].rows[0].getValue("call_dial_time_1m"))//近1月主叫通话时长
-            jsonObject.put("call_dial_time_3m", it[16].rows[0].getValue("call_dial_time_3m"))//近3月主叫通话时长
-            jsonObject.put("call_dial_time_6m", it[17].rows[0].getValue("call_dial_time_6m"))//近6月主叫通话时长
-            jsonObject.put("avg_call_dial_time_3m", it[18].rows[0].getValue("avg_call_dial_time_3m"))//近3月主叫月均通话时长
-            jsonObject.put("avg_call_dial_time_6m", it[19].rows[0].getValue("avg_call_dial_time_6m"))//近6月主叫月均通话时长
-            jsonObject.put("call_dialed_cnt_1m", it[20].rows[0].getValue("call_dialed_cnt_1m"))//近1个月被叫通话次数
-            jsonObject.put("call_dialed_cnt_3m", it[21].rows[0].getValue("call_dialed_cnt_3m"))//近3个月被叫通话次数
-            jsonObject.put("call_dialed_cnt_6m", it[22].rows[0].getValue("call_dialed_cnt_6m"))//近6个月被叫通话次数
-            jsonObject.put("avg_call_dialed_cnt_3m", it[23].rows[0].getValue("avg_call_dialed_cnt_3m"))//近3月被叫月均通话次数
+            jsonObject.put("call_cnt_1m", if (it[0].rows.size==0) 0 else it[0].rows[0].getValue("call_cnt_1m")) // 近1月通话次数
+            jsonObject.put("call_cnt_3m", if (it[1].rows.size==0) 0 else it[1].rows[0].getValue("call_cnt_3m"))  // 近3月通话次数
+            jsonObject.put("call_cnt_6m", if (it[2].rows.size==0) 0 else it[2].rows[0].getValue("call_cnt_6m")) //近6月通话次数
+            jsonObject.put("avg_call_cnt_3m", if (it[3].rows.size==0) 0 else it[3].rows[0].getString("avg_call_cnt_3m").toFloat()) // 近3月平均通话次数
+            jsonObject.put("avg_call_cnt_6m", if (it[4].rows.size==0) 0 else it[4].rows[0].getString("avg_call_cnt_6m").toFloat()) // 近6月平均通话次数
+            jsonObject.put("call_time_1m", if (it[5].rows.size==0) 0 else it[5].rows[0].getString("call_time_1m").toLong()) // 近1月通话时长（秒）
+            jsonObject.put("call_time_3m", if (it[6].rows.size==0) 0 else it[6].rows[0].getString("call_time_3m").toLong()) // 近3月通话时长（秒）
+            jsonObject.put("call_time_6m", if (it[7].rows.size==0) 0 else it[7].rows[0].getString("call_time_6m").toLong()) // 近6月通话时长
+            jsonObject.put("avg_call_time_3m", if (it[8].rows.size==0) 0 else it[8].rows[0].getString("avg_call_time_3m").toFloat()) // 近3月平均通话时长
+            jsonObject.put("avg_call_time_6m", if (it[9].rows.size==0) 0 else it[9].rows[0].getString("avg_call_time_6m").toFloat()) //近6月平均通话时长
+            jsonObject.put("call_dial_cnt_1m", if (it[10].rows.size==0) 0 else it[10].rows[0].getValue("call_dial_cnt_1m")) // 近1月主叫通话次数
+            jsonObject.put("call_dial_cnt_3m", if (it[11].rows.size==0) 0 else it[11].rows[0].getValue("call_dial_cnt_3m"))//近3月主叫通话次数
+            jsonObject.put("call_dial_cnt_6m", if (it[12].rows.size==0) 0 else it[12].rows[0].getValue("call_dial_cnt_6m"))//近6月主叫通话次数
+            jsonObject.put("avg_call_dial_cnt_3m", if (it[13].rows.size==0) 0 else it[13].rows[0].getValue("avg_call_dial_cnt_3m"))//近3月主叫月均通话次数
+            jsonObject.put("avg_call_dial_cnt_6m", if (it[14].rows.size==0) 0 else it[14].rows[0].getValue("avg_call_dial_cnt_6m")) //近6月主叫月均通话次数
+            jsonObject.put("call_dial_time_1m", if (it[15].rows.size==0) 0 else it[15].rows[0].getString("call_dial_time_1m").toLong())//近1月主叫通话时长
+            jsonObject.put("call_dial_time_3m", if (it[16].rows.size==0) 0 else it[16].rows[0].getString("call_dial_time_3m").toLong())//近3月主叫通话时长
+            jsonObject.put("call_dial_time_6m", if (it[17].rows.size==0) 0 else it[17].rows[0].getString("call_dial_time_6m").toLong())//近6月主叫通话时长
+            jsonObject.put("avg_call_dial_time_3m", if (it[18].rows.size==0) 0 else it[18].rows[0].getString("avg_call_dial_time_3m").toFloat())//近3月主叫月均通话时长
+            jsonObject.put("avg_call_dial_time_6m", if (it[19].rows.size==0) 0 else it[19].rows[0].getString("avg_call_dial_time_6m").toFloat())//近6月主叫月均通话时长
+            jsonObject.put("call_dialed_cnt_1m", if (it[20].rows.size==0) 0 else it[20].rows[0].getValue("call_dialed_cnt_1m"))//近1个月被叫通话次数
+            jsonObject.put("call_dialed_cnt_3m", if (it[21].rows.size==0) 0 else it[21].rows[0].getValue("call_dialed_cnt_3m"))//近3个月被叫通话次数
+            jsonObject.put("call_dialed_cnt_6m", if (it[22].rows.size==0) 0 else it[22].rows[0].getValue("call_dialed_cnt_6m"))//近6个月被叫通话次数
+            jsonObject.put("avg_call_dialed_cnt_3m", if (it[23].rows.size==0) 0 else it[23].rows[0].getValue("avg_call_dialed_cnt_3m"))//近3月被叫月均通话次数
 
-            jsonObject.put("avg_call_dialed_cnt_6m", it[24].rows[0].getValue("avg_call_dialed_cnt_6m"))//近6月被叫月均通话次数
+            jsonObject.put("avg_call_dialed_cnt_6m", if (it[24].rows.size==0) 0 else it[24].rows[0].getValue("avg_call_dialed_cnt_6m"))//近6月被叫月均通话次数
 
-            jsonObject.put("call_dialed_time_1m", it[25].rows[0].getValue("call_dialed_time_1m"))//近1月被叫通话时长
-            jsonObject.put("call_dialed_time_3m", it[26].rows[0].getValue("call_dialed_time_3m"))//近3月被叫通话时长
-            jsonObject.put("call_dialed_time_6m", it[27].rows[0].getValue("call_dialed_time_6m"))//近6月被叫通话时长
-            jsonObject.put("avg_call_dialed_time_3m", it[28].rows[0].getValue("avg_call_dialed_time_3m"))//近3月被叫月均通话时长
-            jsonObject.put("avg_call_dialed_time_6m", it[29].rows[0].getValue("avg_call_dialed_time_6m"))//近6月被叫月均通话时长
+            jsonObject.put("call_dialed_time_1m", if (it[25].rows.size==0) 0 else it[25].rows[0].getValue("call_dialed_time_1m"))//近1月被叫通话时长
+            jsonObject.put("call_dialed_time_3m", if (it[26].rows.size==0) 0 else it[26].rows[0].getValue("call_dialed_time_3m"))//近3月被叫通话时长
+            jsonObject.put("call_dialed_time_6m", if (it[27].rows.size==0) 0 else it[27].rows[0].getValue("call_dialed_time_6m"))//近6月被叫通话时长
+            jsonObject.put("avg_call_dialed_time_3m", if (it[28].rows.size==0) 0 else it[28].rows[0].getString("avg_call_dialed_time_3m").toFloat())//近3月被叫月均通话时长
+            jsonObject.put("avg_call_dialed_time_6m", if (it[29].rows.size==0) 0 else it[29].rows[0].getString("avg_call_dialed_time_6m").toFloat())//近6月被叫月均通话时长
 
         }
 
@@ -126,7 +126,7 @@ class CallAnalysisService {
         log.info("近1月主叫通话次数")
         var sql: String =
             "SELECT\n" +
-                    "COUNT(id) as call_dial_cnt_1m \n" +
+                    " IFNULL(COUNT(id),0)  as call_dial_cnt_1m \n" +
                     "FROM\n" +
                     "\tcarrier_voicecall\n" +
                     "where \n" +
@@ -224,7 +224,7 @@ class CallAnalysisService {
         log.info("近1个月被叫通话次数")
         var sql: String =
             "SELECT\n" +
-                    "COUNT(id) as call_dialed_cnt_1m \n" +
+                    " IFNULL(COUNT(id),0) as call_dialed_cnt_1m \n" +
                     "FROM\n" +
                     "\tcarrier_voicecall\n" +
                     "where \n" +
@@ -247,7 +247,7 @@ class CallAnalysisService {
         log.info("近3月主叫月均通话次数")
         var sql: String =
             "SELECT\n" +
-                    "COUNT(id) as avg_call_dial_cnt_3m\n" +
+                    "  IFNULL(COUNT(id),0)  as avg_call_dial_cnt_3m\n" +
                     "FROM\n" +
                     "\tcarrier_voicecall\n" +
                     "where \n" +
@@ -271,7 +271,7 @@ class CallAnalysisService {
         log.info("近3月主叫通话次数")
         var sql: String =
             "SELECT\n" +
-                    "COUNT(id) as call_dial_cnt_3m\n" +
+                    "  IFNULL(COUNT(id),0)  as call_dial_cnt_3m\n" +
                     "FROM\n" +
                     "\tcarrier_voicecall\n" +
                     "where \n" +
@@ -296,7 +296,7 @@ class CallAnalysisService {
         log.info("近3个月被叫通话次数")
         var sql: String =
             "SELECT\n" +
-                    "COUNT(id) as call_dialed_cnt_3m\n" +
+                    " IFNULL(COUNT(id),0)  as call_dialed_cnt_3m\n" +
                     "FROM\n" +
                     "\tcarrier_voicecall\n" +
                     "where \n" +
@@ -319,7 +319,7 @@ class CallAnalysisService {
         log.info("近3月被叫月均通话次数")
         var sql: String =
             "SELECT\n" +
-                    "COUNT(id) as avg_call_dialed_cnt_3m\n" +
+                    " IFNULL(COUNT(id),0) as avg_call_dialed_cnt_3m\n" +
                     "FROM\n" +
                     "\tcarrier_voicecall\n" +
                     "where \n" +
@@ -341,7 +341,7 @@ class CallAnalysisService {
         log.info("近6个月被叫通话次数（近6月是指近六月的数据，即0-180天）")
         var sql: String =
             "SELECT\n" +
-                    "COUNT(id) AS call_dialed_cnt_6m\n" +
+                    " IFNULL(COUNT(id),0)  AS call_dialed_cnt_6m\n" +
                     "FROM\n" +
                     "\tcarrier_voicecall\n" +
                     "where \n" +
@@ -377,7 +377,7 @@ class CallAnalysisService {
         log.info("近6月主叫通话次数（近6月是指近六月的数据，即0-180天）")
         var sql: String =
             "SELECT\n" +
-                    "COUNT(id) as call_dial_cnt_6m\n" +
+                    "  IFNULL(COUNT(id),0)  as call_dial_cnt_6m\n" +
                     "FROM\n" +
                     "\tcarrier_voicecall\n" +
                     "where \n" +
@@ -399,7 +399,7 @@ class CallAnalysisService {
         log.info("近6月主叫通话次数（近6月是指近六月的数据，即0-180天）")
         var sql: String =
             "SELECT\n" +
-                    "COUNT(id) as avg_call_dial_cnt_6m\n" +
+                    "  IFNULL(COUNT(id),0)  as avg_call_dial_cnt_6m\n" +
                     "FROM\n" +
                     "\tcarrier_voicecall\n" +
                     "where \n" +
@@ -422,7 +422,7 @@ class CallAnalysisService {
         log.info("近1月主叫通话时长（秒）")
         var sql: String =
             "SELECT\n" +
-                    "SUM(duration_in_second) as call_dial_time_1m\n" +
+                    "  IFNULL(SUM(duration_in_second),0)  as call_dial_time_1m\n" +
                     "FROM\n" +
                     "\tcarrier_voicecall\n" +
                     "where \n" +
@@ -444,7 +444,7 @@ class CallAnalysisService {
         log.info("近3月主叫通话时长（秒）")
         var sql: String =
             "SELECT\n" +
-                    "SUM(duration_in_second) as call_dial_time_3m\n" +
+                    " IFNULL(SUM(duration_in_second),0)  as call_dial_time_3m\n" +
                     "FROM\n" +
                     "\tcarrier_voicecall\n" +
                     "where \n" +
@@ -466,7 +466,7 @@ class CallAnalysisService {
         log.info("近3月主叫月均通话时长")
         var sql: String =
             "SELECT\n" +
-                    "IFNULL(SUM(duration_in_second)/3,0)  as avg_call_dial_time_3m\n" +
+                    "IFNULL(SUM(duration_in_second),0)/3  as avg_call_dial_time_3m\n" +
                     "FROM\n" +
                     "\tcarrier_voicecall\n" +
                     "where \n" +
@@ -488,7 +488,7 @@ class CallAnalysisService {
         log.info("近6月主叫通话时长（秒）")
         var sql: String =
             "SELECT\n" +
-                    "SUM(duration_in_second) as call_dial_time_6m\n" +
+                    "  IFNULL(SUM(duration_in_second),0)  as call_dial_time_6m\n" +
                     "FROM\n" +
                     "\tcarrier_voicecall\n" +
                     "where \n" +
@@ -510,7 +510,7 @@ class CallAnalysisService {
         log.info("近6月主叫月均通话时长")
         var sql: String =
             "SELECT\n" +
-                    "SUM(duration_in_second)/6 as avg_call_dial_time_6m\n" +
+                    "IFNULL(SUM(duration_in_second),0)/6  as avg_call_dial_time_6m\n" +
                     "FROM\n" +
                     "\tcarrier_voicecall\n" +
                     "where \n" +
@@ -532,7 +532,7 @@ class CallAnalysisService {
         log.info("近1月通话次数")
         var sql: String =
             "SELECT\n" +
-                    "COUNT(*) as call_cnt_1m \n" +
+                    "IFNULL(COUNT(*),0)  as call_cnt_1m \n" +
                     "\n" +
                     "FROM\n" +
                     "\tcarrier_voicecall\n" +
@@ -569,7 +569,7 @@ class CallAnalysisService {
         log.info("近3月通话次数")
         var sql: String =
             "SELECT\n" +
-                    "COUNT(*) as call_cnt_3m \n" +
+                    " IFNULL(COUNT(*),0)  as call_cnt_3m \n" +
                     "\n" +
                     "FROM\n" +
                     "\tcarrier_voicecall\n" +
@@ -606,7 +606,7 @@ class CallAnalysisService {
         log.info("近3月平均通话次数")
         var sql: String =
             "SELECT\n" +
-                    "COUNT(*)/3 as avg_call_cnt_3m \n" +
+                    " IFNULL(COUNT(*),0) /3 as avg_call_cnt_3m \n" +
                     "\n" +
                     "FROM\n" +
                     "\tcarrier_voicecall\n" +
@@ -644,7 +644,7 @@ class CallAnalysisService {
         log.info("近6月通话次数")
         var sql: String =
             "SELECT\n" +
-                    "COUNT(*) as call_cnt_6m \n" +
+                    "  IFNULL(COUNT(*),0)  as call_cnt_6m \n" +
                     "\n" +
                     "FROM\n" +
                     "\tcarrier_voicecall\n" +
@@ -682,7 +682,7 @@ class CallAnalysisService {
         log.info("近6月平均通话次数")
         var sql: String =
             "SELECT\n" +
-                    "COUNT(*)/6 as avg_call_cnt_6m \n" +
+                    "  IFNULL(COUNT(*),0) /6 as avg_call_cnt_6m \n" +
                     "\n" +
                     "FROM\n" +
                     "\tcarrier_voicecall\n" +
@@ -720,7 +720,7 @@ class CallAnalysisService {
         log.info("近1月通话时长（秒）")
         var sql: String = "\n" +
                 "SELECT\n" +
-                "SUM(duration_in_second) as call_time_1m\n" +
+                " IFNULL(SUM(duration_in_second),0)  as call_time_1m\n" +
                 "\n" +
                 "FROM\n" +
                 "\tcarrier_voicecall\n" +
@@ -757,7 +757,7 @@ class CallAnalysisService {
         log.info("近3月通话时长（秒）（秒）")
         var sql: String = "\n" +
                 "SELECT\n" +
-                "SUM(duration_in_second) as call_time_3m\n" +
+                " IFNULL(SUM(duration_in_second),0) as call_time_3m\n" +
                 "\n" +
                 "FROM\n" +
                 "\tcarrier_voicecall\n" +
@@ -794,7 +794,7 @@ class CallAnalysisService {
         log.info("近3月平均通话时长（秒）")
         var sql: String = "\n" +
                 "SELECT\n" +
-                "SUM(duration_in_second) as avg_call_time_3m\n" +
+                " IFNULL(SUM(duration_in_second),0)/3 as avg_call_time_3m\n" +
                 "\n" +
                 "FROM\n" +
                 "\tcarrier_voicecall\n" +
@@ -831,7 +831,7 @@ class CallAnalysisService {
         log.info("近6月通话时长（秒）（秒）（秒）")
         var sql: String = "\n" +
                 "SELECT\n" +
-                "SUM(duration_in_second) as call_time_6m\n" +
+                " IFNULL(SUM(duration_in_second),0)  as call_time_6m\n" +
                 "\n" +
                 "FROM\n" +
                 "\tcarrier_voicecall\n" +
@@ -868,7 +868,7 @@ class CallAnalysisService {
         log.info("近6月平均通话时长（秒）")
         var sql: String = "\n" +
                 "SELECT\n" +
-                "SUM(duration_in_second) as avg_call_time_6m\n" +
+                " IFNULL(SUM(duration_in_second),0)/6 as avg_call_time_6m\n" +
                 "\n" +
                 "FROM\n" +
                 "\tcarrier_voicecall\n" +

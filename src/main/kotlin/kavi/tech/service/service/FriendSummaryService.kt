@@ -31,7 +31,7 @@ class FriendSummaryService {
     /**
      * 获取统计数据 朋友圈联系人数量（friend_circle.summary）
      */
-    fun toCleaningCircleFriendsData(mobile: String, task_id: String): Single<JsonObject>? {
+    fun toCleaningCircleFriendsData(mobile: String, task_id: String): Single<JsonObject> {
         if (StringUtils.isBlank(mobile) || StringUtils.isBlank(task_id)) {
             throw IllegalAccessException("数据为空！")
         }
@@ -53,17 +53,16 @@ class FriendSummaryService {
             ).toList().toSingle()
         }
             .map {
-                json.put("friend_num_3m",it[0].rows[0].getValue("friend_num_3m"))
-                json.put("good_friend_num_3m",it[1].rows[0].getValue("good_friend_num_3m") )
-                json.put("friend_city_center_3m", it[2].rows[0].getValue("friend_city_center_3m"))
-                json.put("is_city_match_friend_city_center_3m",it[3].rows[0].getValue("is_city_match_friend_city_center_3m") )
-                json.put("inter_peer_num_3m", it[4].rows[0].getValue("inter_peer_num_3m"))
-                json.put("friend_num_6m", it[5].rows[0].getValue("friend_num_6m"))
-                json.put("good_friend_num_6m", it[6].rows[0].getValue("good_friend_num_6m"))
-                json.put("friend_city_center_6m", it[7].rows[0].getValue("friend_city_center_6m"))
-                json.put("is_city_match_friend_city_center_6m", it[8].rows[0].getValue("is_city_match_friend_city_center_6m"))
-                json.put("inter_peer_num_6m", it[9].rows[0].getValue("inter_peer_num_6m"))
-
+                json.put("friend_num_3m",if (it[0].rows.size==0) "0" else it[0].rows[0].getValue("friend_num_3m").toString())
+                json.put("good_friend_num_3m",if (it[1].rows.size==0) "0" else it[1].rows[0].getValue("good_friend_num_3m").toString() )
+                json.put("friend_city_center_3m", if (it[2].rows.size==0) "0" else it[2].rows[0].getValue("friend_city_center_3m").toString())
+                json.put("is_city_match_friend_city_center_3m",if (it[3].rows.size==0) "0" else it[3].rows[0].getValue("is_city_match_friend_city_center_3m").toString() )
+                json.put("inter_peer_num_3m", if (it[4].rows.size==0) "0" else it[4].rows[0].getValue("inter_peer_num_3m").toString())
+                json.put("friend_num_6m", if (it[5].rows.size==0) "0" else it[5].rows[0].getValue("friend_num_6m").toString())
+                json.put("good_friend_num_6m", if (it[6].rows.size==0) "0" else it[6].rows[0].getValue("good_friend_num_6m").toString())
+                json.put("friend_city_center_6m", if (it[7].rows.size==0) "0" else it[7].rows[0].getValue("friend_city_center_6m").toString())
+                json.put("is_city_match_friend_city_center_6m", if (it[8].rows.size==0) "0" else it[8].rows[0].getValue("is_city_match_friend_city_center_6m").toString())
+                json.put("inter_peer_num_6m", if (it[9].rows.size==0) "0" else it[9].rows[0].getValue("inter_peer_num_6m").toString())
         }
     }
 
@@ -74,7 +73,7 @@ class FriendSummaryService {
     fun countLess3Months(conn:SQLConnection, mobile: String, taskId: String): Single<ResultSet> {
         log.info("统计 近90天月联系人数量（去重）(0-90天)")
         var sql: String = "SELECT \n" +
-                "\t COUNT(DISTINCT peer_number) as \"friend_num_3m\"\n" +
+                "\t  IFNULL(COUNT(DISTINCT peer_number),0)  as \"friend_num_3m\"\n" +
                 "\t\tFROM\n" +
                 "\t\tcarrier_voicecall\n" +
                 "\t\twhere \n" +
@@ -91,7 +90,7 @@ class FriendSummaryService {
     fun countLess3MonthsGoupy(conn:SQLConnection, mobile: String, taskId: String): Single<ResultSet> {
         log.info("近90天联系人数量（联系10次以上，去重） ")
         var sql: String = "SELECT\n" +
-                "\tCOUNT(DISTINCT peer_number) as good_friend_num_3m\n" +
+                "\t  IFNULL(COUNT(DISTINCT peer_number),0)  as good_friend_num_3m\n" +
                 "FROM\n" +
                 "\tcarrier_voicecall\n" +
                 "WHERE\n" +
@@ -188,7 +187,7 @@ class FriendSummaryService {
      */
     fun contactPerson(conn:SQLConnection, mobile: String, taskId: String): Single<ResultSet> {
         log.info("近90天互有主叫和被叫的联系人电话号码数目（去重）（0-90天）")
-        var sql: String = "SELECT COUNT(*)  as \"inter_peer_num_3m\"\n" +
+        var sql: String = "SELECT IFNULL( COUNT(*) ,0) as \"inter_peer_num_3m\"\n" +
                 "from ( \n" +
                 "SELECT \n" +
                 "DISTINCT peer_number \n" +
@@ -219,7 +218,7 @@ class FriendSummaryService {
     fun contactPersonLessSixMonth(conn:SQLConnection, mobile: String, taskId: String): Single<ResultSet> {
         log.info("近180天的联系人数量")
         var sql: String = "SELECT \n" +
-                "\t COUNT(DISTINCT peer_number) as \"friend_num_6m\"\n" +
+                "\t  IFNULL(COUNT(DISTINCT peer_number),0)  as \"friend_num_6m\"\n" +
                 "\t\tFROM\n" +
                 "\t\tcarrier_voicecall\n" +
                 "\t\twhere \n" +
@@ -237,7 +236,7 @@ class FriendSummaryService {
     fun contactPersonTen(conn:SQLConnection, mobile: String, taskId: String): Single<ResultSet> {
         log.info("近180天的联系人数量（联系10次以上，去重）（0-180天）")
         var sql: String = "SELECT\n" +
-                "\tCOUNT(DISTINCT peer_number) as good_friend_num_6m\n" +
+                "\t IFNULL(COUNT(DISTINCT peer_number),0)  as good_friend_num_6m\n" +
                 "FROM\n" +
                 "\tcarrier_voicecall\n" +
                 "WHERE\n" +
@@ -339,7 +338,7 @@ class FriendSummaryService {
      */
     fun contactPersonHun(conn:SQLConnection,mobile: String, taskId: String): Single<ResultSet> {
         log.info("近180天的互有主叫和被叫的联系人电话号码数目（去重）（0-180天）")
-        var sql: String = "SELECT COUNT(*)  as \"inter_peer_num_6m\"\n" +
+        var sql: String = "SELECT IFNULL(COUNT(*),0) as \"inter_peer_num_6m\"\n" +
                 "from ( \n" +
                 "SELECT \n" +
                 "DISTINCT peer_number \n" +
