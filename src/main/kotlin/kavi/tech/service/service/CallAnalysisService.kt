@@ -250,8 +250,12 @@ class CallAnalysisService {
                     " DATE(date_add(now(), interval -30 day))<\n" +
                     "DATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))\n" +
                     "and  mobile = '$mobile' \n" +
-        "and task_id = $taskId "
+        "and task_id = '$taskId' "
         return conn.rxQuery(sql).doAfterTerminate(conn::close)
+            .doOnError {
+                log.info("近1月主叫通话次数")
+                print(it.printStackTrace())
+            }
     }
 
     /***
@@ -271,8 +275,12 @@ class CallAnalysisService {
                     " DATE(date_add(now(), interval -30 day))<\n" +
                     "DATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))\n" +
                     "and  peer_number = '$mobile'  \n" +
-        "and task_id = $taskId  "
+        "and task_id = '$taskId'  "
         return conn.rxQuery(sql).doAfterTerminate(conn::close)
+            .doOnError {
+                log.info("近1个月被叫通话次数")
+                print(it.printStackTrace())
+            }
     }
 
     /***
@@ -293,6 +301,10 @@ class CallAnalysisService {
         "and task_id = '$taskId' "
 
         return conn.rxQuery(sql).doAfterTerminate(conn::close)
+            .doOnError {
+                log.info("近3月主叫月均通话次数")
+                print(it.printStackTrace())
+            }
     }
 
     /***
@@ -313,6 +325,10 @@ class CallAnalysisService {
                     "and task_id = '$taskId' "
 
         return conn.rxQuery(sql).doAfterTerminate(conn::close)
+            .doOnError {
+                log.info("近3月主叫通话次数")
+                print(it.printStackTrace())
+            }
     }
 
     /***
@@ -333,6 +349,10 @@ class CallAnalysisService {
                     "and  peer_number = '$mobile'  \n" +
         "and task_id = '$taskId' "
         return conn.rxQuery(sql).doAfterTerminate(conn::close)
+            .doOnError {
+                log.info("近3个月被叫通话次数")
+                print(it.printStackTrace())
+            }
     }
 
     /***
@@ -352,6 +372,10 @@ class CallAnalysisService {
                     "and  peer_number = '$mobile'  " +
                     "and task_id = '$taskId' "
         return conn.rxQuery(sql).doAfterTerminate(conn::close)
+            .doOnError {
+                log.info("近3月被叫月均通话次数")
+                print(it.printStackTrace())
+            }
     }
 
     /***
@@ -370,6 +394,10 @@ class CallAnalysisService {
                     "and  peer_number = '$mobile'  \n" +
         "and task_id = '$taskId'  "
         return conn.rxQuery(sql).doAfterTerminate(conn::close)
+            .doOnError {
+                log.info("近6个月被叫通话次数")
+                print(it.printStackTrace())
+            }
     }
 
     /***
@@ -386,8 +414,12 @@ class CallAnalysisService {
                     " DATE(date_add(now(), interval -180 day))<\n" +
                     "DATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))\n" +
                     "and  peer_number = $mobile \n" +
-                    "and task_id = $taskId  "
+                    "and task_id = '$taskId'  "
         return conn.rxQuery(sql).doAfterTerminate(conn::close)
+            .doOnError {
+                log.info("近6月被叫月均通话次数")
+                print(it.printStackTrace())
+            }
     }
 
     /***
@@ -406,6 +438,10 @@ class CallAnalysisService {
                     "and  mobile = '$mobile' \n" +
         "and task_id = '$taskId' "
         return conn.rxQuery(sql).doAfterTerminate(conn::close)
+            .doOnError {
+                log.info("近6月主叫通话次数")
+                print(it.printStackTrace())
+            }
     }
 
     /***
@@ -424,6 +460,10 @@ class CallAnalysisService {
                     "and  mobile = '$mobile' \n" +
                     "and task_id = '$taskId' "
         return conn.rxQuery(sql).doAfterTerminate(conn::close)
+            .doOnError {
+                log.info("近6月主叫通话次数")
+                print(it.printStackTrace())
+            }
     }
 
 
@@ -443,6 +483,10 @@ class CallAnalysisService {
                     "and  mobile = '$mobile'  " +
         "and task_id = '$taskId'  "
         return conn.rxQuery(sql).doAfterTerminate(conn::close)
+            .doOnError {
+                log.info("近1月主叫通话时长")
+                print(it.printStackTrace())
+            }
     }
 
     /**
@@ -461,6 +505,10 @@ class CallAnalysisService {
                     "and  mobile = '$mobile'  " +
         "and task_id = '$taskId'  "
         return conn.rxQuery(sql).doAfterTerminate(conn::close)
+            .doOnError {
+                log.info("近3月主叫通话时长")
+                print(it.printStackTrace())
+            }
     }
 
     /**
@@ -479,6 +527,10 @@ class CallAnalysisService {
                     "and  mobile = '$mobile'  " +
                     "and task_id = '$taskId'  "
         return conn.rxQuery(sql).doAfterTerminate(conn::close)
+            .doOnError {
+                log.info("近3月主叫月均通话时长")
+                print(it.printStackTrace())
+            }
     }
 
     /**
@@ -494,9 +546,13 @@ class CallAnalysisService {
                     "where \n" +
                     " DATE(date_add(now(), interval -180 day))<\n" +
                     "DATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))\n" +
-                    "and  mobile = '$mobile' "
+                    "and  mobile = '$mobile' " +
         "and task_id = '$taskId' "
         return conn.rxQuery(sql).doAfterTerminate(conn::close)
+            .doOnError {
+                log.info("近6月主叫通话时长")
+                print(it.printStackTrace())
+            }
     }
 
     /**
@@ -512,9 +568,13 @@ class CallAnalysisService {
                     "where \n" +
                     " DATE(date_add(now(), interval -180 day))<\n" +
                     "DATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))\n" +
-                    "and  mobile = '$mobile' "
+                    "and  mobile = '$mobile' " +
         "and task_id = '$taskId' "
         return conn.rxQuery(sql).doAfterTerminate(conn::close)
+            .doOnError {
+                log.info("近6月主叫月均通话时长")
+                print(it.printStackTrace())
+            }
     }
 
     /**
@@ -548,6 +608,10 @@ class CallAnalysisService {
         ")\n"
 
         return conn.rxQuery(sql).doAfterTerminate(conn::close)
+            .doOnError {
+                log.info("近1月通话次数")
+                print(it.printStackTrace())
+            }
     }
 
     /**
@@ -581,6 +645,10 @@ class CallAnalysisService {
                     ")\n"
 
         return conn.rxQuery(sql).doAfterTerminate(conn::close)
+            .doOnError {
+                log.info("近3月通话次数")
+                print(it.printStackTrace())
+            }
     }
 
     /**
@@ -614,6 +682,10 @@ class CallAnalysisService {
                     ")\n"
 
         return conn.rxQuery(sql).doAfterTerminate(conn::close)
+            .doOnError {
+                log.info("近3月平均通话次数")
+                print(it.printStackTrace())
+            }
     }
 
 
@@ -648,6 +720,10 @@ class CallAnalysisService {
         ")\n"
 
         return conn.rxQuery(sql).doAfterTerminate(conn::close)
+            .doOnError {
+                log.info("近6月通话次数")
+                print(it.printStackTrace())
+            }
 
     }
 
@@ -669,7 +745,7 @@ class CallAnalysisService {
                     "DATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))\n" +
                     "and  \n" +
                     "mobile = '$mobile'  \n" +
-                    "and task_id =  '$taskId' " +
+                    "and task_id = '$taskId' " +
                     "\n" +
                     ") or (\n" +
                     "\n" +
@@ -682,6 +758,10 @@ class CallAnalysisService {
                     ")\n"
 
         return conn.rxQuery(sql).doAfterTerminate(conn::close)
+            .doOnError {
+                log.info("近6月平均通话次数")
+                print(it.printStackTrace())
+            }
 
     }
 
@@ -716,6 +796,10 @@ class CallAnalysisService {
         ")\n"
 
         return conn.rxQuery(sql).doAfterTerminate(conn::close)
+            .doOnError {
+                log.info("近1月通话时长")
+                print(it.printStackTrace())
+            }
     }
 
     /**
@@ -749,6 +833,10 @@ class CallAnalysisService {
         ")\n"
 
         return conn.rxQuery(sql).doAfterTerminate(conn::close)
+            .doOnError {
+                log.info("近3月通话时长")
+                print(it.printStackTrace())
+            }
     }
 
     /**
@@ -782,6 +870,10 @@ class CallAnalysisService {
                 ")\n"
 
         return conn.rxQuery(sql).doAfterTerminate(conn::close)
+            .doOnError {
+                log.info("近3月平均通话时长")
+                print(it.printStackTrace())
+            }
     }
 
     /**
@@ -815,6 +907,10 @@ class CallAnalysisService {
         ")\n"
 
         return conn.rxQuery(sql).doAfterTerminate(conn::close)
+            .doOnError {
+            log.info("近6月通话时长（秒）（秒）（秒")
+            print(it.printStackTrace())
+        }
     }
 
     /**
@@ -844,10 +940,14 @@ class CallAnalysisService {
                 "and  \n" +
                 "\n" +
                 "peer_number = '$mobile' " +
-                "and task_id =  '$taskId  "  +
+                "and task_id =  '$taskId'  "  +
                 ")\n"
 
         return conn.rxQuery(sql).doAfterTerminate(conn::close)
+            .doOnError {
+            log.info("近6月平均通话时长（秒）")
+            print(it.printStackTrace())
+        }
     }
 
 
