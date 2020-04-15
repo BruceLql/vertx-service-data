@@ -1,0 +1,16 @@
+{
+  "MONGO": {
+    "connection_string": "mongodb://xxx:27017/fof_crawler",
+    "db_name": "fof_crawler"
+  },
+  "HTTP.PORT": 8080,
+  "HTTP.HOST": "localhost",
+
+  "MYSQL": {
+    "host": "rm-bp14p7245dy9y3z27o.mysql.rds.aliyuncs.com",
+    "port": 3306,
+    "database": "xincm",
+    "username": "xincm",
+    "password": "Xincm2020"
+  }
+}
