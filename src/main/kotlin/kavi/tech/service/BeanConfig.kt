@@ -81,4 +81,7 @@ class BeanConfig : VertxBeans() {
     fun mongoClient(rxVertx: io.vertx.rxjava.core.Vertx, @Qualifier("config") config: JsonObject): MongoClient {
         return MongoClient.createShared(rxVertx,  config.value("MONGO", JsonObject()))
     }
+
+    @Bean
+    fun rxClient(vertx: io.vertx.rxjava.core.Vertx) = io.vertx.rxjava.ext.web.client.WebClient.create(vertx)
 }
