@@ -34,11 +34,11 @@ class CallAnalysisService {
      * 通话风险分析（call_risk_analysis）
      *
      */
-    fun toCleaningCircleFriendsData(mobile: String, task_id: String): Single<List<ResultSet>> {
+    fun toCleaningCircleFriendsData(mobile: String, task_id: String): Single<JsonObject> {
         if (StringUtils.isBlank(mobile) || StringUtils.isBlank(task_id)) {
             throw IllegalAccessException("数据为空！")
         }
-
+        var jsonObject = JsonObject()
         return this.client.rxGetConnection().flatMap { conn->
             Observable.concat(
                 listOf(
@@ -76,6 +76,41 @@ class CallAnalysisService {
                     avgLastSixMonthCallTime(conn,mobile,task_id).toObservable()
                 )
             ).toList().toSingle()
+        }.map {
+
+            jsonObject.put("call_cnt_1m", it[0].rows[0].getValue("call_cnt_1m")) // 近1月通话次数
+            jsonObject.put("call_cnt_3m", it[1].rows[0].getValue("call_cnt_3m"))  // 近3月通话次数
+            jsonObject.put("call_cnt_6m", it[2].rows[0].getValue("call_cnt_6m")) //近6月通话次数
+            jsonObject.put("avg_call_cnt_3m", it[3].rows[0].getValue("avg_call_cnt_3m")) // 近3月平均通话次数
+            jsonObject.put("avg_call_cnt_6m", it[4].rows[0].getValue("avg_call_cnt_6m")) // 近6月平均通话次数
+            jsonObject.put("call_time_1m", it[5].rows[0].getValue("call_time_1m")) // 近1月通话时长（秒）
+            jsonObject.put("call_time_3m ", it[6].rows[0].getValue("call_time_3m")) // 近3月通话时长（秒）
+            jsonObject.put("call_time_6m", it[7].rows[0].getValue("call_time_6m")) // 近6月通话时长
+            jsonObject.put("avg_call_time_3m", it[8].rows[0].getValue("avg_call_time_3m")) // 近3月平均通话时长
+            jsonObject.put("avg_call_time_6m ", it[9].rows[0].getValue("avg_call_time_6m")) //近6月平均通话时长
+            jsonObject.put("call_dial_cnt_1m", it[10].rows[0].getValue("call_dial_cnt_1m")) // 近1月主叫通话次数
+            jsonObject.put("call_dial_cnt_3m", it[11].rows[0].getValue("call_dial_cnt_3m"))//近3月主叫通话次数
+            jsonObject.put("call_dial_cnt_6m", it[12].rows[0].getValue("call_dial_cnt_6m"))//近6月主叫通话次数
+            jsonObject.put("avg_call_dial_cnt_3m", it[13].rows[0].getValue("avg_call_dial_cnt_3m"))//近3月主叫月均通话次数
+            jsonObject.put("avg_call_dial_cnt_6m", it[14].rows[0].getValue("avg_call_dial_cnt_6m")) //近6月主叫月均通话次数
+            jsonObject.put("call_dial_time_1m", it[15].rows[0].getValue("call_dial_time_1m"))//近1月主叫通话时长
+            jsonObject.put("call_dial_time_3m", it[16].rows[0].getValue("call_dial_time_3m"))//近3月主叫通话时长
+            jsonObject.put("call_dial_time_6m", it[17].rows[0].getValue("call_dial_time_6m"))//近6月主叫通话时长
+            jsonObject.put("avg_call_dial_time_3m", it[18].rows[0].getValue("avg_call_dial_time_3m"))//近3月主叫月均通话时长
+            jsonObject.put("avg_call_dial_time_6m", it[19].rows[0].getValue("avg_call_dial_time_6m"))//近6月主叫月均通话时长
+            jsonObject.put("call_dialed_cnt_1m", it[20].rows[0].getValue("call_dialed_cnt_1m"))//近1个月被叫通话次数
+            jsonObject.put("call_dialed_cnt_3m", it[21].rows[0].getValue("call_dialed_cnt_3m"))//近3个月被叫通话次数
+            jsonObject.put("call_dialed_cnt_6m", it[22].rows[0].getValue("call_dialed_cnt_6m"))//近6个月被叫通话次数
+            jsonObject.put("avg_call_dialed_cnt_3m", it[23].rows[0].getValue("avg_call_dialed_cnt_3m"))//近3月被叫月均通话次数
+
+            jsonObject.put("avg_call_dialed_cnt_6m", it[24].rows[0].getValue("avg_call_dialed_cnt_3m"))//近6月被叫月均通话次数
+
+            jsonObject.put("call_dialed_time_1m", it[25].rows[0].getValue("call_dialed_time_1m"))//近1月被叫通话时长
+            jsonObject.put("call_dialed_time_3m", it[26].rows[0].getValue("call_dialed_time_3m"))//近3月被叫通话时长
+            jsonObject.put("call_dialed_time_6m", it[27].rows[0].getValue("call_dialed_time_6m"))//近6月被叫通话时长
+            jsonObject.put("avg_call_dialed_time_3m", it[28].rows[0].getValue("avg_call_dialed_time_3m"))//近3月被叫月均通话时长
+            jsonObject.put("avg_call_dialed_time_6m", it[29].rows[0].getValue("avg_call_dialed_time_6m"))//近6月被叫月均通话时长
+
         }
 
     }
