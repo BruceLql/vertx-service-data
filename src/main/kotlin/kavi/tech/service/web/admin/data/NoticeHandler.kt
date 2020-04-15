@@ -5,6 +5,8 @@ import io.vertx.core.json.JsonObject
 import io.vertx.ext.mongo.FindOptions
 import io.vertx.ext.sql.UpdateResult
 import io.vertx.ext.web.RoutingContext
+import io.vertx.rxjava.ext.web.client.WebClient
+import kavi.tech.service.common.extension.GZIPUtils
 import kavi.tech.service.common.extension.logger
 import kavi.tech.service.common.extension.regexPhone
 import kavi.tech.service.mongo.model.*
@@ -19,8 +21,6 @@ import rx.Observable
 import rx.Single
 import tech.kavi.vs.web.ControllerHandler
 import tech.kavi.vs.web.HandlerRequest
-import java.text.DateFormat
-import java.util.*
 
 @HandlerRequest(path = "/notice", method = HttpMethod.POST)
 class NoticeHandler @Autowired constructor(
@@ -50,6 +50,9 @@ class NoticeHandler @Autowired constructor(
 
 ) : ControllerHandler() {
     private val log = logger(this::class)
+
+    @Autowired
+    private lateinit var rxClient: WebClient
     /**
      * 爬虫程序执行完毕后通知
      * @author max
@@ -98,19 +101,32 @@ class NoticeHandler @Autowired constructor(
             query.put("mobile", mobile).put("mid", task_id)
 
             //   数据提取 根据传进来的task_id开始从mongo中读取数据 以及简单清洗后存入Mysql
-            dataBegin(query, FindOptions())
-                /*.flatMap {
+            dataBegin(query, FindOptions()).flatMap {
 
                 //   调用数据清洗服务 结果封装到 result
                 dataClear(mobile, task_id)
-            }*/.subscribe({
+            }.subscribe({
 
-//                resultSend.put("data", it).put("mobile", mobile).put("task_id", task_id).put("return_code", "00000")
-//                    .put("message", "成功").put("operation_time", System.currentTimeMillis())
-//                        .put("sign","")
-
+                resultSend.put("data", it)
+                    .put("mobile", mobile)
+                    .put("task_id", task_id)
+                    .put("return_code", "00000")
+                    .put("message", "成功")
+                    .put("operation_time", System.currentTimeMillis())
                 // TODO  数据推送服务  resultSend
-                println(resultSend.toString())
+                println("推送前结果： $resultSend")
+                var pushData = GZIPUtils().uncompressToString(GZIPUtils().compress(resultSend.toString()))
+                println("压缩后结果： $pushData")
+
+                println("推送地址 : $back_url")
+                rxClient.post(back_url).send { res ->
+                    if(res.succeeded()){
+                        println("推送成功")
+                    }else{
+                        println("推送失败")
+                    }
+                }
+
                 event.response().end("==================")
 
             }, { it.printStackTrace() })
