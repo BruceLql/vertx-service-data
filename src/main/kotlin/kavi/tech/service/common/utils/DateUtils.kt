@@ -33,7 +33,8 @@ object DateUtils {
     fun getPreMothInCurrentMoth(num: Long, pattern: String): ArrayList<String> {
         val now = LocalDate.now()
         var moths = arrayListOf<String>()
-        for (i in 0..num) {
+        var count = num - 1
+        for (i in 0..count) {
             moths.add(now.minusMonths(i).format(DateTimeFormatter.ofPattern(pattern)))
         }
         return moths
