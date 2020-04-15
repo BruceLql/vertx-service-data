@@ -6,7 +6,6 @@ import io.vertx.ext.sql.ResultSet
 import io.vertx.rxjava.ext.asyncsql.AsyncSQLClient
 import io.vertx.rxjava.ext.sql.SQLConnection
 import kavi.tech.service.mysql.dao.CarrierResultDataDao
-import kavi.tech.service.mysql.entity.CarrierResultData
 import org.apache.commons.lang3.StringUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -103,7 +102,7 @@ class CallAnalysisService {
             jsonObject.put("call_dialed_cnt_6m", it[22].rows[0].getValue("call_dialed_cnt_6m"))//近6个月被叫通话次数
             jsonObject.put("avg_call_dialed_cnt_3m", it[23].rows[0].getValue("avg_call_dialed_cnt_3m"))//近3月被叫月均通话次数
 
-            jsonObject.put("avg_call_dialed_cnt_6m", it[24].rows[0].getValue("avg_call_dialed_cnt_3m"))//近6月被叫月均通话次数
+            jsonObject.put("avg_call_dialed_cnt_6m", it[24].rows[0].getValue("avg_call_dialed_cnt_6m"))//近6月被叫月均通话次数
 
             jsonObject.put("call_dialed_time_1m", it[25].rows[0].getValue("call_dialed_time_1m"))//近1月被叫通话时长
             jsonObject.put("call_dialed_time_3m", it[26].rows[0].getValue("call_dialed_time_3m"))//近3月被叫通话时长
@@ -362,16 +361,8 @@ class CallAnalysisService {
      */
     fun becountLessSixMonthAvg(conn:SQLConnection, mobile: String, taskId: String): Single<ResultSet> {
         log.info("近6个月被叫通话次数（近6月是指近六月的数据，即0-180天）")
-        var sql: String =
-            "SELECT\n" +
-                    "COUNT(id) AS avg_call_dialed_cnt_6m\n" +
-                    "FROM\n" +
-                    "\tcarrier_voicecall\n" +
-                    "where \n" +
-                    " DATE(date_add(now(), interval -180 day))<\n" +
-                    "DATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))\n" +
-                    "and  peer_number = $mobile \n" +
-                    "and task_id = '$taskId'  "
+        var sql: String = "SELECT IFNULL(COUNT(id),0)  AS avg_call_dialed_cnt_6m\tFROM \tcarrier_voicecall\twhere \tDATE(date_add(now(), interval -180 day))<\tDATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))\tand  peer_number = '$mobile'\tand task_id = '$taskId'"
+
         return conn.rxQuery(sql).doAfterTerminate(conn::close)
             .doOnError {
                 log.info("近6月被叫月均通话次数")
