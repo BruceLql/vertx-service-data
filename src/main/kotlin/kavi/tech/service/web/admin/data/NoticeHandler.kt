@@ -53,6 +53,7 @@ class NoticeHandler @Autowired constructor(
 
     @Autowired
     private lateinit var rxClient: WebClient
+
     /**
      * 爬虫程序执行完毕后通知
      * @author max
@@ -115,19 +116,21 @@ class NoticeHandler @Autowired constructor(
                     .put("operation_time", System.currentTimeMillis())
                 // TODO  数据推送服务  resultSend
                 println("推送前结果： $resultSend")
-                var pushData = GZIPUtils().uncompressToString(GZIPUtils().compress(resultSend.toString()))
-                println("压缩后结果： $pushData")
-
+                println("推送前结果size： ${resultSend.toString().length}")
+                var pushData = GZIPUtils().compress(resultSend.toString())
                 println("推送地址 : $back_url")
-                rxClient.post(back_url).send { res ->
-                    if(res.succeeded()){
-                        println("推送成功")
-                    }else{
-                        println("推送失败")
-                    }
-                }
 
-                event.response().end("==================")
+                rxClient.putAbs(back_url).method(HttpMethod.POST)
+                    .sendStream(Observable.just(io.vertx.rxjava.core.buffer.Buffer.buffer(pushData))) { it ->
+                        if (it.succeeded()) {
+                            val response = it.result()
+                            println("Got HTTP response with status ${response.statusCode()}")
+                        } else {
+                            it.cause().printStackTrace()
+                        }
+                    }
+
+                event.response().end(result.put("message", "notice success").toString())
 
             }, { it.printStackTrace() })
 
