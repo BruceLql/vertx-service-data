@@ -36,7 +36,7 @@ class CallLogDao @Autowired constructor(
         }
     }
 
-    fun callLogDataInsert(data: List<JsonObject>) {
+    fun callLogDataInsert(data: List<JsonObject>): Single<UpdateResult> {
 
         println(" 通话记录存入mysql: .....")
         val callLogList = ArrayList<CallLog>()
@@ -48,70 +48,56 @@ class CallLogDao @Autowired constructor(
             val bill_month = it.getString("bill_month")
             val task_id = it.getString("mid")
             val dataOut = it.getJsonObject("data")
-            if (dataOut.isEmpty) {
-                return
-            }
+            if (!dataOut.isEmpty) {
+                when (operator) {
+                    // 移动数据提取
+                    "CMCC" -> {
+                        if (dataOut.getJsonArray("data").size() >= 1) {
 
+                            dataOut.getJsonArray("data").forEachIndexed { index, mutableEntry ->
+                                val callLog_s = CallLog()
+                                callLog_s.mobile = mobile
+                                callLog_s.bill_month = bill_month
+                                callLog_s.task_id = task_id
+                                val obj = JsonObject(mutableEntry.toString())
+                                cmcc(callLog_s, obj)
 
-            when (operator) {
-                // 移动数据提取
-                "CMCC" -> {
-                    if (dataOut.getJsonArray("data").size() < 1) {
-                        return
-                    }
-                    dataOut.getJsonArray("data").forEachIndexed { index, mutableEntry ->
-                        val callLog_s = CallLog()
-                        callLog_s.mobile = mobile
-                        callLog_s.bill_month = bill_month
-                        callLog_s.task_id = task_id
-                        val obj = JsonObject(mutableEntry.toString())
-                        cmcc(callLog_s, obj)
+                                callLogList.add(callLog_s)
 
-                        callLogList.add(callLog_s)
+                            }
+                        }
 
                     }
-                }
 
-                // 联通数据提取
-                "CUCC" -> {
-                    dataOut.getJsonObject("pageMap").getJsonArray("result").forEachIndexed { index, mutableEntry ->
-                        val callLog_s = CallLog()
-                        callLog_s.mobile = mobile
-                        callLog_s.bill_month = bill_month
-                        callLog_s.task_id = task_id
-                        val obj = JsonObject(mutableEntry.toString())
-                        cucc(callLog_s, obj)
+                    // 联通数据提取
+                    "CUCC" -> {
+                        dataOut.getJsonObject("pageMap").getJsonArray("result").forEachIndexed { index, mutableEntry ->
+                            val callLog_s = CallLog()
+                            callLog_s.mobile = mobile
+                            callLog_s.bill_month = bill_month
+                            callLog_s.task_id = task_id
+                            val obj = JsonObject(mutableEntry.toString())
+                            cucc(callLog_s, obj)
 
-                        callLogList.add(callLog_s)
+                            callLogList.add(callLog_s)
 
+                        }
                     }
-                }
-                // 电信数据提取
-                "CTCC" -> {
+                    // 电信数据提取
+                    "CTCC" -> {
+                    }
                 }
             }
 
 
         }
         println("callLogList:${callLogList.size}" + callLogList.toString())
-        selectBeforeInsert(callLogList[0]).subscribe({
-            // 如果查询结果的行数大于0 说明已经入库过了  暂时先不处理
-            if (it.numRows == 0) {
-                // 执行批量方法
-                insertBybatch(CallLog(), callLogList).subscribe({ it ->
-                    println(it)
-                    // todo 处理通话数据分析规则
-                    println("处理通话数据分析规则：=====")
+        if (callLogList.size > 0) {
+            return insertBybatch(CallLog(), callLogList)
+        } else {
+            return Single.just(UpdateResult())
+        }
 
-                }, {
-                    it.printStackTrace()
-                })
-            } else {
-                println("已经存在${it.numRows}条数据,该数据已经入库过！新数据有${callLogList.size}条")
-            }
-        }, {
-            it.printStackTrace()
-        })
     }
 
     /**

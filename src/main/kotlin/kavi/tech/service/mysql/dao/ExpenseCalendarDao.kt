@@ -21,54 +21,45 @@ class ExpenseCalendarDao @Autowired constructor(
     override val log: Logger = logger(this::class)
 
 
-    fun expenseCalendarDataInsert(data: List<JsonObject>) {
+    fun expenseCalendarDataInsert(data: List<JsonObject>): Single<UpdateResult> {
 
         println(" 消费记录（月账单信息）存入mysql: .....")
         val expenseCalendarList = ArrayList<ExpenseCalendar>()
         data.forEach {
-            println("expenseCalendarData：" + it.toString())
+            println("expenseCalendarData：$it")
             // 运营商类型  移动：CMCC 联通：CUCC 电信：CTCC
             val operator = it.getString("operator")
             val mobile = it.getString("mobile")
             val task_id = it.getString("mid")
             val dataOut = it.getJsonArray("data")
-            if (dataOut.isEmpty) {
-                return
-            }
-            dataOut.forEachIndexed { index, mutableEntry ->
-                val expenseCalendar_s = ExpenseCalendar()
-                expenseCalendar_s.mobile = mobile
-                expenseCalendar_s.task_id = task_id
-                val obj = JsonObject(mutableEntry.toString())
-                println("obj:$obj")
-                when (operator) {
-                    // 移动数据提取
-                    "CMCC" -> cmcc(expenseCalendar_s, obj)
-                    // 联通数据提取
-                    "CUCC" -> cucc(expenseCalendar_s, obj)
-                    // 电信数据提取
-                    "CTCC" -> ctcc(expenseCalendar_s, obj)
+            if (!dataOut.isEmpty) {
+                dataOut.forEachIndexed { index, mutableEntry ->
+                    val expenseCalendar_s = ExpenseCalendar()
+                    expenseCalendar_s.mobile = mobile
+                    expenseCalendar_s.task_id = task_id
+                    val obj = JsonObject(mutableEntry.toString())
+                    println("obj:$obj")
+                    when (operator) {
+                        // 移动数据提取
+                        "CMCC" -> cmcc(expenseCalendar_s, obj)
+                        // 联通数据提取
+                        "CUCC" -> cucc(expenseCalendar_s, obj)
+                        // 电信数据提取
+                        "CTCC" -> ctcc(expenseCalendar_s, obj)
+                    }
+                    expenseCalendarList.add(expenseCalendar_s)
                 }
-                expenseCalendarList.add(expenseCalendar_s)
+
             }
 
         }
         println("smsInfoList:${expenseCalendarList.size}" + expenseCalendarList.toString())
-        selectBeforeInsert(expenseCalendarList.get(0)).subscribe({
-            // 如果查询结果的行数大于0 说明已经入库过了  暂时先不处理
-            if (it.numRows == 0) {
-                // 执行批量方法
-                insertBybatch(ExpenseCalendar(), expenseCalendarList).subscribe({
-                    println(it)
-                }, {
-                    it.printStackTrace()
-                })
-            } else {
-                println("已经存在${it.numRows}条数据,该数据已经入库过！新数据有${expenseCalendarList.size}条")
-            }
-        }, {
-            it.printStackTrace()
-        })
+        if (expenseCalendarList.size > 0) {
+            return insertBybatch(ExpenseCalendar(), expenseCalendarList)
+        } else {
+            return Single.just(UpdateResult())
+        }
+
     }
 
     /**

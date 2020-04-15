@@ -9,6 +9,7 @@ import kavi.tech.service.common.extension.logger
 import kavi.tech.service.mysql.component.AbstractDao
 import kavi.tech.service.mysql.component.SQL
 import kavi.tech.service.mysql.entity.CallLog
+import kavi.tech.service.mysql.entity.InternetInfo
 import kavi.tech.service.mysql.entity.PaymentRecord
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
@@ -21,7 +22,7 @@ class PaymentRecordDao @Autowired constructor(
     override val log: Logger = logger(this::class)
 
 
-    fun paymentRecordDataInsert(data: List<JsonObject>) {
+    fun paymentRecordDataInsert(data: List<JsonObject>): Single<UpdateResult> {
 
         println(" 充值记录存入mysql: .....")
         val paymentRecordList = ArrayList<PaymentRecord>()
@@ -32,57 +33,47 @@ class PaymentRecordDao @Autowired constructor(
             val mobile = it.getString("mobile")
             val task_id = it.getString("mid")
             val dataOut = it.getJsonObject("data")
-            if (dataOut.isEmpty) {
-                return
-            }
+            if (!dataOut.isEmpty) {
+                when (operator) {
+                    // 移动数据提取
+                    "CMCC" -> {
+                        dataOut.getJsonArray("data").forEachIndexed { index, mutableEntry ->
+                            val paymentRecord_s = PaymentRecord()
+                            paymentRecord_s.mobile = mobile
+                            paymentRecord_s.task_id = task_id
+                            val obj = JsonObject(mutableEntry.toString())
+                            cmcc(paymentRecord_s, obj)
+                            paymentRecordList.add(paymentRecord_s)
+                        }
 
-            when (operator) {
-                // 移动数据提取
-                "CMCC" -> {
-                    dataOut.getJsonArray("data").forEachIndexed { index, mutableEntry ->
-                        val paymentRecord_s = PaymentRecord()
-                        paymentRecord_s.mobile = mobile
-                        paymentRecord_s.task_id = task_id
-                        val obj = JsonObject(mutableEntry.toString())
-                        cmcc(paymentRecord_s, obj)
-                        paymentRecordList.add(paymentRecord_s)
                     }
+                    // 联通数据提取
+                    "CUCC" -> {
+                        dataOut.getJsonArray("totalResult").forEachIndexed { index, mutableEntry ->
+                            val paymentRecord_s = PaymentRecord()
+                            paymentRecord_s.mobile = mobile
+                            paymentRecord_s.task_id = task_id
+                            val obj = JsonObject(mutableEntry.toString())
+                            cucc(paymentRecord_s, obj)
+                            paymentRecordList.add(paymentRecord_s)
+                        }
+                    }
+                    // 电信数据提取
+                    "CTCC" -> {
 
-                }
-                // 联通数据提取
-                "CUCC" -> {
-                    dataOut.getJsonArray("totalResult").forEachIndexed { index, mutableEntry ->
-                        val paymentRecord_s = PaymentRecord()
-                        paymentRecord_s.mobile = mobile
-                        paymentRecord_s.task_id = task_id
-                        val obj = JsonObject(mutableEntry.toString())
-                        cucc(paymentRecord_s, obj)
-                        paymentRecordList.add(paymentRecord_s)
                     }
                 }
-                // 电信数据提取
-                "CTCC" ->{
 
-                }
             }
 
         }
         println("smsInfoList:${paymentRecordList.size}" + paymentRecordList.toString())
-        selectBeforeInsert(paymentRecordList.get(0)).subscribe({
-            // 如果查询结果的行数大于0 说明已经入库过了  暂时先不处理
-            if (it.numRows == 0) {
-                // 执行批量方法
-                insertBybatch(PaymentRecord(), paymentRecordList).subscribe({
-                    println(it)
-                }, {
-                    it.printStackTrace()
-                })
-            } else {
-                println("已经存在${it.numRows}条数据,该数据已经入库过！新数据有${paymentRecordList.size}条")
-            }
-        }, {
-            it.printStackTrace()
-        })
+        if (paymentRecordList.size > 0) {
+            return insertBybatch(PaymentRecord(), paymentRecordList)
+        } else {
+            return Single.just(UpdateResult())
+        }
+
     }
 
     /**
@@ -164,15 +155,15 @@ class PaymentRecordDao @Autowired constructor(
     private fun cmcc(paymentRecord: PaymentRecord, obj: JsonObject) {
 
         // 交费日期
-        paymentRecord.recharge_time = obj.getString("payDate")?:""
+        paymentRecord.recharge_time = obj.getString("payDate") ?: ""
         // 交费方式
-        paymentRecord.type = obj.getString("payTypeName")?:""
+        paymentRecord.type = obj.getString("payTypeName") ?: ""
         // 交费渠道
         paymentRecord.pay_chanel = obj.getString("payChannel")
         // 支付状态
-        paymentRecord.pay_flag = obj.getString("payFlag")?:""
+        paymentRecord.pay_flag = obj.getString("payFlag") ?: ""
         // 支付地址
-        paymentRecord.pay_addr = obj.getString("payAddr")?:""
+        paymentRecord.pay_addr = obj.getString("payAddr") ?: ""
 
         // 金额费用 原始数据单位是元  转换成分后存储
         val commFee = when (obj.getString("payFee")) {
@@ -192,11 +183,11 @@ class PaymentRecordDao @Autowired constructor(
      */
     private fun cucc(paymentRecord: PaymentRecord, obj: JsonObject) {
         // 交费日期
-        paymentRecord.recharge_time = obj.getString("paydate")?:""
+        paymentRecord.recharge_time = obj.getString("paydate") ?: ""
         // 交费方式
-        paymentRecord.type = obj.getString("payment")?:""
+        paymentRecord.type = obj.getString("payment") ?: ""
         // 交费渠道
-        paymentRecord.pay_chanel = obj.getString("paychannel")?:""
+        paymentRecord.pay_chanel = obj.getString("paychannel") ?: ""
         // 支付状态 暂无
         paymentRecord.pay_flag = ""
         // 支付地址 暂无

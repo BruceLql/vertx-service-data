@@ -35,7 +35,7 @@ class InternetInfoDao @Autowired constructor(
         }
     }
 
-    fun internetInfoDataInsert(data: List<JsonObject>) {
+    fun internetInfoDataInsert(data: List<JsonObject>): Single<UpdateResult> {
 
         println(" 上网记录存入mysql: .....")
         val internetInfoList = ArrayList<InternetInfo>()
@@ -47,66 +47,52 @@ class InternetInfoDao @Autowired constructor(
             val bill_month = it.getString("bill_month")
             val task_id = it.getString("mid")
             val dataOut = it.getJsonObject("data")
-            if (dataOut.isEmpty) {
-                return
-            }
+            if (!dataOut.isEmpty) {
 
-            when (operator) {
-                // 移动数据提取
-                "CMCC" -> {
-                    // 可能出现 不返回字段 totalNum ，所以增加缺失值1
-                    if (dataOut.getInteger("totalNum")?:1 < 1) {
-                        return
+                when (operator) {
+                    // 移动数据提取
+                    "CMCC" -> {
+
+                        dataOut.getJsonArray("data").forEachIndexed { index, mutableEntry ->
+                            val InternetInfo_s = InternetInfo()
+                            InternetInfo_s.mobile = mobile
+                            InternetInfo_s.bill_month = bill_month
+                            InternetInfo_s.task_id = task_id
+                            val obj = JsonObject(mutableEntry.toString())
+
+                            cmcc(InternetInfo_s, obj)
+                            internetInfoList.add(InternetInfo_s)
+                        }
                     }
-                    dataOut.getJsonArray("data").forEachIndexed { index, mutableEntry ->
-                        val InternetInfo_s = InternetInfo()
-                        InternetInfo_s.mobile = mobile
-                        InternetInfo_s.bill_month = bill_month
-                        InternetInfo_s.task_id = task_id
-                        val obj = JsonObject(mutableEntry.toString())
+                    // 联通数据提取
+                    "CUCC" -> {
+                        dataOut.getJsonArray("pagelist").forEachIndexed { index, mutableEntry ->
+                            val InternetInfo_s = InternetInfo()
+                            InternetInfo_s.mobile = mobile
+                            InternetInfo_s.bill_month = bill_month
+                            InternetInfo_s.task_id = task_id
+                            val obj = JsonObject(mutableEntry.toString())
 
-                        cmcc(InternetInfo_s, obj)
-                        internetInfoList.add(InternetInfo_s)
+                            cucc(InternetInfo_s, obj)
+                            internetInfoList.add(InternetInfo_s)
+                        }
+
+
+                    }
+                    // 电信数据提取
+                    "CTCC" -> {
                     }
                 }
-                // 联通数据提取
-                "CUCC" -> {
-                    dataOut.getJsonArray("pagelist").forEachIndexed{ index, mutableEntry ->
-                        val InternetInfo_s = InternetInfo()
-                        InternetInfo_s.mobile = mobile
-                        InternetInfo_s.bill_month = bill_month
-                        InternetInfo_s.task_id = task_id
-                        val obj = JsonObject(mutableEntry.toString())
 
-                        cucc(InternetInfo_s, obj)
-                        internetInfoList.add(InternetInfo_s)
-                    }
-
-
-                }
-                // 电信数据提取
-                "CTCC" -> {}
             }
-
-
-
         }
         println("smsInfoList:${internetInfoList.size}" + internetInfoList.toString())
-        selectBeforeInsert(internetInfoList.get(0)).subscribe({
-            // 如果查询结果的行数大于0 说明已经入库过了  暂时先不处理
-            if (it.numRows == 0) {
-                // 执行批量方法
-                insertBybatch(InternetInfo(), internetInfoList).subscribe({
-                    println(it)
-                }, {
-                    it.printStackTrace()
-                })
-            } else {
-                println("已经存在${it.numRows}条数据,该数据已经入库过！新数据有${internetInfoList.size}条")
-            }
-        }, {
-            it.printStackTrace()
-        })
+        if (internetInfoList.size > 0) {
+            return insertBybatch(InternetInfo(), internetInfoList)
+        } else {
+            return Single.just(UpdateResult())
+        }
+
     }
 
     /**
@@ -239,7 +225,7 @@ class InternetInfoDao @Autowired constructor(
             "" -> "0.00"
             else -> obj.getString("pertotalsm")
         }
-        internetInfo.sum_flow = (pertotalsm.toDouble()*1000).toInt().toString()
+        internetInfo.sum_flow = (pertotalsm.toDouble() * 1000).toInt().toString()
         // 套餐优惠
         internetInfo.meal = obj.getString("deratefee")
         // 费用 原始数据单位是元  转换成分后存储

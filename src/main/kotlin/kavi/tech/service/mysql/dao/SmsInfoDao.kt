@@ -36,7 +36,7 @@ class SmsInfoDao @Autowired constructor(
         }
     }
 
-    fun smsInfoDataInsert(data: List<JsonObject>) {
+    fun smsInfoDataInsert(data: List<JsonObject>): Single<UpdateResult> {
 
         println(" 短信记录存入mysql: .....")
         val smsInfoList = ArrayList<SmsInfo>()
@@ -48,70 +48,55 @@ class SmsInfoDao @Autowired constructor(
             val bill_month = it.getString("bill_month")
             val task_id = it.getString("mid")
             val dataOut = it.getJsonObject("data")
-            if (dataOut.isEmpty) {
-                return
+            if (!dataOut.isEmpty) {
+                when (operator) {
+                    // 移动数据提取
+                    "CMCC" -> {
+                        if (dataOut.getJsonArray("data").size() >= 1) {
+                            dataOut.getJsonArray("data").forEachIndexed { index, mutableEntry ->
+                                val smsInfo_s = SmsInfo()
+                                smsInfo_s.mobile = mobile
+                                smsInfo_s.bill_month = bill_month
+                                smsInfo_s.task_id = task_id
+                                val obj = JsonObject(mutableEntry.toString())
+
+                                cmcc(smsInfo_s, obj)
+                                smsInfoList.add(smsInfo_s)
+                            }
+                        }
+                    }
+
+                    // 联通数据提取
+                    "CUCC" -> {
+                        val pageMap = dataOut.getJsonObject("pageMap")
+                        println("===== pageMap:$pageMap")
+                        println("===== pageMap.result:${pageMap.getJsonArray("result")}")
+                        dataOut.getJsonObject("pageMap").getJsonArray("result").forEachIndexed { index, mutableEntry ->
+                            val smsInfo_s = SmsInfo()
+                            smsInfo_s.mobile = mobile
+                            smsInfo_s.bill_month = bill_month
+                            smsInfo_s.task_id = task_id
+                            val obj = JsonObject(mutableEntry.toString())
+
+                            cucc(smsInfo_s, obj)
+                            smsInfoList.add(smsInfo_s)
+                        }
+
+                    }
+
+                    // 电信数据提取
+                    "CTCC" -> {
+                    }
+
+                }
             }
-
-            when (operator) {
-                // 移动数据提取
-                "CMCC" -> {
-                    if (dataOut.getJsonArray("data").size() < 1) {
-                        return
-                    }
-                    dataOut.getJsonArray("data").forEachIndexed { index, mutableEntry ->
-                        val smsInfo_s = SmsInfo()
-                        smsInfo_s.mobile = mobile
-                        smsInfo_s.bill_month = bill_month
-                        smsInfo_s.task_id = task_id
-                        val obj = JsonObject(mutableEntry.toString())
-
-                        cmcc(smsInfo_s, obj)
-                        smsInfoList.add(smsInfo_s)
-                    }
-                }
-
-                // 联通数据提取
-                "CUCC" -> {
-                    val pageMap = dataOut.getJsonObject("pageMap")
-                    println("===== pageMap:$pageMap")
-                    println("===== pageMap.result:${pageMap.getJsonArray("result")}")
-                    dataOut.getJsonObject("pageMap").getJsonArray("result").forEachIndexed { index, mutableEntry ->
-                        val smsInfo_s = SmsInfo()
-                        smsInfo_s.mobile = mobile
-                        smsInfo_s.bill_month = bill_month
-                        smsInfo_s.task_id = task_id
-                        val obj = JsonObject(mutableEntry.toString())
-
-                        cucc(smsInfo_s, obj)
-                        smsInfoList.add(smsInfo_s)
-                    }
-
-                }
-
-                // 电信数据提取
-                "CTCC" -> {
-                }
-
-            }
-
-
         }
         println("smsInfoList:${smsInfoList.size}" + smsInfoList.toString())
-        selectBeforeInsert(smsInfoList.get(0)).subscribe({
-            // 如果查询结果的行数大于0 说明已经入库过了  暂时先不处理
-            if (it.numRows == 0) {
-                // 执行批量方法
-                insertBybatch(SmsInfo(), smsInfoList).subscribe({
-                    println(it)
-                }, {
-                    it.printStackTrace()
-                })
-            } else {
-                println("已经存在${it.numRows}条数据,该数据已经入库过！新数据有${smsInfoList.size}条")
-            }
-        }, {
-            it.printStackTrace()
-        })
+        if (smsInfoList.size > 0) {
+            return insertBybatch(SmsInfo(), smsInfoList)
+        } else {
+            return Single.just(UpdateResult())
+        }
     }
 
     /**

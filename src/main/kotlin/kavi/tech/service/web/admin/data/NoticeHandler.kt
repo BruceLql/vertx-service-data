@@ -3,6 +3,7 @@ package kavi.tech.service.web.admin.data
 import io.vertx.core.http.HttpMethod
 import io.vertx.core.json.JsonObject
 import io.vertx.ext.mongo.FindOptions
+import io.vertx.ext.sql.UpdateResult
 import io.vertx.ext.web.RoutingContext
 import kavi.tech.service.common.extension.logger
 import kavi.tech.service.common.extension.regexPhone
@@ -10,6 +11,7 @@ import kavi.tech.service.mongo.model.*
 import kavi.tech.service.mysql.dao.*
 import kavi.tech.service.mysql.entity.NoticeRecords
 import org.springframework.beans.factory.annotation.Autowired
+import rx.Observable
 import rx.Single
 import tech.kavi.vs.web.ControllerHandler
 import tech.kavi.vs.web.HandlerRequest
@@ -71,37 +73,25 @@ class NoticeHandler @Autowired constructor(
                 throw IllegalArgumentException("(回调地址)参数不合法！")
             }
 
-            noticeRecords.back_url=back_url
-            noticeRecords.mobile=mobile
-            noticeRecords.task_id =task_id
+            noticeRecords.back_url = back_url
+            noticeRecords.mobile = mobile
+            noticeRecords.task_id = task_id
             // 插入数据 返回 主键id  后续更新
             val noticeRecord = noticeRecordsDao.insert(noticeRecords).subscribe({ it }, { it.printStackTrace() })
             println("noticeRecord:$noticeRecord")
 
             val resultJsonObject = JsonObject()  // 存取最终返回结果
 
-            query.put("mobile",mobile).put("task_id",task_id)
+            query.put("mobile", mobile).put("mid", task_id)
 
-            // TODO  数据提取 根据传进来的task_id开始从mongo中读取数据
-             dataClear(mobile,task_id,1)
-             dataClear(mobile,task_id,3)
-             dataClear(mobile,task_id,6)
-             dataClear(mobile,task_id,7)
-             dataClear(mobile,task_id,9)
-             dataClear(mobile,task_id,10)
-             dataClear(mobile,task_id,11)
-
-            /*dataUserInfoDao.list(query, findOptions).subscribe({
-                // 个人信息数据
-                userInfoDao.userInfoDataInsert(it)
-            },{it.printStackTrace()})*/
+            // TODO  数据提取 根据传进来的task_id开始从mongo中读取数据 以及简单清洗后存入Mysql
+            dataBegin(query, FindOptions()).subscribe({
+                // TODO  调用数据清洗服务 结果封装到 result
 
 
-            // TODO  数据清洗
-            // TODO  数据推送
+                // TODO  数据推送服务
 
-
-
+            }, { it.printStackTrace() })
 
 
 
@@ -114,82 +104,27 @@ class NoticeHandler @Autowired constructor(
 
     }
 
-    fun dataClear(mobile: String, task_id: String, type: Int) {
+    fun dataBegin(query: JsonObject, findOptions: FindOptions): Single<List<UpdateResult>> {
 
-        try {
-            // 查询条件
-            val query = JsonObject()
-            val findOptions = FindOptions()
-
-            query.put("mobile", mobile)
-            query.put("mid", task_id)
-
-
-            when (type) {
-                // 1：账户信息表
-                1 -> dataAccountInfoDao.list(query, findOptions)
-                // 2：增值业务表
-                2 -> dataAppreciationInfoDao.list(query, findOptions)
+        return Observable.concat(
+            listOf(
                 // 3: 通话记录表
-                3 -> dataCallLogDao.list(query, findOptions)
-                // 4: 代收费用表
-                4 -> dataCollectionInfoDao.list(query, findOptions)
-                // 5: 套餐表
-                5 -> dataComboDao.list(query, findOptions)
+                dataCallLogDao.queryListAndSave2Mysql(query, findOptions).toObservable(),
                 // 6: 消费记录表
-                6 -> dataExpenseCalendarDao.list(query, findOptions)
+                dataExpenseCalendarDao.queryListAndSave2Mysql(query, findOptions).toObservable(),
                 // 7: 上网记录表
-                7 -> dataInternetInfoDao.list(query, findOptions)
-                // 8: 其它信息表
-                8 -> dataOtherInfoDao.list(query, findOptions)
+                dataInternetInfoDao.queryListAndSave2Mysql(query, findOptions).toObservable(),
+
                 // 9: 交费记录表
-                9 -> dataPaymentRecordDao.list(query, findOptions)
+                dataPaymentRecordDao.queryListAndSave2Mysql(query, findOptions).toObservable(),
                 // 10:短信表
-                10 -> dataSmsInfoDao.list(query, findOptions)
+                dataSmsInfoDao.queryListAndSave2Mysql(query, findOptions).toObservable(),
                 // 11:个人信息表
-                11 -> dataUserInfoDao.list(query, findOptions)
+                dataUserInfoDao.queryListAndSave2Mysql(query, findOptions).toObservable()
 
-                else -> Single.error(IllegalArgumentException("参数不合法！"))
-            }.subscribe({
-                println("========= $type ============mongoData :$it")
-                easyClearData(type, it)
-            }, {
-                it.printStackTrace()
-            })
-
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-    }
-
-    /**
-     *  数据从Mongo读取出来，简单提取后存入Mysql
-     */
-    private fun easyClearData(type: Int, data: List<JsonObject>) {
-        if (data.isEmpty()) {
-            throw  IllegalAccessException("数据为空！")
-        }
-
-        when (type) {
-            // 账户信息数据
-//            1 -> callLogDao.callLogDataInsert(data)
-            // 通话记录数据
-            3 -> callLogDao.callLogDataInsert(data)
-            // 消费记录信息
-            6 -> expenseCalendarDao.expenseCalendarDataInsert(data)
-            // 上网详情信息
-            7 -> internetInfoDao.internetInfoDataInsert(data)
-            // 交费充值记录表
-            9 -> paymentRecordDao.paymentRecordDataInsert(data)
-            // 短信数据
-            10 -> smsInfoDao.smsInfoDataInsert(data)
-            // 个人信息数据
-            11 -> userInfoDao.userInfoDataInsert(data)
-
-            else -> print("参数异常")
-        }
-
+            )
+        ).toList().toSingle()
 
     }
-
 }
+
