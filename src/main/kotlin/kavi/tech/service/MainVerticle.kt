@@ -25,22 +25,29 @@ class MainVerticle : LauncherVerticle() {
     override fun start() {
         super.start()
 //        vertx.deployVerticle(webVerticle)
-        friendSummaryService.toCleaningCircleFriendsData("14779716260", "5e9426345a33e0024df2f20c").subscribe({
+//        friendSummaryService.toCleaningCircleFriendsData("14779716260", "5e9426345a33e0024df2f20c").subscribe({
+//            println("-------${it[0].rows}")
+//            println("-------${it[1].rows}")
+//            println("-------${it[2].rows}")
+//            println("-------${it[3].rows}")
+//            println("-------${it[4].rows}")
+//            println("-------${it[5].rows}")
+//            println("-------${it[6].rows}")
+//            println("-------${it[7].rows}")
+//            println("-------${it[8].rows}")
+//            println("-------${it[9].rows}")
+//            println("-------${it[9].rows}")
+//        },{
+//            it.printStackTrace()
+//        })
+//        callAnalysisService.toCleaningCircleFriendsData("14779716260", "5e9426345a33e0024df2f20c")
+
+        callAnalysisService.toCleaningCircleFriendsData("14779716260", "5e9426345a33e0024df2f20c").subscribe({
             println("-------${it[0].rows}")
-            println("-------${it[1].rows}")
-            println("-------${it[2].rows}")
-            println("-------${it[3].rows}")
-            println("-------${it[4].rows}")
-            println("-------${it[5].rows}")
-            println("-------${it[6].rows}")
-            println("-------${it[7].rows}")
-            println("-------${it[8].rows}")
-            println("-------${it[9].rows}")
-            println("-------${it[9].rows}")
+
         },{
             it.printStackTrace()
         })
-//        callAnalysisService.toCleaningCircleFriendsData("14779716260", "5e9426345a33e0024df2f20c")
 
     }
 

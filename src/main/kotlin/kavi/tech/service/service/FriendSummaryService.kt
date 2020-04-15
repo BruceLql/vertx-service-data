@@ -1,12 +1,10 @@
 package kavi.tech.service.service
 
 import io.vertx.codegen.CodeGenProcessor.log
-import io.vertx.core.json.JsonObject
 import io.vertx.ext.sql.ResultSet
 import io.vertx.rxjava.ext.asyncsql.AsyncSQLClient
 import io.vertx.rxjava.ext.sql.SQLConnection
 import kavi.tech.service.mysql.dao.CarrierResultDataDao
-import kavi.tech.service.mysql.entity.CarrierResultData
 import org.apache.commons.lang3.StringUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -36,13 +34,6 @@ class FriendSummaryService {
         if (StringUtils.isBlank(mobile) || StringUtils.isBlank(task_id)) {
             throw IllegalAccessException("数据为空！")
         }
-
-        val jsonResultDataList = ArrayList<JsonObject>()
-        val carrierResultDataList = ArrayList<CarrierResultData>()
-        val carrierResultData = CarrierResultData()
-
-        carrierResultData.mobile = mobile
-        carrierResultData.task_id = task_id
 
         return this.client.rxGetConnection().flatMap { conn->
             Observable.concat(
