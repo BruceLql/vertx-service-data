@@ -35,7 +35,7 @@ fun splitHms(strHms: String): Int {
     var totalInt: Int = 0
     return strHms.let {
 
-        val str = it.replace("小时", "-").replace("分钟", "-").replace("秒", "")
+        val str = it.replace("小时", "-").replace("时", "-").replace("分钟", "-").replace("分", "-").replace("秒", "")
 
         val strList = str.split("-")
         if (strList.size == 3) {
