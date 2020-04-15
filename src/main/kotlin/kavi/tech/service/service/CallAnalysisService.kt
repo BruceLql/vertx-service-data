@@ -453,7 +453,7 @@ class CallAnalysisService {
         log.info("近3月主叫通话时长（秒）")
         var sql: String =
             "SELECT\n" +
-                    "SUM(duration_in_second) as call_dial_time_1m\n" +
+                    "SUM(duration_in_second) as call_dial_time_3m\n" +
                     "FROM\n" +
                     "\tcarrier_voicecall\n" +
                     "where \n" +
