@@ -9,6 +9,7 @@ import io.vertx.rxjava.ext.web.client.WebClient
 import kavi.tech.service.common.extension.GZIPUtils
 import kavi.tech.service.common.extension.logger
 import kavi.tech.service.common.extension.regexPhone
+import kavi.tech.service.common.extension.value
 import kavi.tech.service.mongo.model.*
 import kavi.tech.service.mysql.dao.*
 import kavi.tech.service.mysql.entity.NoticeRecords
@@ -77,9 +78,9 @@ class NoticeHandler @Autowired constructor(
             }
             /* 查询条件 */
             val query = JsonObject()
-            val mobile = params.getString("mobile") ?: throw IllegalArgumentException("缺少手机号码！")
-            val task_id = params.getString("task_id") ?: throw IllegalArgumentException("缺少任务ID！")
-            val back_url = params.getString("back_url") ?: throw IllegalArgumentException("缺少回调地址！")
+            val mobile = params.value<String>("mobile") ?: throw IllegalArgumentException("缺少手机号码！")
+            val task_id = params.value<String>("task_id") ?: throw IllegalArgumentException("缺少任务ID！")
+            val back_url = params.value<String>("back_url") ?: throw IllegalArgumentException("缺少回调地址！")
             if (!regexPhone(mobile)) {
                 throw IllegalArgumentException("(手机号)参数不合法！")
             }
