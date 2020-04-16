@@ -50,7 +50,7 @@ class FriendSummaryService {
                     attributionMobilePhoneNumberHun(conn, mobile, task_id).toObservable(),
                     contactPersonHun(conn, mobile, task_id).toObservable()
                 )
-            ).toList().toSingle()
+            ).toList().toSingle().doAfterTerminate(conn::close)
         }
             .map {
                 json.put("friend_num_3m",if (it[0].rows.size==0) "0" else it[0].rows[0].getValue("friend_num_3m").toString())
@@ -81,7 +81,7 @@ class FriendSummaryService {
                 "\t\tDATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))\n" +
                 "\t\tand  mobile =  '$mobile'\n" +
                 "and task_id = '$taskId' "
-        return conn.rxQuery(sql).doAfterTerminate(conn::close)
+        return conn.rxQuery(sql)
     }
 
     /**
@@ -110,7 +110,7 @@ class FriendSummaryService {
                 "HAVING\n" +
                 "\t(COUNT(peer_number) > 10) limit 1"
 
-        return conn.rxQuery(sql).doAfterTerminate(conn::close)
+        return conn.rxQuery(sql)
     }
 
     /***
@@ -144,7 +144,7 @@ class FriendSummaryService {
                 "\tGROUP BY location  \n" +
                 " ) as c \n" +
                 "\tHAVING(MAX(countTime))"
-        return conn.rxQuery(sql).doAfterTerminate(conn::close)
+        return conn.rxQuery(sql)
     }
 
     /***
@@ -179,7 +179,7 @@ class FriendSummaryService {
                 "  ) as bb\n" +
                 ") as c LEFT JOIN carrier_baseinfo on carrier_baseinfo.mobile = c.peer_number"
 
-        return conn.rxQuery(sql).doAfterTerminate(conn::close)
+        return conn.rxQuery(sql)
     }
 
     /***
@@ -208,7 +208,7 @@ class FriendSummaryService {
                 "\t\t\t\t and  DATE(date_add(now(), interval -90 day))<\n" +
                 "\t\t\t\t DATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))\n" +
                 ") as b \n"
-        return conn.rxQuery(sql).doAfterTerminate(conn::close)
+        return conn.rxQuery(sql)
     }
 
 
@@ -227,7 +227,7 @@ class FriendSummaryService {
                 "\t\tand  mobile =  '$mobile' \n" +
                 "and task_id = '$taskId'  "
 
-        return conn.rxQuery(sql).doAfterTerminate(conn::close)
+        return conn.rxQuery(sql)
     }
 
     /***
@@ -255,7 +255,7 @@ class FriendSummaryService {
                 "\tpeer_number\n" +
                 "HAVING\n" +
                 "\t(COUNT(peer_number) > 10) limit 1"
-        return conn.rxQuery(sql).doAfterTerminate(conn::close)
+        return conn.rxQuery(sql)
     }
 
     /***
@@ -294,7 +294,7 @@ class FriendSummaryService {
                 "\n" +
                 ") as c \n" +
                 "HAVING(MAX(countTime))"
-        return conn.rxQuery(sql).doAfterTerminate(conn::close)
+        return conn.rxQuery(sql)
     }
 
     /***
@@ -329,7 +329,7 @@ class FriendSummaryService {
                 "  ) as bb\n" +
                 ") as c LEFT JOIN carrier_baseinfo on carrier_baseinfo.mobile = c.peer_number"
 
-        return conn.rxQuery(sql).doAfterTerminate(conn::close)
+        return conn.rxQuery(sql)
 
     }
 
@@ -360,7 +360,7 @@ class FriendSummaryService {
                 "\t\t\t\t DATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))\n" +
                 ") as b \n"
 
-        return conn.rxQuery(sql).doAfterTerminate(conn::close)
+        return conn.rxQuery(sql)
 //        return carrierResultDataDao.customizeSQL(sql)
 //            .map {
 //                it[0]?.getInteger("countTime")

@@ -71,12 +71,12 @@ class ContactsRegionDao @Autowired constructor(
                 "    b.region_dial_time,\n" +
                 "    b.region_dialed_cnt,\n" +
                 "    b.region_dialed_time,\n" +
-                "    truncate((b.region_dial_time / b.region_dial_cnt),2) as region_avg_dial_time,\n" +
-                "    truncate((b.region_dialed_time / b.region_dialed_cnt),2) as region_avg_dialed_time,\n" +
-                "    truncate((b.region_dial_cnt / b.region_uniq_num_cnt),2) as region_dial_cnt_pct,\n" +
-                "    truncate((b.region_dial_time / b.region_call_time),2) as region_dial_time_pct,\n" +
-                "    truncate((b.region_dialed_cnt / b.region_uniq_num_cnt),2) as region_dialed_cnt_pct,\n" +
-                "    truncate((b.region_dialed_time / b.region_call_time),2) as region_dialed_time_pct\n" +
+                "    floor((b.region_dial_time / b.region_dial_cnt)) as region_avg_dial_time,\n" +
+                "    floor((b.region_dialed_time / b.region_dialed_cnt)) as region_avg_dialed_time,\n" +
+                "    floor((b.region_dial_cnt / b.region_uniq_num_cnt)) as region_dial_cnt_pct,\n" +
+                "    floor((b.region_dial_time / b.region_call_time)) as region_dial_time_pct,\n" +
+                "    floor((b.region_dialed_cnt / b.region_uniq_num_cnt)) as region_dialed_cnt_pct,\n" +
+                "    floor((b.region_dialed_time / b.region_call_time)) as region_dialed_time_pct\n" +
                 "from (\n" +
                 "         select\n" +
                 "             if(length(cv.homearea)>0,cv.homearea,'不详') as region_loc,\n" +
