@@ -21,7 +21,7 @@ class ExpenseCalendarDao @Autowired constructor(
     override val log: Logger = logger(this::class)
 
 
-    fun expenseCalendarDataInsert(data: List<JsonObject>): Single<UpdateResult> {
+    /*fun expenseCalendarDataInsert(data: List<JsonObject>): Single<UpdateResult> {
 
         println(" 消费记录（月账单信息）存入mysql: .....")
         val expenseCalendarList = ArrayList<ExpenseCalendar>()
@@ -60,15 +60,15 @@ class ExpenseCalendarDao @Autowired constructor(
             return Single.just(UpdateResult())
         }
 
-    }
+    }*/
 
     /**
      * 批量新增通话记录
      * */
-    fun insertBybatch(expenseCalendar: ExpenseCalendar, valueList: List<ExpenseCalendar>): Single<UpdateResult> {
+    fun insertBybatch( valueList: List<ExpenseCalendar>): Single<UpdateResult> {
 
         val sql = SQL.init {
-            BATCH_INSERT_INTO(expenseCalendar.tableName())
+            BATCH_INSERT_INTO(ExpenseCalendar.tableName)
             BATCH_INTO_COLUMNS(
                 "task_id",
                 "mobile",

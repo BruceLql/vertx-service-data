@@ -92,20 +92,17 @@ class SmsInfoDao @Autowired constructor(
             }
         }
         println("smsInfoList:${smsInfoList.size}" + smsInfoList.toString())
-        if (smsInfoList.size > 0) {
-            return insertBybatch(SmsInfo(), smsInfoList)
-        } else {
-            return Single.just(UpdateResult())
-        }
+        return insertBybatch( smsInfoList)
+
     }
 
     /**
      * 批量新增通话记录
      * */
-    fun insertBybatch(smsInfo: SmsInfo, valueList: List<SmsInfo>): Single<UpdateResult> {
+    fun insertBybatch(valueList: List<SmsInfo>): Single<UpdateResult> {
 
         val sql = SQL.init {
-            BATCH_INSERT_INTO(smsInfo.tableName())
+            BATCH_INSERT_INTO(SmsInfo.tableName)
             BATCH_INTO_COLUMNS(
                 "task_id",
                 "mobile",
