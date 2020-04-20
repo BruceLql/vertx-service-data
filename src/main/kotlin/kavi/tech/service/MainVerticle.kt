@@ -50,7 +50,7 @@ class MainVerticle : LauncherVerticle() {
 //            it.printStackTrace()
 //        })
 
-        friendSummaryDao.getnearBySixMonth("14779716260", "5e97f0583ba60bc281e0a3b0").subscribe({
+        friendSummaryDao.getnearByThreeMonth("14779716260", "5e97f0583ba60bc281e0a3b0").subscribe({
             println("-------${Json.encode(it)}")
         },{
             it.printStackTrace()
