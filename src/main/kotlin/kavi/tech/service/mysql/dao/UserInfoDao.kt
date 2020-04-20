@@ -2,7 +2,6 @@ package kavi.tech.service.mysql.dao
 
 import io.vertx.core.json.JsonObject
 import io.vertx.core.logging.Logger
-import io.vertx.ext.sql.ResultSet
 import io.vertx.ext.sql.UpdateResult
 import io.vertx.rxjava.ext.asyncsql.AsyncSQLClient
 import kavi.tech.service.common.extension.logger
@@ -63,34 +62,18 @@ class UserInfoDao @Autowired constructor(
     /**
      * 新增记录
      * */
-    private fun insert(userInfo: UserInfo): Single<UpdateResult> {
+    public fun insert(userInfo: UserInfo): Single<UpdateResult> {
         val sql = SQL.init {
             INSERT_INTO(userInfo.tableName())
             userInfo.preInsert().forEach { t, u -> VALUES(t, u) }
         }
-        println("insert sql：" + sql)
+        println("insert sql：$sql")
         return this.client.rxGetConnection().flatMap { conn ->
 
             conn.rxUpdate(sql).doAfterTerminate(conn::close)
         }
     }
 
-    /**
-     * 查询是否已经入库
-     * */
-    private fun selectBeforeInsert(userInfo: UserInfo): Single<ResultSet> {
-        val sql = SQL.init {
-            SELECT("id");
-            FROM(UserInfo.tableName);
-            WHERE(Pair("task_id", userInfo.task_id))
-        }
-        println("selectBeforeInsert sql：" + sql)
-        return this.client.rxGetConnection().flatMap { conn ->
-
-            conn.rxQuery(sql).doAfterTerminate(conn::close)
-
-        }
-    }
 
     /**
      * 移动-短信数据提取

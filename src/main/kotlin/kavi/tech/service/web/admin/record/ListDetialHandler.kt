@@ -121,7 +121,7 @@ class ListDetialHandler @Autowired constructor(
             // 通话记录数据
             3 ->callLogDao.callLogDataInsert(data)
             // 消费记录信息
-            6 -> expenseCalendarDao.expenseCalendarDataInsert(data)
+//            6 -> expenseCalendarDao.expenseCalendarDataInsert(data)
             // 上网详情信息
             7 -> internetInfoDao.internetInfoDataInsert(data)
             // 交费充值记录表

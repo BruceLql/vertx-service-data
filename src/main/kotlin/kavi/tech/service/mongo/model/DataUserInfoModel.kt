@@ -13,18 +13,16 @@ import kavi.tech.service.mysql.dao.UserInfoDao
 import rx.Single
 
 @Repository
-class DataUserInfoModel @Autowired constructor(val client: MongoClient,val userInfo: UserInfoDao) :
+class DataUserInfoModel @Autowired constructor(val client: MongoClient) :
     AbstractModel<DataUserInfo>(client, DataUserInfo.TABLE_NAME, DataUserInfo::class.java) {
 
     override val log = kavi.tech.service.common.extension.logger(this::class)
 
     private val tableName = DataUserInfo.TABLE_NAME
 
-    fun queryListAndSave2Mysql(query: JsonObject, findOptions: FindOptions): Single<UpdateResult> {
+    fun queryListAndSave2Mysql(query: JsonObject): Single<List<JsonObject>> {
         val startTime = System.currentTimeMillis()
-        return this.client.rxFindWithOptions(tableName, query, findOptions)
-            .doAfterTerminate { logger(query, startTime) }.flatMap {
-                userInfo.userInfoDataInsert(it)
-            }
+        return this.client.rxFindWithOptions(tableName, query, FindOptions())
+            .doAfterTerminate { logger(query, startTime) }
     }
 }
