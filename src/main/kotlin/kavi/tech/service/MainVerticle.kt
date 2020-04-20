@@ -1,6 +1,9 @@
 package kavi.tech.service
 
+import io.vertx.core.json.Json
+import kavi.tech.service.mysql.dao.FriendSummaryDao
 import kavi.tech.service.service.CallAnalysisService
+import kavi.tech.service.service.ContactsRegionService
 import kavi.tech.service.service.FriendSummaryService
 import kavi.tech.service.web.WebVerticle
 import org.springframework.beans.factory.annotation.Autowired
@@ -20,6 +23,10 @@ class MainVerticle : LauncherVerticle() {
     private lateinit var friendSummaryService: FriendSummaryService
     @Autowired
     private lateinit var callAnalysisService: CallAnalysisService
+    @Autowired
+    private lateinit var contactsRegionService: ContactsRegionService
+    @Autowired
+    private lateinit var friendSummaryDao: FriendSummaryDao
 
     @Throws(Exception::class)
     override fun start() {
@@ -35,7 +42,19 @@ class MainVerticle : LauncherVerticle() {
 //            println("-------${Json.encode(it)}")
 //        },{
 //            it.printStackTrace()
+//        })//
+//
+//        contactsRegionService.getContactRegion("14779716260", "5e9426345a33e0024df2f20c").subscribe({
+//            println("-------${Json.encode(it)}")
+//        },{
+//            it.printStackTrace()
 //        })
+
+        friendSummaryDao.getnearBySixMonth("14779716260", "5e97f0583ba60bc281e0a3b0").subscribe({
+            println("-------${Json.encode(it)}")
+        },{
+            it.printStackTrace()
+        })
 
     }
 
