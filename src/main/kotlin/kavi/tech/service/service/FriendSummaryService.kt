@@ -73,7 +73,7 @@ class FriendSummaryService {
     fun countLess3Months(conn:SQLConnection, mobile: String, taskId: String): Single<ResultSet> {
         log.info("统计 近90天月联系人数量（去重）(0-90天)")
         var sql: String = "SELECT \n" +
-                "\t  IFNULL(COUNT(DISTINCT peer_number),0)  as \"friend_num_3m\"\n" +
+                "\t   ROUND( IFNULL(COUNT(DISTINCT peer_number),0) ,2)  as \"friend_num_3m\"\n" +
                 "\t\tFROM\n" +
                 "\t\tcarrier_voicecall\n" +
                 "\t\twhere \n" +
@@ -90,7 +90,7 @@ class FriendSummaryService {
     fun countLess3MonthsGoupy(conn:SQLConnection, mobile: String, taskId: String): Single<ResultSet> {
         log.info("近90天联系人数量（联系10次以上，去重） ")
         var sql: String = "SELECT\n" +
-                "\t  IFNULL(COUNT(DISTINCT peer_number),0)  as good_friend_num_3m\n" +
+                "\t   ROUND( IFNULL(COUNT(DISTINCT peer_number),0) ,2)  as good_friend_num_3m\n" +
                 "FROM\n" +
                 "\tcarrier_voicecall\n" +
                 "WHERE\n" +
@@ -187,7 +187,7 @@ class FriendSummaryService {
      */
     fun contactPerson(conn:SQLConnection, mobile: String, taskId: String): Single<ResultSet> {
         log.info("近90天互有主叫和被叫的联系人电话号码数目（去重）（0-90天）")
-        var sql: String = "SELECT IFNULL( COUNT(*) ,0) as \"inter_peer_num_3m\"\n" +
+        var sql: String = "SELECT  ROUND( IFNULL( COUNT(*) ,0) ,2) as \"inter_peer_num_3m\"\n" +
                 "from ( \n" +
                 "SELECT \n" +
                 "DISTINCT peer_number \n" +
@@ -218,7 +218,7 @@ class FriendSummaryService {
     fun contactPersonLessSixMonth(conn:SQLConnection, mobile: String, taskId: String): Single<ResultSet> {
         log.info("近180天的联系人数量")
         var sql: String = "SELECT \n" +
-                "\t  IFNULL(COUNT(DISTINCT peer_number),0)  as \"friend_num_6m\"\n" +
+                "\t   ROUND( IFNULL(COUNT(DISTINCT peer_number),0) ,2)  as \"friend_num_6m\"\n" +
                 "\t\tFROM\n" +
                 "\t\tcarrier_voicecall\n" +
                 "\t\twhere \n" +
@@ -236,7 +236,7 @@ class FriendSummaryService {
     fun contactPersonTen(conn:SQLConnection, mobile: String, taskId: String): Single<ResultSet> {
         log.info("近180天的联系人数量（联系10次以上，去重）（0-180天）")
         var sql: String = "SELECT\n" +
-                "\t IFNULL(COUNT(DISTINCT peer_number),0)  as good_friend_num_6m\n" +
+                "\t  ROUND(IFNULL(COUNT(DISTINCT peer_number),0) ,2)  as good_friend_num_6m\n" +
                 "FROM\n" +
                 "\tcarrier_voicecall\n" +
                 "WHERE\n" +
@@ -338,7 +338,7 @@ class FriendSummaryService {
      */
     fun contactPersonHun(conn:SQLConnection,mobile: String, taskId: String): Single<ResultSet> {
         log.info("近180天的互有主叫和被叫的联系人电话号码数目（去重）（0-180天）")
-        var sql: String = "SELECT IFNULL(COUNT(*),0) as \"inter_peer_num_6m\"\n" +
+        var sql: String = "SELECT  ROUND( IFNULL(COUNT(*),0) ,2) as \"inter_peer_num_6m\"\n" +
                 "from ( \n" +
                 "SELECT \n" +
                 "DISTINCT peer_number \n" +
