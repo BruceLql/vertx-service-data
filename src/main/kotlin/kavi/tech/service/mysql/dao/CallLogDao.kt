@@ -8,6 +8,7 @@ import io.vertx.rxjava.ext.asyncsql.AsyncSQLClient
 import io.vertx.rxjava.ext.sql.SQLConnection
 import kavi.tech.service.common.extension.logger
 import kavi.tech.service.common.extension.splitHms
+import kavi.tech.service.common.extension.value
 import kavi.tech.service.mysql.component.AbstractDao
 import kavi.tech.service.mysql.component.SQL
 import kavi.tech.service.mysql.entity.CallLog
@@ -93,7 +94,7 @@ class CallLogDao @Autowired constructor(
         }
         println("callLogList:${callLogList.size}" + callLogList.toString())
         if (callLogList.size > 0) {
-            return insertBybatch(CallLog(), callLogList)
+            return insertBybatch(callLogList)
         } else {
             return Single.just(UpdateResult())
         }
@@ -103,13 +104,12 @@ class CallLogDao @Autowired constructor(
     /**
      * 批量新增通话记录
      * */
-    fun insertBybatch(callLog: CallLog, valueList: List<CallLog>): Single<UpdateResult> {
+    fun insertBybatch(valueList: List<CallLog>): Single<UpdateResult> {
 
         val sql = SQL.init {
-            BATCH_INSERT_INTO(callLog.tableName())
+            BATCH_INSERT_INTO(CallLog.tableName)
 //            BATCH_INTO_COLUMNS( "task_id", "mobile", "bill_month", "time", "peer_number", "location", "location_type", "duration_in_second", "dial_type", "fee", "homearea", "carrier_001", "carrier_002", "created_at", "updated_at", "deleted_at")
             BATCH_INTO_COLUMNS(
-                "id",
                 "task_id",
                 "mobile",
                 "bill_month",
@@ -128,7 +128,6 @@ class CallLogDao @Autowired constructor(
                 val ss = it.preInsert()
 
                 BATCH_INTO_VALUES(
-                    ss["id"],
                     '"' + ss["task_id"].toString() + '"',
                     '"' + ss["mobile"].toString() + '"',
                     '"' + ss["bill_month"].toString() + '"',
@@ -146,19 +145,12 @@ class CallLogDao @Autowired constructor(
             }
 
         }
-
-        println("sql=$sql")
-
         return this.client.rxGetConnection().flatMap { conn ->
             val startTime = System.currentTimeMillis()
             conn.rxUpdate(sql).doAfterTerminate {
                 conn.close()
-                println("执行时间：${System.currentTimeMillis() - startTime}ms")
+                logger(sql, startTime)
             }
-            /* conn.rxBatch(sql).doAfterTerminate{
-                 conn.close()
-                 println("执行时间：${System.currentTimeMillis() - startTime}ms")
-             }*/
         }
 
     }
@@ -187,14 +179,16 @@ class CallLogDao @Autowired constructor(
 
         callLog_s.time = obj.getString("startTime")
         callLog_s.location = obj.getString("commPlac")
+        val commMode = obj.value<String>("commMode")
+
         // （DIAL-主叫; DIALED-被叫）
-        callLog_s.dial_type = when (obj.getString("commMode")) {
+        callLog_s.dial_type = when (commMode) {
             "主叫" -> "DIAL"
             "VOLTE主叫" -> "DIAL"
             "被叫" -> "DIALED"
             "VOLTE被叫" -> "DIALED"
             "呼转" -> "DIALED"
-            else -> obj.getString("commMode")
+            else -> commMode
         }
         // 对方号码
         callLog_s.peer_number = obj.getString("anotherNm")

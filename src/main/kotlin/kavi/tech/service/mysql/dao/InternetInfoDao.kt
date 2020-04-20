@@ -87,21 +87,17 @@ class InternetInfoDao @Autowired constructor(
             }
         }
         println("internetInfoList:${internetInfoList.size}" + internetInfoList.toString())
-        if (internetInfoList.size > 0) {
-            return insertBybatch(InternetInfo(), internetInfoList)
-        } else {
-            return Single.just(UpdateResult())
-        }
+        return insertBybatch(internetInfoList)
 
     }
 
     /**
      * 批量新增通话记录
      * */
-    fun insertBybatch(internetInfo: InternetInfo, valueList: List<InternetInfo>): Single<UpdateResult> {
+    fun insertBybatch(valueList: List<InternetInfo>): Single<UpdateResult> {
 
         val sql = SQL.init {
-            BATCH_INSERT_INTO(internetInfo.tableName())
+            BATCH_INSERT_INTO(InternetInfo.tableName)
             BATCH_INTO_COLUMNS(
                 "task_id",
                 "bill_month",

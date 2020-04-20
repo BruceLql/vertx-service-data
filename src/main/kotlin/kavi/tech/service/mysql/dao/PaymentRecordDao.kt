@@ -68,21 +68,16 @@ class PaymentRecordDao @Autowired constructor(
 
         }
         println("smsInfoList:${paymentRecordList.size}" + paymentRecordList.toString())
-        if (paymentRecordList.size > 0) {
-            return insertBybatch(PaymentRecord(), paymentRecordList)
-        } else {
-            return Single.just(UpdateResult())
-        }
-
+        return insertBybatch(paymentRecordList)
     }
 
     /**
      * 批量新增通话记录
      * */
-    fun insertBybatch(paymentRecord: PaymentRecord, valueList: List<PaymentRecord>): Single<UpdateResult> {
+    fun insertBybatch(valueList: List<PaymentRecord>): Single<UpdateResult> {
 
         val sql = SQL.init {
-            BATCH_INSERT_INTO(paymentRecord.tableName())
+            BATCH_INSERT_INTO(PaymentRecord.tableName)
             BATCH_INTO_COLUMNS(
                 "task_id",
                 "mobile",
@@ -119,8 +114,6 @@ class PaymentRecordDao @Autowired constructor(
             }
 
         }
-
-        println("sql=$sql")
 
         return this.client.rxGetConnection().flatMap { conn ->
             val startTime = System.currentTimeMillis()

@@ -13,7 +13,7 @@ import java.util.stream.Collectors
 
 abstract class AbstractModel<T : AbstractSchema>(
     private val client: MongoClient,
-    private val collectionName: String,
+    val collectionName: String,
     private val clazz: Class<T>
 ) : Model<T> {
 
