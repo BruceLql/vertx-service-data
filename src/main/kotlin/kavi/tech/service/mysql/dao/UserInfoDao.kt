@@ -100,7 +100,6 @@ class UserInfoDao @Autowired constructor(
         userInfo.city = dataOut.getString("city_name")  //城市
         userInfo.province = dataOut.getString("area")  // 省份
 
-        println("userInfo====" + userInfo.toString())
 
         // 预留字段
         userInfo.carrier_001 = ""
@@ -131,7 +130,6 @@ class UserInfoDao @Autowired constructor(
         userInfo.city = dataOut.getJsonObject("userinfo").getString("citycode")  //城市
         userInfo.province = dataOut.getJsonObject("userinfo").getString("provincecode")  // 省份
 
-        println("userInfo====" + userInfo.toString())
 
         // 预留字段
         userInfo.carrier_001 = ""

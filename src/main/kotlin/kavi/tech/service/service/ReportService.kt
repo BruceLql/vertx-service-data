@@ -102,7 +102,6 @@ class ReportService @Autowired constructor(
 
         val listCallLog = mutableListOf<CallLog>()
         list.mapNotNull { json ->
-            println("MONTH - CallLog:" + json.toString())
             // dataOut 固定格式
             val dataOut = json.value<JsonObject>("data")
 
@@ -126,10 +125,8 @@ class ReportService @Autowired constructor(
                             }
                         }
                         _list?.forEach { listJson ->
-                            println("CMCC:" + listJson.toString())
-                            val buildCallLog = CMCC.buildCallLog(listJson, mobile, taskId, billMonth)
-                            println("buildCallLog: " + buildCallLog)
-                            listCallLog.add(buildCallLog)
+
+                            listCallLog.add(CMCC.buildCallLog(listJson, mobile, taskId, billMonth))
                         }
                     }
                     "CUCC" -> {
@@ -143,10 +140,8 @@ class ReportService @Autowired constructor(
                             }
                         }
                         _list?.forEach { listJson ->
-                            println("CUCC:" + listJson.toString())
-                            val buildCallLog = CUCC.buildCallLog(listJson, mobile, taskId, billMonth)
-                            println("buildCallLog: " + buildCallLog)
-                            listCallLog.add(buildCallLog)
+
+                            listCallLog.add(CUCC.buildCallLog(listJson, mobile, taskId, billMonth))
                         }
                     }
                     else -> {
@@ -184,16 +179,16 @@ class ReportService @Autowired constructor(
             }
 
             operator?.let { _operator ->
-                _list?.map { json ->
+                _list?.map { it ->
                     when (_operator) {
                         "CMCC" -> {
                             listExpenseCalendar.add(
-                                CMCC.buildExpenseCalendar(json, mobile, taskId, billMonth)
+                                CMCC.buildExpenseCalendar(it, mobile, taskId, billMonth)
                             )
                         }
                         "CUCC" -> {
                             listExpenseCalendar.add(
-                                CUCC.buildExpenseCalendar(json, mobile, taskId)
+                                CUCC.buildExpenseCalendar(it, mobile, taskId)
                             )
                         }
                         else -> null
@@ -331,7 +326,7 @@ class ReportService @Autowired constructor(
      * 短信记录过滤数据
      */
     private fun filterSmsInfo(list: List<JsonObject>): List<SmsInfo> {
-        println("短信 ============ list：${list.toString()}")
+        println("短信 filterSmsInfo========：${list.toString()}")
         val listSmsInfo = mutableListOf<SmsInfo>()
         list.mapNotNull { json ->
             val dataOut = json.value<JsonObject>("data")
@@ -371,8 +366,6 @@ class ReportService @Autowired constructor(
                                 null
                             }
                         }
-                        println("------dataArray: $dataArray -----------")
-                        println("------_list: $_list -----------")
                         _list?.map { listJson ->
                             listSmsInfo.add(
                                 CUCC.buileSmsInfo(listJson, mobile, taskId, billMonth)
@@ -391,7 +384,7 @@ class ReportService @Autowired constructor(
      * 基础用户信息过滤数据
      */
     private fun filterUserInfo(list: List<JsonObject>): UserInfo {
-        println("USER :" + list)
+        println("filterUserInfo :" + list)
         var userInfo = UserInfo()
         list.mapNotNull { json ->
             val dataObj = json.value<JsonObject>("data")!!

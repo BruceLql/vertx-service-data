@@ -197,7 +197,6 @@ object CMCC {
         userInfo.city = json.value<String>("city_name")  //城市
         userInfo.province = json.value<String>("area")  // 省份
 
-        println("userInfo====" + userInfo.toString())
 
         // 预留字段
         userInfo.carrier_001 = ""

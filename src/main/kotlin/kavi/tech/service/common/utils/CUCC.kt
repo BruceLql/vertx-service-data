@@ -56,7 +56,7 @@ object CUCC {
         expenseCalendar.bill_end_date = json.value<String>("billEndDate")
 
         // 总费用 金额费用 原始数据单位是元  转换成分后存储
-        expenseCalendar.bill_fee = ((json.value<String>("billFee") ?: "0.00").toDouble() * 100).toInt()
+        expenseCalendar.bill_fee = ((json.value<Double>("billFee")?:0.00) * 100).toInt()
 
         val billCUCCList = json.value<JsonArray>("billCUCCList")
         if (billCUCCList != null) {
@@ -239,7 +239,6 @@ object CUCC {
         userInfo.net_age = myDetial.value("netAge")  // 根据opendate 计算
         userInfo.user_email = myDetial.value("sendemail")
 
-        println("userInfo====" + userInfo.toString())
 
         // 预留字段
         userInfo.carrier_001 = ""
