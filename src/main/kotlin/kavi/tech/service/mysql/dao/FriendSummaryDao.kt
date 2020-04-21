@@ -86,17 +86,17 @@ class FriendSummaryDao @Autowired constructor(
                               mobile: String,
                               taskId: String):Single<ResultSet>{
         var sql:String = "select \n" +
-                "cv.location, -- 通话地\n" +
+                "cv.location as peer_num_loc, -- 通话地\n" +
                 "cv.peer_number, -- 对方号码\n" +
-                "'未知' as '号码类型', -- 号码类型\n" +
-                "'未知'as '号码标识', -- 号码标识\n" +
-                "count(if((date_sub(curdate(), interval 90 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))),true,null)) as 90_count, -- 通话次数\n" +
-                "ifnull(sum(if((date_sub(curdate(), interval 90 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))),cv.duration_in_second,0)),0) as 90_shi_chang, -- 通话时长\n" +
-                "count(if((date_sub(curdate(), interval 90 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))) && cv.dial_type='DIAL',true,null)) as 90_dial_count,  -- 主叫次数\n" +
-                "sum(if((date_sub(curdate(), interval 90 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))) && cv.dial_type='DIAL',cv.duration_in_second,0)) as 90_dial_shi_chang,  -- 主叫通话时长\n" +
-                "count(if((date_sub(curdate(), interval 90 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))) && cv.dial_type='DIALED',true,null)) as 90_dialed_count, -- 被叫次数\n" +
-                "sum(if((date_sub(curdate(), interval 90 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))) && cv.dial_type='DIALED',cv.duration_in_second,0)) as 90_dialed_shi_chang -- 被叫通话时长\n" +
-                "from carrier_voicecall cv where cv.mobile = '$mobile' and cv.task_id='$taskId' group by cv.peer_number order by 90_count desc limit 10;"
+                "'未知' as group_name, -- 号码类型\n" +
+                "'未知'as company_name, -- 号码标识\n" +
+                "count(if((date_sub(curdate(), interval 90 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))),true,null)) as call_cnt, -- 通话次数\n" +
+                "ifnull(sum(if((date_sub(curdate(), interval 90 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))),cv.duration_in_second,0)),0) as call_time, -- 通话时长\n" +
+                "count(if((date_sub(curdate(), interval 90 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))) && cv.dial_type='DIAL',true,null)) as dial_cnt,  -- 主叫次数\n" +
+                "sum(if((date_sub(curdate(), interval 90 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))) && cv.dial_type='DIAL',cv.duration_in_second,0)) as dial_time,  -- 主叫通话时长\n" +
+                "count(if((date_sub(curdate(), interval 90 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))) && cv.dial_type='DIALED',true,null)) as dialed_cnt, -- 被叫次数\n" +
+                "sum(if((date_sub(curdate(), interval 90 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))) && cv.dial_type='DIALED',cv.duration_in_second,0)) as dialed_time -- 被叫通话时长\n" +
+                "from carrier_voicecall cv where cv.mobile = '$mobile' and cv.task_id='$taskId' group by cv.peer_number order by call_cnt desc limit 10;"
         return this.query(conn, sql)
     }
 
@@ -107,17 +107,17 @@ class FriendSummaryDao @Autowired constructor(
                               mobile: String,
                               taskId: String):Single<ResultSet>{
         var sql:String = "select \n" +
-                "cv.location, -- 通话地\n" +
+                "cv.location as peer_num_loc, -- 通话地\n" +
                 "cv.peer_number, -- 对方号码\n" +
-                "'未知' as '号码类型', -- 号码类型\n" +
-                "'未知'as '号码标识', -- 号码标识\n" +
-                "count(if((date_sub(curdate(), interval 180 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))),true,null)) as 180_count, -- 通话次数\n" +
-                "ifnull(sum(if((date_sub(curdate(), interval 180 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))),cv.duration_in_second,0)),0) as 180_shi_chang, -- 通话时长\n" +
-                "count(if((date_sub(curdate(), interval 180 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))) && cv.dial_type='DIAL',true,null)) as 180_dial_count,  -- 主叫次数\n" +
-                "sum(if((date_sub(curdate(), interval 180 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))) && cv.dial_type='DIAL',cv.duration_in_second,0)) as 180_dial_shi_chang,  -- 主叫通话时长\n" +
-                "count(if((date_sub(curdate(), interval 180 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))) && cv.dial_type='DIALED',true,null)) as 180_dialed_count, -- 被叫次数\n" +
-                "sum(if((date_sub(curdate(), interval 180 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))) && cv.dial_type='DIALED',cv.duration_in_second,0)) as 180_dialed_shi_chang -- 被叫通话时长\n" +
-                "from carrier_voicecall cv where cv.mobile = '$mobile' and cv.task_id='$taskId' group by cv.peer_number order by 180_count desc limit 10;"
+                "'未知' as group_name, -- 号码类型\n" +
+                "'未知'as company_name, -- 号码标识\n" +
+                "count(if((date_sub(curdate(), interval 180 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))),true,null)) as call_cnt, -- 通话次数\n" +
+                "ifnull(sum(if((date_sub(curdate(), interval 180 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))),cv.duration_in_second,0)),0) as call_time, -- 通话时长\n" +
+                "count(if((date_sub(curdate(), interval 180 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))) && cv.dial_type='DIAL',true,null)) as dial_cnt,  -- 主叫次数\n" +
+                "sum(if((date_sub(curdate(), interval 180 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))) && cv.dial_type='DIAL',cv.duration_in_second,0)) as dial_time,  -- 主叫通话时长\n" +
+                "count(if((date_sub(curdate(), interval 180 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))) && cv.dial_type='DIALED',true,null)) as dialed_cnt, -- 被叫次数\n" +
+                "sum(if((date_sub(curdate(), interval 180 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))) && cv.dial_type='DIALED',cv.duration_in_second,0)) as dialed_time -- 被叫通话时长\n" +
+                "from carrier_voicecall cv where cv.mobile = '$mobile' and cv.task_id='$taskId' group by cv.peer_number order by call_cnt desc limit 10;"
         return this.query(conn, sql)
     }
 
@@ -128,16 +128,16 @@ class FriendSummaryDao @Autowired constructor(
                             mobile: String,
                             taskId: String):Single<ResultSet>{
         var sql:String = "select \n" +
-                "cv.location, -- 通话地\n" +
-                "IFNULL(COUNT(DISTINCT(peer_number)),0) as countResult, -- 通话号码数\n" +
-                "count(if((date_sub(curdate(), interval 90 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))),true,null)) as 90_count, -- 通话次数\n" +
-                "ifnull(sum(if((date_sub(curdate(), interval 90 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))),cv.duration_in_second,0)),0) as 90_shi_chang, -- 通话时长\n" +
-                "count(if((date_sub(curdate(), interval 90 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))) && cv.dial_type='DIAL',true,null)) as 90_dial_count,  -- 主叫次数\n" +
-                "sum(if((date_sub(curdate(), interval 90 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))) && cv.dial_type='DIAL',cv.duration_in_second,0)) as 90_dial_shi_chang,  -- 主叫通话时长\n" +
-                "count(if((date_sub(curdate(), interval 90 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))) && cv.dial_type='DIALED',true,null)) as 90_dialed_count, -- 被叫次数\n" +
-                "sum(if((date_sub(curdate(), interval 90 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))) && cv.dial_type='DIALED',cv.duration_in_second,0)) as 90_dialed_shi_chang-- 被叫通话时长\n" +
+                "cv.location as peer_num_loc, -- 通话地\n" +
+                "IFNULL(COUNT(DISTINCT(peer_number)),0) as peer_number_cnt, -- 通话号码数\n" +
+                "count(if((date_sub(curdate(), interval 90 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))),true,null)) as call_cnt, -- 通话次数\n" +
+                "ifnull(sum(if((date_sub(curdate(), interval 90 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))),cv.duration_in_second,0)),0) as call_time, -- 通话时长\n" +
+                "count(if((date_sub(curdate(), interval 90 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))) && cv.dial_type='DIAL',true,null)) as dial_cnt,  -- 主叫次数\n" +
+                "sum(if((date_sub(curdate(), interval 90 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))) && cv.dial_type='DIAL',cv.duration_in_second,0)) as dial_time,  -- 主叫通话时长\n" +
+                "count(if((date_sub(curdate(), interval 90 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))) && cv.dial_type='DIALED',true,null)) as dialed_cnt, -- 被叫次数\n" +
+                "sum(if((date_sub(curdate(), interval 90 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))) && cv.dial_type='DIALED',cv.duration_in_second,0)) as dialed_time-- 被叫通话时长\n" +
                 "from carrier_voicecall cv\n" +
-                "where cv.mobile = '14779716260' and cv.task_id='5e97f0583ba60bc281e0a3b0' group by cv.location order by 90_count desc LIMIT 10;"
+                "where cv.mobile = '$mobile' and cv.task_id='$taskId' group by cv.location order by call_cnt desc LIMIT 10;"
         return this.query(conn, sql)
     }
 
@@ -148,16 +148,16 @@ class FriendSummaryDao @Autowired constructor(
                                 mobile: String,
                                 taskId: String):Single<ResultSet>{
         var sql:String = "select \n" +
-                "cv.location, -- 通话地\n" +
-                "IFNULL(COUNT(DISTINCT(peer_number)),0) as countResult, -- 通话号码数\n" +
-                "count(if((date_sub(curdate(), interval 180 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))),true,null)) as 180_count, -- 通话次数\n" +
-                "ifnull(sum(if((date_sub(curdate(), interval 180 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))),cv.duration_in_second,0)),0) as 180_shi_chang, -- 通话时长\n" +
-                "count(if((date_sub(curdate(), interval 180 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))) && cv.dial_type='DIAL',true,null)) as 180_dial_count,  -- 主叫次数\n" +
-                "sum(if((date_sub(curdate(), interval 180 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))) && cv.dial_type='DIAL',cv.duration_in_second,0)) as 180_dial_shi_chang,  -- 主叫通话时长\n" +
-                "count(if((date_sub(curdate(), interval 180 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))) && cv.dial_type='DIALED',true,null)) as 180_dialed_count, -- 被叫次数\n" +
-                "sum(if((date_sub(curdate(), interval 180 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))) && cv.dial_type='DIALED',cv.duration_in_second,0)) as 180_dialed_shi_chang-- 被叫通话时长\n" +
+                "cv.location as peer_num_loc, -- 通话地\n" +
+                "IFNULL(COUNT(DISTINCT(peer_number)),0) as peer_number_cnt, -- 通话号码数\n" +
+                "count(if((date_sub(curdate(), interval 180 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))),true,null)) as call_cnt, -- 通话次数\n" +
+                "ifnull(sum(if((date_sub(curdate(), interval 180 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))),cv.duration_in_second,0)),0) as call_time, -- 通话时长\n" +
+                "count(if((date_sub(curdate(), interval 180 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))) && cv.dial_type='DIAL',true,null)) as dial_cnt,  -- 主叫次数\n" +
+                "sum(if((date_sub(curdate(), interval 180 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))) && cv.dial_type='DIAL',cv.duration_in_second,0)) as dial_time,  -- 主叫通话时长\n" +
+                "count(if((date_sub(curdate(), interval 180 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))) && cv.dial_type='DIALED',true,null)) as dialed_cnt, -- 被叫次数\n" +
+                "sum(if((date_sub(curdate(), interval 180 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))) && cv.dial_type='DIALED',cv.duration_in_second,0)) as dialed_time-- 被叫通话时长\n" +
                 "from carrier_voicecall cv\n" +
-                "where cv.mobile = '14779716260' and cv.task_id='5e97f0583ba60bc281e0a3b0' group by cv.location order by 180_count desc LIMIT 10;"
+                "where cv.mobile = '$mobile' and cv.task_id='$taskId' group by cv.location order by call_cnt desc LIMIT 10;"
         return this.query(conn, sql)
     }
 
