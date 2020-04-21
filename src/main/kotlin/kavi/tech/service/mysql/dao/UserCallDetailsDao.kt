@@ -32,14 +32,14 @@ class UserCallDetailsDao @Autowired constructor
                 "count(if((date_sub(curdate(), interval 180 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))),true,null)) as 180_call_count,\n" +
                 "ifnull(sum(if((date_sub(curdate(), interval 90 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))),cv.duration_in_second,0)),0) as 90_shi_chang,\n" +
                 "ifnull(sum(if((date_sub(curdate(), interval 180 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))),cv.duration_in_second,0)),0) as 180_shi_chang,\n" +
-                "count(if((date_sub(curdate(), interval 30 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))) && cv.dial_type='DIAL',true,null)) as 30_dial_count,\n" +
-                "count(if((date_sub(curdate(), interval 180 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time)) && cv.dial_type='DIAL'),true,null)) as 180_dial_count,\n" +
-                "ifnull(sum(if((date_sub(curdate(), interval 90 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))) && cv.dial_type='DIAL',cv.duration_in_second,0)),0) as 90_dial_shi_chang,\n" +
-                "ifnull(sum(if((date_sub(curdate(), interval 180 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))) && cv.dial_type='DIAL',cv.duration_in_second,0)),0) as 180_dial_shi_chang,\n" +
-                "count(if((date_sub(curdate(), interval 30 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))) && cv.dial_type='DIALED',true,null)) as 30_dialed_count,\n" +
-                "count(if((date_sub(curdate(), interval 180 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time)) && cv.dial_type='DIALED'),true,null)) as 180_dialed_count,\n" +
-                "ifnull(sum(if((date_sub(curdate(), interval 90 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))) && cv.dial_type='DIALED',cv.duration_in_second,0)),0) as 90_dialed_shi_chang,\n" +
-                "ifnull(sum(if((date_sub(curdate(), interval 180 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))) && cv.dial_type='DIALED',cv.duration_in_second,0)),0) as 180_dialed_shi_chang,\n" +
+                "count(if((date_sub(curdate(), interval 30 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))) and cv.dial_type='DIAL',true,null)) as 30_dial_count,\n" +
+                "count(if((date_sub(curdate(), interval 180 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time)) and cv.dial_type='DIAL'),true,null)) as 180_dial_count,\n" +
+                "ifnull(sum(if((date_sub(curdate(), interval 90 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))) and cv.dial_type='DIAL',cv.duration_in_second,0)),0) as 90_dial_shi_chang,\n" +
+                "ifnull(sum(if((date_sub(curdate(), interval 180 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))) and cv.dial_type='DIAL',cv.duration_in_second,0)),0) as 180_dial_shi_chang,\n" +
+                "count(if((date_sub(curdate(), interval 30 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))) and cv.dial_type='DIALED',true,null)) as 30_dialed_count,\n" +
+                "count(if((date_sub(curdate(), interval 180 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time)) and cv.dial_type='DIALED'),true,null)) as 180_dialed_count,\n" +
+                "ifnull(sum(if((date_sub(curdate(), interval 90 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))) and cv.dial_type='DIALED',cv.duration_in_second,0)),0) as 90_dialed_shi_chang,\n" +
+                "ifnull(sum(if((date_sub(curdate(), interval 180 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))) and cv.dial_type='DIALED',cv.duration_in_second,0)),0) as 180_dialed_shi_chang,\n" +
                 "count(case when(date_sub(curdate(), interval 90 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))) and hour(str_to_date(concat(substr(cv.bill_month,1,4),'-',cv.time),'%Y-%m-%d %H:%i:%s')) between 6 and 12 then 1 else null end ) as 90_zao_chen_count,\n" +
                 "count(case when(date_sub(curdate(), interval 180 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))) and hour(str_to_date(concat(substr(cv.bill_month,1,4),'-',cv.time),'%Y-%m-%d %H:%i:%s')) between 6 and 12 then 1 else null end ) as 180_zao_chen_count,\n" +
                 "count(case when(date_sub(curdate(), interval 90 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))) and hour(str_to_date(concat(substr(cv.bill_month,1,4),'-',cv.time),'%Y-%m-%d %H:%i:%s')) between 12 and 13 then 1 else null end ) as 90_zhong_wu_count,\n" +
