@@ -25,6 +25,7 @@ class ReportService @Autowired constructor(
     val dataInternetInfoMondel: DataInternetInfoModel,
     val dataPaymentRecordMondel: DataPaymentRecordModel,
     val dataSmsInfoModel: DataSmsInfoModel,
+    val dataComboModel: DataComboModel,
     val dataUserInfoModel: DataUserInfoModel,
     val callLogDao: CallLogDao,
     val expenseCalendarDao: ExpenseCalendarDao,
@@ -32,11 +33,13 @@ class ReportService @Autowired constructor(
     val paymentRecordDao: PaymentRecordDao,
     val smsInfoDao: SmsInfoDao,
     val userInfoDao: UserInfoDao,
+    val comboDao: ComboDao,
 
     val callAnalysisService: CallAnalysisService,
     val contactsRegionService: ContactsRegionService,
     val friendSummaryService: FriendSummaryService,
-    val userBehaviorService: UserBehaviorService
+    val userBehaviorService: UserBehaviorService,
+    val carierService: CarierService
 
 ) {
     @Autowired
@@ -74,19 +77,31 @@ class ReportService @Autowired constructor(
 
         // 读取mongo 短信数据 并过滤数据插入mysql
         val smsInfoResult = dataSmsInfoModel.queryListAndSave2Mysql(query)
-            .flatMap { smsInfoDao.insertBybatch(filterSmsInfo(it)) }
+            .flatMap {
+                val filterSmsInfo = filterSmsInfo(it)
+                smsInfoDao.insertBybatch(filterSmsInfo)
+
+            }
 
         // 读取mongo 基础用户信息 并过滤数据插入mysql
         val userInfooResult = dataUserInfoModel.queryListAndSave2Mysql(query)
             .flatMap { userInfoDao.insert(filterUserInfo(it)) }
 
+        // 读取mongo 套餐数据 并过滤数据插入mysql
+        val comboResult = dataComboModel.queryListAndSave2Mysql(query)
+            .flatMap {
+                val filterComboList = filterCombo(it)
+                comboDao.insertBybatch(filterComboList)
+
+            }
         return Single.concat(
             callLogResult,
             expenseCalendarResult,
             internetInfoResult,
             paymentRecordResult,
             smsInfoResult,
-            userInfooResult
+            userInfooResult,
+            comboResult
         )
             .toList().toSingle()
 
@@ -410,6 +425,69 @@ class ReportService @Autowired constructor(
         }
         return userInfo
     }
+
+    /**
+     * 套餐记录过滤数据
+     */
+    private fun filterCombo(list: List<JsonObject>): List<Combo> {
+        println("套餐 filterCombo========：${list.toString()}")
+        val listCombo = mutableListOf<Combo>()
+        list.mapNotNull { json ->
+            println("具体套餐数据：$json")
+            val dataOut = json.value<JsonObject>("data")
+
+            val operator = json.value<String>("operator")
+            val taskId = json.value<String>("mid")
+            val mobile = json.value<String>("mobile")
+            val billMonth = json.value<String>("bill_month")
+            if (taskId == null || mobile == null) {
+                return@mapNotNull null
+            }
+
+            operator?.let { _operator ->
+
+                when (_operator) {
+                    "CMCC" -> {
+                        val dataArray = dataOut.value<JsonArray>("data")
+                        val _list = dataArray?.mapNotNull { _any ->
+                            try {
+                                _any as JsonObject
+                            } catch (e: Exception) {
+                                null
+                            }
+                        }
+                        _list?.map { listJson ->
+                            listCombo.add(
+                                CMCC.buileCombo(listJson, mobile, taskId, billMonth)
+                            )
+                        }
+                    }
+                    "CUCC" -> {
+                        val dataArray = dataOut?.getJsonArray("fourpackage")
+                        val _list = dataArray?.mapNotNull { _any ->
+                            try {
+                                _any as JsonObject
+                            } catch (e: Exception) {
+                                null
+                            }
+                        }
+                        _list?.map { listJson ->
+                            listCombo.add(
+                                CUCC.buileCombo(listJson, mobile, taskId, billMonth)
+                            )
+                        }
+                    }
+                    else -> null
+                }
+
+            }
+        }
+        return listCombo
+    }
+
+
+
+
 
     /**
      * 数据清洗服务调用

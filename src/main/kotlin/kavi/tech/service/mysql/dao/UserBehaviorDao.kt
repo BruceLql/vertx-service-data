@@ -32,7 +32,9 @@ class UserBehaviorDao @Autowired constructor
         val dateList = DateUtils.getPreMothInCurrentMoth(6, DateUtils.DatePattern.YYYY_MM.value)
         return this.client.rxGetConnection().flatMap { conn ->
             val list =
-                (0..5).map { d -> sqlExecuteQuery(conn, mobile, taskId, dateList[d]).map { it.rows[0] }.toObservable() }
+                (0..5).map { d ->
+                    sqlExecuteQuery(conn, mobile, taskId, dateList[d]).map { it.rows[0] }.toObservable()
+                }
             Observable.concat(list).toList().toSingle().doAfterTerminate(conn::close)
         }
     }

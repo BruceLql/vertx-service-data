@@ -5,7 +5,9 @@ import io.vertx.core.logging.Logger
 import io.vertx.ext.sql.ResultSet
 import io.vertx.ext.sql.UpdateResult
 import io.vertx.rxjava.ext.asyncsql.AsyncSQLClient
+import io.vertx.rxjava.ext.sql.SQLConnection
 import kavi.tech.service.common.extension.logger
+import kavi.tech.service.common.utils.DateUtils
 import kavi.tech.service.mysql.component.AbstractDao
 import kavi.tech.service.mysql.component.SQL
 import kavi.tech.service.mysql.entity.CallLog
@@ -13,6 +15,7 @@ import kavi.tech.service.mysql.entity.InternetInfo
 import kavi.tech.service.mysql.entity.PaymentRecord
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
+import rx.Observable
 import rx.Single
 
 @Repository
@@ -211,5 +214,55 @@ class PaymentRecordDao @Autowired constructor(
         paymentRecord.carrier_002 = ""
     }
 
+    /**
+     * 获取近六个月 充值记录原始数据
+     */
+    fun queryRechargesRaw6Month(mobile: String, taskId: String): Single<JsonObject> {
+        //获取最近6个月时间
+        val dateList = DateUtils.getPreMothInCurrentMoth(6, DateUtils.DatePattern.YYYY_MM.value)
+
+        return this.client.rxGetConnection().flatMap { conn ->
+
+            var jsonList = ArrayList<JsonObject>()
+            var json = JsonObject()
+            val reChargesObservable = sqlExecuteQuery(conn, mobile, taskId).map {
+                println("充值记录:" + it.toJson())
+                json.put("data", if (it.numRows == 0) JsonObject() else it.rows)
+
+            }.toObservable()
+
+            Observable.concat(listOf(reChargesObservable)).toSingle().doAfterTerminate(conn::close)
+
+        }
+
+    }
+
+
+    /**
+     * sql查询 充值记录数据
+     */
+    fun sqlExecuteQuery(conn: SQLConnection, mobile: String, taskId: String): Single<ResultSet> {
+        // 移动的
+        /*val sql = "SELECT amount_money as amount,\n" +
+                "CONCAT_WS(\" \",\n" +
+                "CONCAT_WS(\"-\",SUBSTRING(recharge_time FROM 1 FOR 4),SUBSTRING(recharge_time FROM 5 FOR 2),SUBSTRING(recharge_time FROM 7 FOR 2)),\n" +
+                "CONCAT_WS(\":\",SUBSTRING(recharge_time FROM 9 FOR 2),SUBSTRING(recharge_time FROM 11 FOR 2),SUBSTRING(recharge_time FROM 13 FOR 2))\n" +
+                ") as recharge_time,\n" +
+                "type  "+
+                "FROM ${PaymentRecord.tableName}" +
+                " WHERE mobile = \"$mobile\" \n" +
+                "AND task_id = \"$taskId\" \n" +
+                "ORDER BY recharge_time DESC"*/
+        // 联通的
+        val sql = "SELECT amount_money as amount,\n" +
+                "recharge_time,\n" +
+                "type  "+
+                "FROM ${PaymentRecord.tableName}" +
+                " WHERE mobile = \"$mobile\" \n" +
+                "AND task_id = \"$taskId\" \n" +
+                "ORDER BY recharge_time DESC"
+        println("----------充值记录数据--------:$sql")
+        return this.query(conn, sql)
+    }
 
 }

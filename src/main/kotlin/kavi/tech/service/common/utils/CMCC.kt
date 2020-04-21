@@ -205,5 +205,29 @@ object CMCC {
         return userInfo
     }
 
+    fun buileCombo(json: JsonObject, mobile: String, taskId: String, billMonth: String?): Combo {
+        val combo = Combo()
+        combo.task_id = taskId
 
+        combo.mobile = mobile
+        combo.bill_month = billMonth
+        // 套餐起始时间
+        combo.bill_start_date = json.value<String>("bill_start_date")
+        // 套餐结束时间
+        combo.bill_end_date = json.value<String>("bill_end_date")
+        // 套餐名
+        combo.name = json.value<String>("name")
+        // 单位
+         combo.unit = json.value<String>("unit")
+
+        // 已使用量
+        combo.used = json.value<String>("used")
+        // 总量
+        combo.total = json.value<String>("total")
+        // 预留字段
+        combo.carrier_001 = ""
+        combo.carrier_002 = ""
+
+        return combo
+    }
 }

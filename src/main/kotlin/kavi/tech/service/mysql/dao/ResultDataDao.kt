@@ -1,6 +1,8 @@
 package kavi.tech.service.mysql.dao
 
+import io.vertx.core.json.JsonObject
 import io.vertx.core.logging.Logger
+import io.vertx.ext.sql.ResultSet
 import io.vertx.rxjava.ext.asyncsql.AsyncSQLClient
 import kavi.tech.service.common.extension.logger
 import kavi.tech.service.mysql.component.AbstractDao
@@ -21,7 +23,7 @@ class ResultDataDao @Autowired constructor(
     /**
      * 新增记录
      * */
-    private fun insert(resultData: ResultData): Single<Void> {
+    public fun insert(resultData: ResultData): Single<Void> {
         val sql = SQL.init {
             INSERT_INTO(resultData.tableName())
             resultData.preInsert().forEach { (t, u) -> VALUES(t, u) }
@@ -36,16 +38,12 @@ class ResultDataDao @Autowired constructor(
     /**
      * 查询已清洗的数据结果
      * */
-    public fun selectData(where: List<Serializable>): Single<io.vertx.ext.sql.ResultSet> {
+    public fun selectData(where: List<Serializable>): Single<JsonObject> {
         val sql = SQL.init { SELECT("*"); FROM(ResultData.tableName); WHERES(where) }
         print("selectData sql:$sql")
-        return this.client.rxGetConnection().flatMap { conn ->
+        return this.one(sql)
 
-            conn.rxQuery(sql).doAfterTerminate(conn::close)
-        }
-        }
-
-
+    }
 
 
 }

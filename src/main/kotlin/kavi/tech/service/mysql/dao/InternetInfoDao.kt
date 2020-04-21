@@ -7,12 +7,14 @@ import io.vertx.ext.sql.UpdateResult
 import io.vertx.rxjava.ext.asyncsql.AsyncSQLClient
 import io.vertx.rxjava.ext.sql.SQLConnection
 import kavi.tech.service.common.extension.logger
+import kavi.tech.service.common.utils.DateUtils
 import kavi.tech.service.mysql.component.AbstractDao
 import kavi.tech.service.mysql.component.SQL
 import kavi.tech.service.mysql.entity.CallLog
 import kavi.tech.service.mysql.entity.InternetInfo
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
+import rx.Observable
 import rx.Single
 
 @Repository
@@ -248,5 +250,92 @@ class InternetInfoDao @Autowired constructor(
         internetInfo.carrier_002 = ""
     }
 
+    /**
+     * 获取近六个月 通话记录原始数据
+     */
+    fun queryNetsRaw6Month(mobile: String, taskId: String): Single<List<JsonObject>> {
+        //获取最近6个月时间
+        val dateList = DateUtils.getPreMothInCurrentMoth(6, DateUtils.DatePattern.YYYY_MM.value)
+        println("=========:" + dateList.toString())
+        return this.client.rxGetConnection().flatMap { conn ->
 
+            val listCount =
+                (0..5).map { d ->
+                    var json = JsonObject()
+                    sqlExecuteQuery2(conn, mobile, taskId, dateList[d]).map {
+
+                        json.put(dateList[d], if (it.numRows == 0) JsonObject() else it.rows)
+
+                    }.toObservable()
+
+                }
+            Observable.concat(listCount).toList().toSingle().doAfterTerminate(conn::close)
+
+        }
+
+
+    }
+
+    /**
+     * 获取近六个月 通话记录原始数据统计信息
+     */
+    fun queryNetsCountRaw6Month(mobile: String, taskId: String): Single<List<JsonObject>> {
+        //获取最近6个月时间
+        val dateList = DateUtils.getPreMothInCurrentMoth(6, DateUtils.DatePattern.YYYY_MM.value)
+        println("=========:" + dateList.toString())
+        return this.client.rxGetConnection().flatMap { conn ->
+
+            val listCount =
+                (0..5).map { d ->
+                    var json = JsonObject()
+                    sqlExecuteQuery1(conn, mobile, taskId, dateList[d]).map {
+
+                        println("result1" + it.toJson())
+//                        json.put("data", if (it.numRows == 0) JsonObject().put("bill_month",dateList[d]).put("total_size",0).put("items",ArrayList<JsonObject>()) else it.rows[0])
+                        json.put("data",  JsonObject().put("bill_month",dateList[d]).put("total_size",0).put("items",ArrayList<JsonObject>()))
+
+                    }.toObservable()
+                }
+            Observable.concat(listCount).toList().toSingle().doAfterTerminate(conn::close)
+
+        }
+
+
+    }
+
+    /**
+     * sql查询 上网流量按月汇总数据
+     */
+    fun sqlExecuteQuery1(conn: SQLConnection, mobile: String, taskId: String, moth: String): Single<ResultSet> {
+        val sql = "SELECT bill_month, count(*) AS total_size FROM ${InternetInfo.tableName}\n" +
+                " WHERE mobile = \"$mobile\" \n" +
+                "AND task_id = \"$taskId\" \n" +
+                "AND bill_month = \"$moth\"\n" +
+                "GROUP BY bill_month\n" +
+                "ORDER BY bill_month DESC"
+        println("++++++++++++++++：" + sql)
+        return this.query(conn, sql)
+    }
+
+
+    /**
+     * sql查询 上网记录数据
+     */
+    fun sqlExecuteQuery2(conn: SQLConnection, mobile: String, taskId: String, moth: String): Single<ResultSet> {
+        val sql = "SELECT start_time as time,\n" +
+                "comm_time as  duration,\n" +
+                "sum_flow as subflow,\n" +
+                "comm_plac as location,\n" +
+                "net_type as net_type,\n" +
+                "\"\" as service_name,\n" +
+                "id as details_id,\n" +
+                "comm_fee as fee " +
+                "FROM ${InternetInfo.tableName}" +
+                " WHERE mobile = \"$mobile\" \n" +
+                "AND task_id = \"$taskId\" \n" +
+                "AND bill_month = \"$moth\"\n" +
+                "ORDER BY time DESC"
+        println("------------------:" + sql)
+        return this.query(conn, sql)
+    }
 }

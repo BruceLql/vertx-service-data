@@ -7,12 +7,14 @@ import io.vertx.ext.sql.UpdateResult
 import io.vertx.rxjava.ext.asyncsql.AsyncSQLClient
 import io.vertx.rxjava.ext.sql.SQLConnection
 import kavi.tech.service.common.extension.logger
+import kavi.tech.service.common.utils.DateUtils
 import kavi.tech.service.mysql.component.AbstractDao
 import kavi.tech.service.mysql.component.SQL
 import kavi.tech.service.mysql.entity.CallLog
 import kavi.tech.service.mysql.entity.SmsInfo
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
+import rx.Observable
 import rx.Single
 
 @Repository
@@ -92,7 +94,7 @@ class SmsInfoDao @Autowired constructor(
             }
         }
         println("smsInfoList:${smsInfoList.size}" + smsInfoList.toString())
-        return insertBybatch( smsInfoList)
+        return insertBybatch(smsInfoList)
 
     }
 
@@ -100,6 +102,11 @@ class SmsInfoDao @Autowired constructor(
      * 批量新增通话记录
      * */
     fun insertBybatch(valueList: List<SmsInfo>): Single<UpdateResult> {
+
+        if (valueList.isNullOrEmpty()) {
+
+            return Single.create { UpdateResult() }
+        }
 
         val sql = SQL.init {
             BATCH_INSERT_INTO(SmsInfo.tableName)
@@ -239,6 +246,94 @@ class SmsInfoDao @Autowired constructor(
     private fun ctcc(smsInfo: SmsInfo, obj: JsonObject) {
 
 
+    }
+
+
+    /**
+     * 获取近六个月 短信记录原始数据
+     */
+    fun querySmsRaw6Month(mobile: String, taskId: String): Single<List<JsonObject>> {
+        //获取最近6个月时间
+        val dateList = DateUtils.getPreMothInCurrentMoth(6, DateUtils.DatePattern.YYYY_MM.value)
+        println("=========:" + dateList.toString())
+        return this.client.rxGetConnection().flatMap { conn ->
+
+            val listCount =
+                (0..5).map { d ->
+                    var json = JsonObject()
+                    sqlExecuteQuery2(conn, mobile, taskId, dateList[d]).map {
+
+                        json.put(dateList[d], if (it.numRows == 0) JsonObject() else it.rows)
+                    }.toObservable()
+
+                }
+            Observable.concat(listCount).toList().toSingle().doAfterTerminate(conn::close)
+
+        }
+
+
+    }
+
+    /**
+     * 获取近六个月 短信记录原始数据统计信息
+     */
+    fun querySmsCountRaw6Month(mobile: String, taskId: String): Single<List<JsonObject>> {
+        //获取最近6个月时间
+        val dateList = DateUtils.getPreMothInCurrentMoth(6, DateUtils.DatePattern.YYYY_MM.value)
+        println("=========:" + dateList.toString())
+        return this.client.rxGetConnection().flatMap { conn ->
+
+            val listCount =
+                (0..5).map { d ->
+                    var json = JsonObject()
+                    sqlExecuteQuery1(conn, mobile, taskId, dateList[d]).map {
+
+                        println("result1" + it.toJson())
+                        json.put("data", if (it.numRows == 0) JsonObject().put("bill_month",dateList[d]).put("total_size",0).put("items",ArrayList<JsonObject>()) else it.rows[0])
+
+                    }.toObservable()
+                }
+            Observable.concat(listCount).toList().toSingle().doAfterTerminate(conn::close)
+
+        }
+
+
+    }
+
+    /**
+     * sql查询 按月汇总短信数据
+     */
+    fun sqlExecuteQuery1(conn: SQLConnection, mobile: String, taskId: String, moth: String): Single<ResultSet> {
+        val sql = "SELECT bill_month, count(*) AS total_size FROM ${SmsInfo.tableName}\n" +
+                " WHERE mobile = \"$mobile\" \n" +
+                "AND task_id = \"$taskId\" \n" +
+                "AND bill_month = \"$moth\"\n" +
+                "GROUP BY bill_month\n" +
+                "ORDER BY bill_month DESC"
+        println("++++++++++++++++：" + sql)
+        return this.query(conn, sql)
+    }
+
+
+    /**
+     * sql查询 具体短信数据
+     */
+    fun sqlExecuteQuery2(conn: SQLConnection, mobile: String, taskId: String, moth: String): Single<ResultSet> {
+        val sql = "SELECT CONCAT_WS(\"-\",LEFT(bill_month,4),time) as time,\n" +
+                "id as details_id,\n" +
+                "location as location,\n" +
+                "msg_type ,\n" +
+                "send_type ,\n" +
+                "peer_number,\n" +
+                "service_name,\n" +
+                "fee  " +
+                "FROM ${SmsInfo.tableName}" +
+                " WHERE mobile = \"$mobile\" \n" +
+                "AND task_id = \"$taskId\" \n" +
+                "AND bill_month = \"$moth\"\n" +
+                "ORDER BY time DESC"
+        println("------------------:" + sql)
+        return this.query(conn, sql)
     }
 
 

@@ -49,6 +49,7 @@ class QueryHandler @Autowired constructor(
             }
             val mobile = params.getString("mobile") ?: throw IllegalArgumentException("缺少手机号码！")
             val task_id = params.getString("task_id")
+            val item = params.getString("item")  // ”raw“; "report"
             if (!regexPhone(mobile)) {
                 throw IllegalArgumentException("(手机号)参数不合法！")
             }
@@ -67,23 +68,20 @@ class QueryHandler @Autowired constructor(
                 // 返回手机号和 任务ID
                 result.put("mobile", mobile)
                 result.put("task_id", it.getString("task_id"))
-                resultDataDao.selectData(listOf(Pair("task_id", it.getString("task_id")), Pair("mobile", mobile)))
+                val listOf = if (item.isNotEmpty()) {
+                    listOf(Pair("task_id", it.getString("task_id")), Pair("mobile", mobile), Pair("item", item))
+                } else {
+                    listOf(Pair("task_id", it.getString("task_id")), Pair("mobile", mobile))
+                }
+
+
+                resultDataDao.selectData(listOf)
 
             }.subscribe({
+                println(it.toString())
+                val ss = it.getString("result")
 
-                it.results.forEach { it ->
-
-                    val value = it.getValue(4).toString()
-                    // .toString().let { values_bef -> values_bef.substring(0, values_bef.length - 1).substring(1) }
-                    // 数据最终转换成Json 类型
-                    val valueFinal = when (value[0]) {
-                        '{' -> JsonObject(value)
-                        '[' -> JsonArray(value)
-                        else -> value
-                    }
-                    data.put(it.getString(3), valueFinal)
-                }
-                result.put("data", data)
+                result.put("data", JsonObject(ss))
                 //  数据返回
                 event.response().end(result.toString())
 

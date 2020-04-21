@@ -1,17 +1,22 @@
 package kavi.tech.service.mysql.dao
 
+import io.vertx.core.json.JsonArray
 import io.vertx.core.json.JsonObject
 import io.vertx.core.logging.Logger
 import io.vertx.ext.sql.ResultSet
 import io.vertx.ext.sql.UpdateResult
 import io.vertx.rxjava.ext.asyncsql.AsyncSQLClient
+import io.vertx.rxjava.ext.sql.SQLConnection
 import kavi.tech.service.common.extension.logger
+import kavi.tech.service.common.utils.DateUtils
 import kavi.tech.service.mysql.component.AbstractDao
 import kavi.tech.service.mysql.component.SQL
 import kavi.tech.service.mysql.entity.CallLog
 import kavi.tech.service.mysql.entity.ExpenseCalendar
+import kavi.tech.service.mysql.entity.PaymentRecord
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
+import rx.Observable
 import rx.Single
 
 @Repository
@@ -20,47 +25,6 @@ class ExpenseCalendarDao @Autowired constructor(
 ) : AbstractDao<CallLog>(client) {
     override val log: Logger = logger(this::class)
 
-
-    /*fun expenseCalendarDataInsert(data: List<JsonObject>): Single<UpdateResult> {
-
-        println(" 消费记录（月账单信息）存入mysql: .....")
-        val expenseCalendarList = ArrayList<ExpenseCalendar>()
-        data.forEach {
-            println("expenseCalendarData：$it")
-            // 运营商类型  移动：CMCC 联通：CUCC 电信：CTCC
-            val operator = it.getString("operator")
-            val mobile = it.getString("mobile")
-            val task_id = it.getString("mid")
-            val dataOut = it.getJsonArray("data")
-            if (!dataOut.isEmpty) {
-                dataOut.forEachIndexed { index, mutableEntry ->
-                    val expenseCalendar_s = ExpenseCalendar()
-                    expenseCalendar_s.mobile = mobile
-                    expenseCalendar_s.task_id = task_id
-                    val obj = JsonObject(mutableEntry.toString())
-                    println("obj:$obj")
-                    when (operator) {
-                        // 移动数据提取
-                        "CMCC" -> cmcc(expenseCalendar_s, obj)
-                        // 联通数据提取
-                        "CUCC" -> cucc(expenseCalendar_s, obj)
-                        // 电信数据提取
-                        "CTCC" -> ctcc(expenseCalendar_s, obj)
-                    }
-                    expenseCalendarList.add(expenseCalendar_s)
-                }
-
-            }
-
-        }
-        println("smsInfoList:${expenseCalendarList.size}" + expenseCalendarList.toString())
-        if (expenseCalendarList.size > 0) {
-            return insertBybatch(ExpenseCalendar(), expenseCalendarList)
-        } else {
-            return Single.just(UpdateResult())
-        }
-
-    }*/
 
     /**
      * 批量新增通话记录
@@ -181,5 +145,61 @@ class ExpenseCalendarDao @Autowired constructor(
         expenseCalendar.carrier_002 = ""
     }
 
+    /**
+     * 获取近六个月 月账单记录原始数据
+     */
+    fun queryBillsRaw6Month(mobile: String, taskId: String): Single<List<JsonObject>> {
+        //获取最近6个月时间
+        val dateList = DateUtils.getPreMothInCurrentMoth(6, DateUtils.DatePattern.YYYY_MM.value)
+        println("=========:" + dateList.toString())
+        return this.client.rxGetConnection().flatMap { conn ->
+
+            val listCount =
+                (0..5).map { d ->
+                    var json = JsonObject()
+                    sqlExecuteQuery(conn, mobile, taskId, dateList[d]).map {
+
+                        json.put("data", if (it.numRows == 0) JsonArray().add(JsonObject().put("bill_month",dateList[d]))  else it.rows)
+
+                    }.toObservable()
+
+                }
+            Observable.concat(listCount).toList().toSingle().doAfterTerminate(conn::close)
+
+        }
+    }
+
+
+    /**
+     * sql查询 月账单记录原始数据
+     */
+    fun sqlExecuteQuery(conn: SQLConnection, mobile: String, taskId: String, month: String): Single<ResultSet> {
+        // 联通的
+        val sql = "SELECT bill_month,\n" +
+                "bill_start_date,\n" +
+                "bill_end_date,\n" +
+                "bass_fee,\n" +
+                "extra_fee,\n" +
+                "voice_fee,\n" +
+                "sms_fee,\n" +
+                "extra_fee,\n" +
+                "bill_fee as total_fee,\n" +
+                "discount,\n" +
+                "extra_discount_fee,\n" +
+                "actual_fee,\n" +
+                "paid_fee,\n" +
+                "unpaid_fee,\n" +
+                "point,\n" +
+                "last_point,\n" +
+                "related_mobiles,\n" +
+                "notes  \n" +
+                "FROM  ${ExpenseCalendar.tableName} " +
+                " WHERE mobile = \"$mobile\" \n" +
+                "AND task_id = \"$taskId\" \n" +
+                "AND bill_month = \"$month\" \n" +
+                "ORDER BY bill_start_date DESC"
+        println("----------月账单记录原始数据--------:$sql")
+        return this.query(conn, sql)
+    }
 
 }

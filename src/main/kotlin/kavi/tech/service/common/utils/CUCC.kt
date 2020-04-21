@@ -1,5 +1,6 @@
 package kavi.tech.service.common.utils
 
+import com.alibaba.druid.sql.visitor.functions.Substring
 import io.vertx.core.json.JsonArray
 import io.vertx.core.json.JsonObject
 import kavi.tech.service.common.extension.splitHms
@@ -247,5 +248,39 @@ object CUCC {
         return userInfo
     }
 
+    fun buileCombo(json: JsonObject, mobile: String, taskId: String, billMonth: String?): Combo {
+
+        val combo = Combo()
+        combo.task_id = taskId
+
+        combo.mobile = mobile
+        combo.bill_month = json.value<String>("cycleId")
+        // 套餐起始时间
+        var startdate = json.value<String>("startdate")?:""
+        if(startdate.isNotEmpty()){
+            startdate = startdate.substring(0,4)+"-"+startdate.substring(4,6)+"-"+startdate.substring(6,8)
+        }
+        combo.bill_start_date = startdate
+        // 套餐结束时间
+        var enddate = json.value<String>("enddate") ?:""
+        if(enddate.isNotEmpty()){
+            enddate = enddate.substring(0,4)+"-"+enddate.substring(4,6)+"-"+enddate.substring(6,8)
+        }
+        combo.bill_end_date = enddate
+        // 套餐名
+        combo.name = json.value<String>("feePolicyName")
+        // 单位
+        combo.unit = json.value<String>("totalUnitVal")?:""
+
+        // 已使用量
+        combo.used = json.value<String>("usedValue")?:""
+        // 总量
+        combo.total = json.value<String>("totalValue")?:""
+        // 预留字段
+        combo.carrier_001 = ""
+        combo.carrier_002 = ""
+
+        return combo
+    }
 
 }

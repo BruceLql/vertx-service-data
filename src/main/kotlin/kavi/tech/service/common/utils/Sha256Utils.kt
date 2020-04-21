@@ -1,6 +1,10 @@
 package kavi.tech.service.common.utils
 
+import java.io.UnsupportedEncodingException
 import java.security.MessageDigest
+import java.security.NoSuchAlgorithmException
+import kotlin.experimental.and
+
 
 /**
  * sha256加密工具类
@@ -31,4 +35,26 @@ object Sha256Utils {
         val result = digest.digest(str.toByteArray())
         return byte2Hex(result)
     }
+
+    /**
+     * 利用java原生的类实现SHA256加密
+     *
+     * @param str
+     * @return
+     *//*
+    private fun getSHA256(str: String): String {
+        val messageDigest: MessageDigest
+        var encodestr: String = ""
+        try {
+            messageDigest = MessageDigest.getInstance("SHA-256")
+            messageDigest.update(str.toByteArray(charset("UTF-8")))
+            encodestr = byte2Hex(messageDigest.digest())
+        } catch (e: NoSuchAlgorithmException) {
+            e.printStackTrace()
+        } catch (e: UnsupportedEncodingException) {
+            e.printStackTrace()
+        }
+        return encodestr
+    }*/
+
 }
