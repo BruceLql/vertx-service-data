@@ -36,7 +36,7 @@ class FriendSummaryDao @Autowired constructor(
                 listOf(
                     queryNearByThreeMonth(conn, mobile, taskId).map { it.rows }.toObservable()
                 )
-            ).toSingle().doAfterTerminate(conn::close)
+            ).toSingle()
         }
     }
 
@@ -49,7 +49,7 @@ class FriendSummaryDao @Autowired constructor(
                 listOf(
                     queryNearBySixMonth(conn, mobile, taskId).map { it.rows }.toObservable()
                 )
-            ).toSingle().doAfterTerminate(conn::close)
+            ).toSingle()
         }
     }
 
@@ -62,7 +62,7 @@ class FriendSummaryDao @Autowired constructor(
                 listOf(
                     queryNearByThreeMonthArea(conn, mobile, taskId).map { it.rows }.toObservable()
                 )
-            ).toSingle().doAfterTerminate(conn::close)
+            ).toSingle()
         }
     }
 
@@ -75,7 +75,7 @@ class FriendSummaryDao @Autowired constructor(
                 listOf(
                     queryNearBySixMonthArea(conn, mobile, taskId).map { it.rows }.toObservable()
                 )
-            ).toSingle().doAfterTerminate(conn::close)
+            ).toSingle()
         }
     }
 
