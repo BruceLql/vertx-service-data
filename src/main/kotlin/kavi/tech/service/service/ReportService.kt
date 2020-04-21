@@ -39,7 +39,8 @@ class ReportService @Autowired constructor(
     val contactsRegionService: ContactsRegionService,
     val friendSummaryService: FriendSummaryService,
     val userBehaviorService: UserBehaviorService,
-    val carierService: CarierService
+    val carierService: CarierService,
+    val userCallDetailsService: UserCallDetailsService
 
 ) {
     @Autowired
