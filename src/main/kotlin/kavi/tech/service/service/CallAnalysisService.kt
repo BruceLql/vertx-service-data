@@ -393,7 +393,7 @@ class CallAnalysisService {
     }
 
     /***
-     * 近6月主叫通话次数（近6月是指近六月的数据，即0-180天）
+     * 近6月主叫月均通话次数（近6月是指近六月的数据，即0-180天）
      */
     fun countLessSixMonthAvg(conn:SQLConnection, mobile: String, taskId: String): Single<ResultSet> {
         log.info("近6月主叫通话次数（近6月是指近六月的数据，即0-180天）")
