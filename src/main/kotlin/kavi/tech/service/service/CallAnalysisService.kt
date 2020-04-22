@@ -90,8 +90,8 @@ class CallAnalysisService {
             jsonObject.put("call_dial_cnt_1m", if (it[10].rows.size==0) 0 else it[10].rows[0].getValue("call_dial_cnt_1m")) // 近1月主叫通话次数
             jsonObject.put("call_dial_cnt_3m", if (it[11].rows.size==0) 0 else it[11].rows[0].getValue("call_dial_cnt_3m"))//近3月主叫通话次数
             jsonObject.put("call_dial_cnt_6m", if (it[12].rows.size==0) 0 else it[12].rows[0].getValue("call_dial_cnt_6m"))//近6月主叫通话次数
-            jsonObject.put("avg_call_dial_cnt_3m", if (it[13].rows.size==0) 0 else it[13].rows[0].getValue("avg_call_dial_cnt_3m"))//近3月主叫月均通话次数
-            jsonObject.put("avg_call_dial_cnt_6m", if (it[14].rows.size==0) 0 else it[14].rows[0].getValue("avg_call_dial_cnt_6m")) //近6月主叫月均通话次数
+            jsonObject.put("avg_call_dial_cnt_3m", if (it[13].rows.size==0) 0 else it[13].rows[0].getString("avg_call_dial_cnt_3m").toFloat())//近3月主叫月均通话次数
+            jsonObject.put("avg_call_dial_cnt_6m", if (it[14].rows.size==0) 0 else it[14].rows[0].getString("avg_call_dial_cnt_6m").toFloat()) //近6月主叫月均通话次数
             jsonObject.put("call_dial_time_1m", if (it[15].rows.size==0) 0 else (it[15].rows[0].getValue("call_dial_time_1m") ))//近1月主叫通话时长
             jsonObject.put("call_dial_time_3m", if (it[16].rows.size==0) 0 else (it[16].rows[0].getValue("call_dial_time_3m") ))//近3月主叫通话时长
             jsonObject.put("call_dial_time_6m", if (it[17].rows.size==0) 0 else (it[17].rows[0].getValue("call_dial_time_6m") ))//近6月主叫通话时长
@@ -100,9 +100,9 @@ class CallAnalysisService {
             jsonObject.put("call_dialed_cnt_1m", if (it[20].rows.size==0) 0 else it[20].rows[0].getValue("call_dialed_cnt_1m"))//近1个月被叫通话次数
             jsonObject.put("call_dialed_cnt_3m", if (it[21].rows.size==0) 0 else it[21].rows[0].getValue("call_dialed_cnt_3m"))//近3个月被叫通话次数
             jsonObject.put("call_dialed_cnt_6m", if (it[22].rows.size==0) 0 else it[22].rows[0].getValue("call_dialed_cnt_6m"))//近6个月被叫通话次数
-            jsonObject.put("avg_call_dialed_cnt_3m", if (it[23].rows.size==0) 0 else it[23].rows[0].getValue("avg_call_dialed_cnt_3m"))//近3月被叫月均通话次数
+            jsonObject.put("avg_call_dialed_cnt_3m", if (it[23].rows.size==0) 0 else it[23].rows[0].getString("avg_call_dialed_cnt_3m").toFloat())//近3月被叫月均通话次数
 
-            jsonObject.put("avg_call_dialed_cnt_6m", if (it[24].rows.size==0) 0 else it[24].rows[0].getValue("avg_call_dialed_cnt_6m"))//近6月被叫月均通话次数
+            jsonObject.put("avg_call_dialed_cnt_6m", if (it[24].rows.size==0) 0 else it[24].rows[0].getString("avg_call_dialed_cnt_6m").toFloat())//近6月被叫月均通话次数
 
             jsonObject.put("call_dialed_time_1m", if (it[25].rows.size==0) 0 else it[25].rows[0].getValue("call_dialed_time_1m"))//近1月被叫通话时长
             jsonObject.put("call_dialed_time_3m", if (it[26].rows.size==0) 0 else it[26].rows[0].getValue("call_dialed_time_3m"))//近3月被叫通话时长
@@ -177,7 +177,7 @@ class CallAnalysisService {
      */
     fun avgLastThreeMonthCallTime(conn: SQLConnection, mobile: String, taskId: String): Single<ResultSet> {
         log.info("近3月被叫月均通话时长")
-        var sql:String = " select round(count(if(cv.dial_type='DIALED',true,null))/3,2) as avg_call_dialed_time_3m from carrier_voicecall cv where cv.mobile = '$mobile' and cv.task_id = '$taskId' and cv.time between DATE_FORMAT(DATE(date_add(now(), interval -3 month)),'%m-%d %H:%i:%s') and date_format(now(),'%m-%d %H:%i:%s');"
+        var sql:String = " select cast(round(count(if(cv.dial_type='DIALED',true,null))/3,2) as DECIMAL(65,2)) as avg_call_dialed_time_3m from carrier_voicecall cv where cv.mobile = '$mobile' and cv.task_id = '$taskId' and cv.time between DATE_FORMAT(DATE(date_add(now(), interval -3 month)),'%m-%d %H:%i:%s') and date_format(now(),'%m-%d %H:%i:%s');"
         return conn.rxQuery(sql)
             .doOnError {
                 log.info("近3月被叫月均通话时长")
@@ -191,7 +191,7 @@ class CallAnalysisService {
      */
     fun LastSixMonthCallTime(conn: SQLConnection, mobile: String, taskId: String): Single<ResultSet> {
         log.info("近六个月被叫通话时长")
-        var sql:String = " select count(if(cv.dial_type='DIALED',true,null)) as call_dialed_time_6m from carrier_voicecall cv where cv.mobile = '$mobile' and cv.task_id = '$taskId' and cv.time between DATE_FORMAT(DATE(date_add(now(), interval -6 month)),'%m-%d %H:%i:%s') and date_format(now(),'%m-%d %H:%i:%s');"
+        var sql:String = " select cast(count(if(cv.dial_type='DIALED',true,null)) as SIGNED) as call_dialed_time_6m from carrier_voicecall cv where cv.mobile = '$mobile' and cv.task_id = '$taskId' and cv.time between DATE_FORMAT(DATE(date_add(now(), interval -6 month)),'%m-%d %H:%i:%s') and date_format(now(),'%m-%d %H:%i:%s');"
         return conn.rxQuery(sql)
             .doOnError {
                 log.info("近六个月被叫通话时长")
@@ -206,7 +206,7 @@ class CallAnalysisService {
      */
     fun avgLastSixMonthCallTime(conn: SQLConnection, mobile: String, taskId: String): Single<ResultSet> {
         log.info("近6月被叫月均通话时长")
-        var sql:String = " select round(count(if(cv.dial_type='DIALED',true,null))/6,2) as avg_call_dialed_time_6m from carrier_voicecall cv where cv.mobile = '$mobile' and cv.task_id = '$taskId' and cv.time between DATE_FORMAT(DATE(date_add(now(), interval -6 month)),'%m-%d %H:%i:%s') and date_format(now(),'%m-%d %H:%i:%s');"
+        var sql:String = " select cast(round(count(if(cv.dial_type='DIALED',true,null))/6,2) as DECIMAL(65,2)) as avg_call_dialed_time_6m from carrier_voicecall cv where cv.mobile = '$mobile' and cv.task_id = '$taskId' and cv.time between DATE_FORMAT(DATE(date_add(now(), interval -6 month)),'%m-%d %H:%i:%s') and date_format(now(),'%m-%d %H:%i:%s');"
         return conn.rxQuery(sql)
             .doOnError {
                 log.info("近6月被叫月均通话时长")
@@ -224,7 +224,7 @@ class CallAnalysisService {
         log.info("近1个月被叫通话次数")
         var sql: String =
             "SELECT\n" +
-                    " IFNULL(COUNT(id),0) as call_dialed_cnt_1m \n" +
+                    " cast(IFNULL(COUNT(id),0) as SIGNED) as call_dialed_cnt_1m \n" +
                     "FROM\n" +
                     "\tcarrier_voicecall\n" +
                     "where \n" +
@@ -247,7 +247,7 @@ class CallAnalysisService {
         log.info("近3月主叫月均通话次数")
         var sql: String =
             "SELECT\n" +
-                    "  cast(round(IFNULL(COUNT(id),0)/3 ,2) as SIGNED ) as avg_call_dial_cnt_3m\n" +
+                    "  cast(round(IFNULL(COUNT(id),0)/3 ,2) as DECIMAL(65,2)) as avg_call_dial_cnt_3m\n" +
                     "FROM\n" +
                     "\tcarrier_voicecall\n" +
                     "where \n" +
@@ -296,7 +296,7 @@ class CallAnalysisService {
         log.info("近3个月被叫通话次数")
         var sql: String =
             "SELECT\n" +
-                    " IFNULL(COUNT(id),0)  as call_dialed_cnt_3m\n" +
+                    " cast(IFNULL(COUNT(id),0) as SIGNED)  as call_dialed_cnt_3m\n" +
                     "FROM\n" +
                     "\tcarrier_voicecall\n" +
                     "where \n" +
@@ -319,7 +319,7 @@ class CallAnalysisService {
         log.info("近3月被叫月均通话次数")
         var sql: String =
             "SELECT\n" +
-                    " cast(round(IFNULL(COUNT(id),0)/3,2) as SIGNED) as avg_call_dialed_cnt_3m\n" +
+                    " cast(round(IFNULL(COUNT(id),0)/3,2) as DECIMAL(65,2)) as avg_call_dialed_cnt_3m\n" +
                     "FROM\n" +
                     "\tcarrier_voicecall\n" +
                     "where \n" +
@@ -341,7 +341,7 @@ class CallAnalysisService {
         log.info("近6个月被叫通话次数（近6月是指近六月的数据，即0-180天）")
         var sql: String =
             "SELECT\n" +
-                    " IFNULL(COUNT(id),0)  AS call_dialed_cnt_6m\n" +
+                    "cast(IFNULL(COUNT(id),0) as SIGNED)  AS call_dialed_cnt_6m\n" +
                     "FROM\n" +
                     "\tcarrier_voicecall\n" +
                     "where \n" +
@@ -361,7 +361,7 @@ class CallAnalysisService {
      */
     fun becountLessSixMonthAvg(conn:SQLConnection, mobile: String, taskId: String): Single<ResultSet> {
         log.info("近6个月被叫通话次数（近6月是指近六月的数据，即0-180天）")
-        var sql: String = "SELECT cast(round(IFNULL(COUNT(id),0)/6,2) as SIGNED)  AS avg_call_dialed_cnt_6m\tFROM \tcarrier_voicecall\twhere \tDATE(date_add(now(), interval -180 day))<\tDATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))\tand  peer_number = '$mobile'\tand task_id = '$taskId'"
+        var sql: String = "SELECT cast(round(IFNULL(COUNT(id),0)/6,2) as DECIMAL(65,2))  AS avg_call_dialed_cnt_6m\tFROM \tcarrier_voicecall\twhere \tDATE(date_add(now(), interval -180 day))<\tDATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))\tand  peer_number = '$mobile'\tand task_id = '$taskId'"
 
         return conn.rxQuery(sql)
             .doOnError {
@@ -399,7 +399,7 @@ class CallAnalysisService {
         log.info("近6月主叫通话次数（近6月是指近六月的数据，即0-180天）")
         var sql: String =
             "SELECT\n" +
-                    "  cast(round(IFNULL(COUNT(id),0)/6 ,2) as SIGNED)  as avg_call_dial_cnt_6m\n" +
+                    "  cast(round(IFNULL(COUNT(id),0)/6 ,2) as DECIMAL(65,2))  as avg_call_dial_cnt_6m\n" +
                     "FROM\n" +
                     "\tcarrier_voicecall\n" +
                     "where \n" +
