@@ -213,10 +213,11 @@ object CUCC {
         return smsInfo
     }
 
-    fun buileUserInfo(json: JsonObject, mobile: String, taskId: String, billMonth: String?): UserInfo {
+    fun buileUserInfo(json: JsonObject, mobile: String, taskId: String, billMonth: String?,carrier: String): UserInfo {
         val userInfo = UserInfo()
         userInfo.task_id = taskId
         userInfo.mobile = mobile
+        userInfo.carrier = carrier
 //        userInfo.bill_month = billMonth
         val userinfo: JsonObject = json.value<JsonObject>("userinfo")!!
         val myDetial: JsonObject = json.value<JsonObject>("result").value<JsonObject>("MyDetail")!!

@@ -162,7 +162,7 @@ class ExpenseCalendarDao @Autowired constructor(
                     var json = JsonObject()
                     sqlExecuteQuery(conn, mobile, taskId, dateList[d]).map {
 
-                        json.put("data", if (it.numRows == 0) JsonArray().add(JsonObject().put("bill_month",dateList[d]))  else it.rows)
+                        json.put("data", if (it.numRows == 0) JsonArray().add(JsonObject().put("bill_month",dateList[d].let { it->it.substring(0,4)+"-"+it.substring(4,6) }))  else it.rows)
 
                     }.toObservable()
 
@@ -178,7 +178,7 @@ class ExpenseCalendarDao @Autowired constructor(
      */
     fun sqlExecuteQuery(conn: SQLConnection, mobile: String, taskId: String, month: String): Single<ResultSet> {
         // 联通的
-        val sql = "SELECT bill_month,\n" +
+        val sql = "SELECT CONCAT_WS('-',LEFT(bill_month,4),RIGHT(bill_month,2)) as bill_month ,\n" +
                 "bill_start_date,\n" +
                 "bill_end_date,\n" +
                 "bass_fee,\n" +

@@ -295,7 +295,7 @@ class InternetInfoDao @Autowired constructor(
 
                         println("result1" + it.toJson())
 //                        json.put("data", if (it.numRows == 0) JsonObject().put("bill_month",dateList[d]).put("total_size",0).put("items",ArrayList<JsonObject>()) else it.rows[0])
-                        json.put("data",  JsonObject().put("bill_month",dateList[d]).put("total_size",0).put("items",ArrayList<JsonObject>()))
+                        json.put("data",  JsonObject().put("bill_month",dateList[d].let { it -> it.substring(0,4)+"-"+it.substring(4,6) }).put("total_size",0).put("items",ArrayList<JsonObject>()))
 
                     }.toObservable()
                 }
@@ -310,7 +310,7 @@ class InternetInfoDao @Autowired constructor(
      * sql查询 上网流量按月汇总数据
      */
     fun sqlExecuteQuery1(conn: SQLConnection, mobile: String, taskId: String, moth: String): Single<ResultSet> {
-        val sql = "SELECT bill_month, count(*) AS total_size FROM ${InternetInfo.tableName}\n" +
+        val sql = "SELECT CONCAT_WS('-',LEFT(bill_month,4),RIGHT(bill_month,2)) as bill_month , count(*) AS total_size FROM ${InternetInfo.tableName}\n" +
                 " WHERE mobile = \"$mobile\" \n" +
                 "AND task_id = \"$taskId\" \n" +
                 "AND bill_month = \"$moth\"\n" +
@@ -331,7 +331,7 @@ class InternetInfoDao @Autowired constructor(
                 "comm_plac as location,\n" +
                 "net_type as net_type,\n" +
                 "\"\" as service_name,\n" +
-                "id as details_id,\n" +
+                "cast(id as char ) as details_id,\n" +
                 "comm_fee as fee " +
                 "FROM ${InternetInfo.tableName}" +
                 " WHERE mobile = \"$mobile\" \n" +

@@ -1,5 +1,6 @@
 package kavi.tech.service.mysql.dao
 
+import io.vertx.core.json.JsonArray
 import io.vertx.core.json.JsonObject
 import io.vertx.core.logging.Logger
 import io.vertx.ext.sql.ResultSet
@@ -102,7 +103,7 @@ class ComboDao @Autowired constructor(
                     var json = JsonObject()
                     sqlExecuteQuery2(conn, mobile, taskId, dateList[d]).map {
                         println("=========it.rows==========="+it.rows)
-                        json.put("items", if (it.numRows == 0) JsonObject() else it.rows)
+                        json.put("items", if (it.numRows == 0) JsonArray() else it.rows)
                     }.toObservable()
 
                 }
@@ -128,7 +129,7 @@ class ComboDao @Autowired constructor(
                     sqlExecuteQuery(conn, mobile, taskId, dateList[d]).map {
 
                         println("result1" + it.toJson())
-                        json.put("data", if (it.numRows == 0) JsonObject().put("bill_start_date",dateList[d]+"-01").put("bill_end_date",dateList[d]+"-30").put("items",ArrayList<JsonObject>()) else it.rows[0].put("bill_start_date",dateList[d]+"-01").put("bill_end_date",dateList[d]+"-30"))
+                        json.put("data", if (it.numRows == 0) JsonObject().put("bill_start_date",dateList[d].let { it-> it.substring(0,4)+"-"+it.substring(4,6)+"01" }).put("bill_end_date",dateList[d].let { it-> it.substring(0,4)+"-"+it.substring(4,6)+"30" }).put("items",ArrayList<JsonObject>()) else it.rows[0].put("bill_start_date",dateList[d]+"-01").put("bill_end_date",dateList[d]+"-30"))
 
                     }.toObservable()
                 }

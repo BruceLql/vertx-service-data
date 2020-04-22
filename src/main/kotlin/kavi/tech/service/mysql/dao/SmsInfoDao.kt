@@ -262,7 +262,7 @@ class SmsInfoDao @Autowired constructor(
                     var json = JsonObject()
                     sqlExecuteQuery2(conn, mobile, taskId, dateList[d]).map {
 
-                        json.put(dateList[d], if (it.numRows == 0) JsonObject() else it.rows)
+                        json.put("data", if (it.numRows == 0) JsonObject() else it.rows)
                     }.toObservable()
 
                 }
@@ -303,7 +303,7 @@ class SmsInfoDao @Autowired constructor(
      * sql查询 按月汇总短信数据
      */
     fun sqlExecuteQuery1(conn: SQLConnection, mobile: String, taskId: String, moth: String): Single<ResultSet> {
-        val sql = "SELECT bill_month, count(*) AS total_size FROM ${SmsInfo.tableName}\n" +
+        val sql = "SELECT CONCAT_WS('-',LEFT(bill_month,4),RIGHT(bill_month,2)) as bill_month , count(*) AS total_size FROM ${SmsInfo.tableName}\n" +
                 " WHERE mobile = \"$mobile\" \n" +
                 "AND task_id = \"$taskId\" \n" +
                 "AND bill_month = \"$moth\"\n" +
@@ -319,13 +319,13 @@ class SmsInfoDao @Autowired constructor(
      */
     fun sqlExecuteQuery2(conn: SQLConnection, mobile: String, taskId: String, moth: String): Single<ResultSet> {
         val sql = "SELECT CONCAT_WS(\"-\",LEFT(bill_month,4),time) as time,\n" +
-                "id as details_id,\n" +
+                "cast(id as char ) as details_id,\n" +
                 "location as location,\n" +
                 "msg_type ,\n" +
                 "send_type ,\n" +
                 "peer_number,\n" +
                 "service_name,\n" +
-                "fee  " +
+                "cast(fee as char ) as fee  " +
                 "FROM ${SmsInfo.tableName}" +
                 " WHERE mobile = \"$mobile\" \n" +
                 "AND task_id = \"$taskId\" \n" +
