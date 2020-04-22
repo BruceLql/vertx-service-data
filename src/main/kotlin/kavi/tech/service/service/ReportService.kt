@@ -10,6 +10,7 @@ import kavi.tech.service.common.extension.GZIPUtils
 import kavi.tech.service.common.extension.value
 import kavi.tech.service.common.utils.CMCC
 import kavi.tech.service.common.utils.CUCC
+import kavi.tech.service.common.utils.Sha256Utils
 import kavi.tech.service.mongo.model.*
 import kavi.tech.service.mysql.dao.*
 import kavi.tech.service.mysql.entity.*
@@ -34,6 +35,7 @@ class ReportService @Autowired constructor(
     val smsInfoDao: SmsInfoDao,
     val userInfoDao: UserInfoDao,
     val comboDao: ComboDao,
+    val resultDataDao: ResultDataDao,
 
     val callAnalysisService: CallAnalysisService,
     val contactsRegionService: ContactsRegionService,
@@ -467,7 +469,7 @@ class ReportService @Autowired constructor(
                         val dataArray = dataOut?.getJsonArray("fourpackage")
                         val _list = dataArray?.mapNotNull { _any ->
                             try {
-                                println("==========fourpackage cucc==========:"+_any.toString())
+                                println("==========fourpackage cucc==========:" + _any.toString())
                                 _any as JsonObject
                             } catch (e: Exception) {
                                 null
@@ -486,9 +488,6 @@ class ReportService @Autowired constructor(
         }
         return listCombo
     }
-
-
-
 
 
     /**
@@ -535,6 +534,95 @@ class ReportService @Autowired constructor(
                     // todo 失败重新推送
                 }
             }
+    }
+
+    /**
+     * 加签方法
+     */
+    fun sign(
+        data: String,
+        task_id: String,
+        mobile: String,
+        return_code: String,
+        message: String,
+        operation_time: String,
+        nonce: String
+    ): String {
+        val arr = arrayOf(data, task_id, mobile, return_code, message, operation_time, nonce, NoticeRecords.KEY)
+        val sb = StringBuffer()
+        arr.forEach { item ->
+            sb.append(item)
+        }
+        val str = sb.toString()
+        return Sha256Utils.sha256(str)
+    }
+
+    /**
+     * 运营商原始数据/运营商报告 结果封装
+     * @param data 运营商原始数据 or 运营商报告
+     * @param return_code  状态码
+     * @param message 提示信息
+     * @param operation_time 操作时间
+     * @param task_id 任务ID
+     * @param task_id 任务ID
+     *
+     */
+    fun resultPacket(
+        data: JsonObject,
+        return_code: String,
+        message: String,
+        operation_time: Long,
+        task_id: String,
+        mobile: String,
+        nonce: String
+    ): JsonObject {
+        // 推送数据结果封装
+        val resultSend = JsonObject()
+        val return_code = "00000"
+        val message = "成功"
+        val operation_time = System.currentTimeMillis()
+        // 推送前加密  data，task_id ，mobile ，return_code ，message ，operation_time ，nonce，key,这样的顺序加签
+        val sign = sign(data.toString(), task_id, mobile, return_code, message, operation_time.toString(), nonce)
+        println("sign:$sign")
+        return resultSend.put("data", data)
+            .put("mobile", mobile)
+            .put("task_id", task_id)
+            .put("nonce", nonce)
+            .put("return_code", return_code)
+            .put("message", message)
+            .put("operation_time", operation_time)
+            .put("sign", sign)
+    }
+
+
+    /**
+     * @param item raw 原始数据  report: 运营商报告
+     * @param task_id
+     * @param mobile
+     * @param idCard
+     * @param name
+     * @param resultSend  JsonObject 运营商原始数据  or 运营商报告
+     *
+     */
+    fun saveRecord(
+        item: String,
+        task_id: String,
+        mobile: String,
+        idCard: String,
+        name: String,
+        nonce: String,
+        resultSend: JsonObject
+    ) {
+        val resultData = ResultData()
+        resultData.task_id = task_id
+        resultData.mobile = mobile
+        resultData.id_card = idCard
+        resultData.name = name
+        resultData.nonce = nonce
+        // raw 原始数据  report: 运营商报告
+        resultData.item = item
+        resultData.result = resultSend.toString()
+        resultDataDao.insert(resultData).subscribe({}, { it.printStackTrace() })
     }
 
 

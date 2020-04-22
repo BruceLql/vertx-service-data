@@ -3,22 +3,15 @@ package kavi.tech.service.web.admin.data
 import io.vertx.core.http.HttpMethod
 import io.vertx.core.json.JsonObject
 import io.vertx.ext.mongo.FindOptions
-import io.vertx.ext.sql.UpdateResult
 import io.vertx.ext.web.RoutingContext
 import io.vertx.rxjava.ext.web.client.WebClient
-import kavi.tech.service.common.extension.GZIPUtils
 import kavi.tech.service.common.extension.logger
 import kavi.tech.service.common.extension.regexPhone
 import kavi.tech.service.common.extension.value
-import kavi.tech.service.common.utils.Sha256Utils
-import kavi.tech.service.mongo.model.*
-import kavi.tech.service.mysql.dao.*
-import kavi.tech.service.mysql.entity.NoticeRecords
-import kavi.tech.service.mysql.entity.ResultData
-import kavi.tech.service.service.*
+import kavi.tech.service.mysql.dao.ResultDataDao
+import kavi.tech.service.service.CarierService
+import kavi.tech.service.service.ReportService
 import org.springframework.beans.factory.annotation.Autowired
-import rx.Observable
-import rx.Single
 import tech.kavi.vs.web.ControllerHandler
 import tech.kavi.vs.web.HandlerRequest
 
@@ -76,66 +69,43 @@ class NoticeHandler @Autowired constructor(
             query.put("mobile", mobile).put("mid", task_id)
 
             //   数据提取 根据传进来的task_id开始从mongo中读取数据 以及简单清洗后存入Mysql
-            reportService.beginDataByMongo(query,FindOptions()).flatMap {
+            reportService.beginDataByMongo(query, FindOptions()).flatMap {
 
                 //   调用数据清洗服务 结果封装到 result
-                reportService.dataClear(mobile, task_id).subscribe({
-                    println("===========调用数据清洗服务================:"+it.toString())
-                },{it.printStackTrace()})
-                // 查询原始数据封装到result
-                carierService.dataRaw(mobile,task_id)
-
+                reportService.dataClear(mobile, task_id).flatMap {
+                   // todo 清洗服务失败的情况下  调整return_code message
+                    val return_code = "00000"
+                    val message = "成功"
+                    val operation_time = System.currentTimeMillis()
+                    // 封装运营商原始数据报文格式
+                    val resultSend =
+                        reportService.resultPacket(it, return_code, message, operation_time, task_id, mobile, nonce)
+                    // 存储运营商报告
+                    reportService.saveRecord("report", task_id, mobile, idCard, name, nonce, resultSend)
+                    // 查询原始数据封装到result
+                    carierService.dataRaw(mobile, task_id)
+                }
             }.subscribe({
-                // 推送数据结果
-                val resultSend = JsonObject()
-
-                resultSend.put("data", it)
-                    .put("mobile", mobile)
-                    .put("task_id", task_id)
-                    .put("nonce", nonce)
-                    .put("return_code", "00000")
-                    .put("message", "成功")
-                    .put("operation_time", System.currentTimeMillis())
-                // 推送前加密  data，task_id ，mobile ，return_code ，message ，operation_time ，nonce，key,这样的顺序加签
-                println("operation_time ========:"+ resultSend.value<Long>("operation_time"))
-                val sign = Sha256Utils.sha256(
-                    "${resultSend.getJsonObject("data").toString()}"
-                            + "${resultSend.value<String>("task_id")}"
-                            + "${resultSend.value<String>("mobile")}"
-                            + "${resultSend.value<String>("return_code")}"
-                            + "${resultSend.value<String>("message")}"
-                            + "${resultSend.value<Long>("operation_time")}"
-                            + "${resultSend.value<String>("nonce")}"
-                            + "${NoticeRecords.KEY}"
-                )
-                println("sign:$sign")
-                // 增加签名
-                resultSend.put("sign",sign)
-                // 加签名后存储入库
-                val resultData = ResultData()
-                resultData.task_id = task_id
-                resultData.mobile = mobile
-                resultData.id_card = idCard
-                resultData.name = name
-                resultData.nonce = nonce
-                // raw 原始数据  report: 运营商报告
-                resultData.item = "raw"
-                resultData.result = resultSend.toString()
-                resultDataDao.insert(resultData).subscribe({},{it.printStackTrace()})
+                // todo 原始数据获取失败的情况下  调整return_code message
+                val return_code = "00000"
+                val message = "成功"
+                val operation_time = System.currentTimeMillis()
+                // 封装运营商原始数据报文格式
+                val resultSend = reportService.resultPacket(it, return_code, message, operation_time, task_id, mobile, nonce)
+                // 加签名后  运营商原始数据存储入库
+                reportService.saveRecord("raw", task_id, mobile, idCard, name, nonce, resultSend)
 
                 // TODO  数据推送服务  resultSend
                 println("推送前结果： $resultSend")
                 println("推送前结果size： ${resultSend.toString().length}")
 
                 println("推送地址 : $back_url")
-                reportService.pushData(back_url,resultSend)
-
+                reportService.pushData(back_url, resultSend)
                 event.response().end(result.put("message", "notice success").toString())
 
             }, { it.printStackTrace() })
 
 
-//            event.response().end(result.put("message", "notice success").toString())
         } catch (e: Exception) {
             e.printStackTrace()
             result.put("message", e.message ?: "异常，请联系管理员排查")
