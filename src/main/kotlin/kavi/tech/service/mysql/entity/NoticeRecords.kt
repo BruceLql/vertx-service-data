@@ -25,6 +25,8 @@ data class NoticeRecords(
          * 表名
          * */
         const val tableName = "carrier_notice_records"
+        // 盐值
+        const val  KEY ="50BF48B9D36F6B908A1427BFD83929DCCF48C0EAADE4C0B3B0660240640B19D3"
 
     }
 }

@@ -12,7 +12,6 @@ import kavi.tech.service.mysql.component.AbstractDao
 import kavi.tech.service.mysql.component.SQL
 import kavi.tech.service.mysql.entity.CallLog
 import kavi.tech.service.mysql.entity.Combo
-import kavi.tech.service.mysql.entity.SmsInfo
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
 import rx.Observable
@@ -26,13 +25,13 @@ class ComboDao @Autowired constructor(
 
 
     /**
-     * 批量新增通话记录
+     * 批量新增套餐信息
      * */
     fun insertBybatch(valueList: List<Combo>): Single<UpdateResult> {
 
         if (valueList.isNullOrEmpty()) {
-
-            return Single.create { UpdateResult() }
+            println("======valueList.isNullOrEmpty===================")
+            return  Single.just(UpdateResult())
         }
 
         val sql = SQL.init {
@@ -120,7 +119,7 @@ class ComboDao @Autowired constructor(
     fun queryComboCountRaw6Month(mobile: String, taskId: String): Single<List<JsonObject>> {
         //获取最近6个月时间
         val dateList = DateUtils.getPreMothInCurrentMoth(6, DateUtils.DatePattern.YYYY_MM.value)
-        println("=========:" + dateList.toString())
+        println("=====queryComboCountRaw6Month====:" + dateList.toString())
         return this.client.rxGetConnection().flatMap { conn ->
 
             val listCount =
@@ -150,7 +149,7 @@ class ComboDao @Autowired constructor(
                 "AND bill_month = \"$moth\"\n" +
                 "GROUP BY bill_month\n" +
                 "ORDER BY bill_month DESC"
-        println("++++++++++++++++：" + sql)
+        println("+++++++++combo+++++++：" + sql)
         return this.query(conn, sql)
     }
 
@@ -170,9 +169,8 @@ class ComboDao @Autowired constructor(
                 " FROM ${Combo.tableName}  com " +
                 " WHERE mobile = \"$mobile\" \n" +
                 "AND task_id = \"$taskId\" \n" +
-                "AND bill_month = \"$moth\"\n" +
-                "ORDER BY bill_start_date DESC"
-        println("------------------:" + sql)
+                "AND bill_month = \"$moth\"\n"
+        println("----------combo--------:" + sql)
         return this.query(conn, sql)
     }
 

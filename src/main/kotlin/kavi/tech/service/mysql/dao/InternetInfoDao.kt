@@ -98,6 +98,9 @@ class InternetInfoDao @Autowired constructor(
      * */
     fun insertBybatch(valueList: List<InternetInfo>): Single<UpdateResult> {
 
+        if(valueList.isNullOrEmpty()){
+            return Single.just(UpdateResult())
+        }
         val sql = SQL.init {
             BATCH_INSERT_INTO(InternetInfo.tableName)
             BATCH_INTO_COLUMNS(
@@ -335,7 +338,7 @@ class InternetInfoDao @Autowired constructor(
                 "AND task_id = \"$taskId\" \n" +
                 "AND bill_month = \"$moth\"\n" +
                 "ORDER BY time DESC"
-        println("------------------:" + sql)
+        println("------------------:$sql")
         return this.query(conn, sql)
     }
 }

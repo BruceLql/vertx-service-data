@@ -31,6 +31,9 @@ class ExpenseCalendarDao @Autowired constructor(
      * */
     fun insertBybatch( valueList: List<ExpenseCalendar>): Single<UpdateResult> {
 
+        if(valueList.isNullOrEmpty()){
+            return Single.just(UpdateResult())
+        }
         val sql = SQL.init {
             BATCH_INSERT_INTO(ExpenseCalendar.tableName)
             BATCH_INTO_COLUMNS(

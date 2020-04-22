@@ -103,9 +103,8 @@ class SmsInfoDao @Autowired constructor(
      * */
     fun insertBybatch(valueList: List<SmsInfo>): Single<UpdateResult> {
 
-        if (valueList.isNullOrEmpty()) {
-
-            return Single.create { UpdateResult() }
+        if(valueList.isNullOrEmpty()){
+            return Single.just(UpdateResult())
         }
 
         val sql = SQL.init {
