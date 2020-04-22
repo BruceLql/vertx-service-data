@@ -38,23 +38,23 @@ class MainVerticle : LauncherVerticle() {
 //            it.printStackTrace()
 //        })
 
-//        callAnalysisService.toCleaningCircleFriendsData("14779716260", "5e9426345a33e0024df2f20c").subscribe({
-//            println("-------${Json.encode(it)}")
-//        },{
-//            it.printStackTrace()
-//        })//
+        callAnalysisService.toCleaningCircleFriendsData("14779716260", "5e9426345a33e0024df2f20c").subscribe({
+            println("-------${Json.encode(it)}")
+        },{
+            it.printStackTrace()
+        })//
 //
 //        contactsRegionService.getContactRegion("14779716260", "5e9426345a33e0024df2f20c").subscribe({
 //            println("-------${Json.encode(it)}")
 //        },{
 //            it.printStackTrace()
 //        })
-
-        friendSummaryDao.getnearByThreeMonth("14779716260", "5e97f0583ba60bc281e0a3b0").subscribe({
-            println("-------${Json.encode(it)}")
-        },{
-            it.printStackTrace()
-        })
+//
+//        friendSummaryDao.getnearByThreeMonth("14779716260", "5e97f0583ba60bc281e0a3b0").subscribe({
+//            println("-------${Json.encode(it)}")
+//        },{
+//            it.printStackTrace()
+//        })
 
     }
 
