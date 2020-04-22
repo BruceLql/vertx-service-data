@@ -30,16 +30,16 @@ class UserCallDetailsDao @Autowired constructor
                 "count(if((date_sub(curdate(), interval 30 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))),true,null)) as call_cnt_1m,\n" +
                 "count(if((date_sub(curdate(), interval 90 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))),true,null)) as call_cnt_3m,\n" +
                 "count(if((date_sub(curdate(), interval 180 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))),true,null)) as call_cnt_6m,\n" +
-                "ifnull(sum(if((date_sub(curdate(), interval 90 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))),cv.duration_in_second,0)),0) as call_time_3m,\n" +
-                "ifnull(sum(if((date_sub(curdate(), interval 180 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))),cv.duration_in_second,0)),0) as call_time_6m,\n" +
+                "cast(ifnull(sum(if((date_sub(curdate(), interval 90 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))),cv.duration_in_second,0)),0) as SIGNED) as call_time_3m,\n" +
+                "cast(ifnull(sum(if((date_sub(curdate(), interval 180 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))),cv.duration_in_second,0)),0) as SIGNED) as call_time_6m,\n" +
                 "count(if((date_sub(curdate(), interval 30 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))) and cv.dial_type='DIAL',true,null)) as dial_cnt_3m,\n" +
                 "count(if((date_sub(curdate(), interval 180 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time)) and cv.dial_type='DIAL'),true,null)) as dial_cnt_6m,\n" +
-                "ifnull(sum(if((date_sub(curdate(), interval 90 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))) and cv.dial_type='DIAL',cv.duration_in_second,0)),0) as dial_time_3m,\n" +
-                "ifnull(sum(if((date_sub(curdate(), interval 180 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))) and cv.dial_type='DIAL',cv.duration_in_second,0)),0) as dial_time_6m,\n" +
+                "cast(ifnull(sum(if((date_sub(curdate(), interval 90 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))) and cv.dial_type='DIAL',cv.duration_in_second,0)),0) as SIGNED) as dial_time_3m,\n" +
+                "cast(ifnull(sum(if((date_sub(curdate(), interval 180 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))) and cv.dial_type='DIAL',cv.duration_in_second,0)),0) as SIGNED) as dial_time_6m,\n" +
                 "count(if((date_sub(curdate(), interval 30 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))) and cv.dial_type='DIALED',true,null)) as dialed_cnt_3m,\n" +
                 "count(if((date_sub(curdate(), interval 180 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time)) and cv.dial_type='DIALED'),true,null)) as dialed_cnt_6m,\n" +
-                "ifnull(sum(if((date_sub(curdate(), interval 90 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))) and cv.dial_type='DIALED',cv.duration_in_second,0)),0) as dialed_time_3m,\n" +
-                "ifnull(sum(if((date_sub(curdate(), interval 180 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))) and cv.dial_type='DIALED',cv.duration_in_second,0)),0) as dialed_time_6m,\n" +
+                "cast(ifnull(sum(if((date_sub(curdate(), interval 90 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))) and cv.dial_type='DIALED',cv.duration_in_second,0)),0) as SIGNED) as dialed_time_3m,\n" +
+                "cast(ifnull(sum(if((date_sub(curdate(), interval 180 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))) and cv.dial_type='DIALED',cv.duration_in_second,0)),0) as SIGNED) as dialed_time_6m,\n" +
                 "count(case when(date_sub(curdate(), interval 90 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))) and hour(str_to_date(concat(substr(cv.bill_month,1,4),'-',cv.time),'%Y-%m-%d %H:%i:%s')) between 6 and 12 then 1 else null end ) as call_cnt_morning_3m,\n" +
                 "count(case when(date_sub(curdate(), interval 180 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))) and hour(str_to_date(concat(substr(cv.bill_month,1,4),'-',cv.time),'%Y-%m-%d %H:%i:%s')) between 6 and 12 then 1 else null end ) as call_cnt_morning_6m,\n" +
                 "count(case when(date_sub(curdate(), interval 90 day) <= date(concat(substr(cv.bill_month,1,4),'-',cv.time))) and hour(str_to_date(concat(substr(cv.bill_month,1,4),'-',cv.time),'%Y-%m-%d %H:%i:%s')) between 12 and 13 then 1 else null end ) as call_cnt_noon_3m,\n" +
@@ -60,7 +60,7 @@ class UserCallDetailsDao @Autowired constructor
                 "0 as call_if_whole_day_6m,\n" +
                 "min(concat(substr(cv.bill_month,1,4),'-',cv.time)) as trans_start,\n" +
                 "max(concat(substr(cv.bill_month,1,4),'-',cv.time)) as trans_end\n" +
-                "from carrier_voicecall cv where cv.mobile = '14779716260' and cv.task_id='5e97f0583ba60bc281e0a3b0'  group by cv.peer_number order by dial_time_3m desc;"
+                "from carrier_voicecall cv where cv.mobile = '$mobile' and cv.task_id='$taskId'  group by cv.peer_number order by dial_time_3m desc;"
         return this.client.rxGetConnection().flatMap { conn ->
             conn.rxQuery(sql).doAfterTerminate(conn::close)
         }.toObservable()

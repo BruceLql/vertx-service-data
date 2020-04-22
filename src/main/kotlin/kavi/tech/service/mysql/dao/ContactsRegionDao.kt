@@ -62,32 +62,38 @@ class ContactsRegionDao @Autowired constructor(
         taskId: String,
         mothPair: Pair<String, String>
     ): Single<ResultSet> {
-        val sql = "select\n" +
-                "    b.region_loc,\n" +
-                "    b.region_uniq_num_cnt,\n" +
-                "    b.region_call_cnt,\n" +
-                "    b.region_call_time,\n" +
-                "    b.region_dial_cnt,\n" +
-                "    b.region_dial_time,\n" +
-                "    b.region_dialed_cnt,\n" +
-                "    b.region_dialed_time,\n" +
-                "    floor((b.region_dial_time / b.region_dial_cnt)) as region_avg_dial_time,\n" +
-                "    floor((b.region_dialed_time / b.region_dialed_cnt)) as region_avg_dialed_time,\n" +
-                "    floor((b.region_dial_cnt / b.region_uniq_num_cnt)) as region_dial_cnt_pct,\n" +
-                "    floor((b.region_dial_time / b.region_call_time)) as region_dial_time_pct,\n" +
-                "    floor((b.region_dialed_cnt / b.region_uniq_num_cnt)) as region_dialed_cnt_pct,\n" +
-                "    floor((b.region_dialed_time / b.region_call_time)) as region_dialed_time_pct\n" +
-                "from (\n" +
-                "         select\n" +
-                "             if(length(cv.homearea)>0,cv.homearea,'不详') as region_loc,\n" +
-                "             count(distinct cv.peer_number) as region_uniq_num_cnt,\n" +
-                "             count(*) as region_call_cnt,\n" +
-                "             ifnull(sum(cv.duration_in_second),0) as region_call_time,\n" +
-                "             count(if(cv.dial_type='DIAL',true,null)) as region_dial_cnt,\n" +
-                "             ifnull(sum(if(cv.dial_type='DIAL',cv.duration_in_second,0)),0) as region_dial_time,\n" +
-                "             count(if(cv.dial_type='DIALED',true,null)) as region_dialed_cnt,\n" +
-                "             ifnull(sum(if(cv.dial_type='DIALED',cv.duration_in_second,0)),0) as region_dialed_time\n" +
-                "         from carrier_voicecall cv where cv.mobile='$mobile' and cv.task_id='$taskId' and DATE(CONCAT(SUBSTR(cv.bill_month,1,4),'-',cv.time)) between '${mothPair.first}' and '${mothPair.second}' group by cv.homearea) as b order by b.region_call_cnt desc"
+        val sql = "SELECT b.region_loc,\n" +
+                "       b.region_uniq_num_cnt,\n" +
+                "       b.region_call_cnt,\n" +
+                "       b.region_call_time,\n" +
+                "       b.region_dial_cnt,\n" +
+                "       b.region_dial_time,\n" +
+                "       b.region_dialed_cnt,\n" +
+                "       b.region_dialed_time,\n" +
+                "       cast(ifnull((b.region_dial_time / b.region_dial_cnt),0) AS SIGNED) AS region_avg_dial_time,\n" +
+                "       cast(ifnull((b.region_dialed_time / b.region_dialed_cnt),0) AS SIGNED) AS region_avg_dialed_time,\n" +
+                "       floor(ifnull((b.region_dial_cnt / b.region_uniq_num_cnt),0)) AS region_dial_cnt_pct,\n" +
+                "       floor(ifnull((b.region_dial_time / b.region_call_time),0)) AS region_dial_time_pct,\n" +
+                "       cast(ifnull((b.region_dialed_cnt / b.region_uniq_num_cnt),0) AS SIGNED) AS region_dialed_cnt_pct,\n" +
+                "       cast(ifnull((b.region_dialed_time / b.region_call_time),0) AS SIGNED) AS region_dialed_time_pct\n" +
+                "FROM\n" +
+                "  ( SELECT if(length(cv.homearea)>0,cv.homearea,'不详') AS region_loc,\n" +
+                "           count(DISTINCT cv.peer_number) AS region_uniq_num_cnt,\n" +
+                "           count(*) AS region_call_cnt,\n" +
+                "           cast(ifnull(sum(cv.duration_in_second),0) AS SIGNED) AS region_call_time,\n" +
+                "           count(if(cv.dial_type='DIAL',TRUE,NULL)) AS region_dial_cnt,\n" +
+                "           cast(ifnull(sum(if(cv.dial_type='DIAL',cv.duration_in_second,0)),0) AS SIGNED) AS region_dial_time,\n" +
+                "           count(if(cv.dial_type='DIALED',TRUE,NULL)) AS region_dialed_cnt,\n" +
+                "           cast(ifnull(sum(if(cv.dial_type='DIALED',cv.duration_in_second,0)),0) AS SIGNED) AS region_dialed_time\n" +
+                "   FROM carrier_voicecall cv\n" +
+                "   WHERE cv.mobile='$mobile'\n" +
+                "     AND cv.task_id='$taskId'\n" +
+                "     AND DATE(CONCAT(SUBSTR(cv.bill_month,1,4),'-',cv.time)) BETWEEN '${mothPair.first}' AND '${mothPair.second}'\n" +
+                "   GROUP BY cv.homearea) AS b\n" +
+                "ORDER BY b.region_call_cnt DESC"
         return this.query(conn, sql)
     }
 }
+
+
+
