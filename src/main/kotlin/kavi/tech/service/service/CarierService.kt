@@ -94,7 +94,7 @@ class CarierService @Autowired constructor(
             val total_size = data?.getInteger("total_size")
             jsonObject.put("bill_month", bill_month)
             jsonObject.put("total_size", total_size)
-            val items = callsData[d].value<JsonArray>(bill_month.toString())
+            val items = callsData[d].value<JsonArray>("data")
 
             jsonObject.put("items", items)
             calls.add(jsonObject)
@@ -113,7 +113,7 @@ class CarierService @Autowired constructor(
             val total_size = data?.getInteger("total_size")
             jsonObject.put("bill_month", bill_month)
             jsonObject.put("total_size", total_size)
-            val items = smsesList[d].value<JsonArray>(bill_month.toString())
+            val items = smsesList[d].value<JsonArray>("data")
 
             jsonObject.put("items", items)
             smses.add(jsonObject)
@@ -175,14 +175,14 @@ class CarierService @Autowired constructor(
                 it as JsonObject
                 val jsonObject = JsonObject()
 
-                jsonObject.put("last_modify_time", it.value<Long>("last_modify_time")) // 转时间格式
+                jsonObject.put("last_modify_time", it.value<String>("last_modify_time")) // 转时间格式
                 jsonObject.put("reliability", it.value<String>("reliability"))
                 jsonObject.put("open_time", it.value<String>("open_time"))
                 jsonObject.put("imsi", it.value<String>("imsi"))
-                jsonObject.put("available_balance", it.value<String>("available_balance")) //转int
+                jsonObject.put("available_balance", it.getValue("available_balance")) //转int
                 jsonObject.put("province", it.value<String>("province")) // 省份名称
                 jsonObject.put("city", it.value<String>("city")) // 城市名称
-                jsonObject.put("real_balance", it.value<String>("real_balance")) //
+                jsonObject.put("real_balance", it.getValue("real_balance")) //
                 jsonObject.put("email", it.value<String>("email")) //
                 jsonObject.put("address", it.value<String>("address")) //
                 jsonObject.put("level", it.value<String>("level")) //
@@ -211,8 +211,8 @@ class CarierService @Autowired constructor(
                 val jsonObject = JsonObject()
 
                 jsonObject.put("bill_month", it.value<String>("bill_month"))
-                jsonObject.put("bill_start_date", it.value<String>("bill_start_date")) // 格式调整
-                jsonObject.put("bill_end_date", it.value<String>("bill_end_date")) // 格式调整
+                jsonObject.put("bill_start_date", it.value<String>("bill_start_date")?.let { it->it.substring(0,4)+"-"+it.substring(4,6)+"-"+it.substring(6,8) }?:"") // 格式调整
+                jsonObject.put("bill_end_date", it.value<String>("bill_end_date")?.let { it->it.substring(0,4)+"-"+it.substring(4,6)+"-"+it.substring(6,8) }?:"") // 格式调整
                 jsonObject.put("bass_fee", it.getValue("bass_fee") ?: 0)
                 jsonObject.put("extra_fee", it.getValue("extra_fee") ?: 0)
                 jsonObject.put("voice_fee", it.getValue("voice_fee") ?: 0)
@@ -225,8 +225,8 @@ class CarierService @Autowired constructor(
                 jsonObject.put("unpaid_fee", it.getValue("unpaid_fee") ?: 0)
                 jsonObject.put("point", it.getValue("point") ?: 0)
                 jsonObject.put("last_point", it.getValue("last_point") ?: 0)
-                jsonObject.put("related_mobiles", it.value<String>("related_mobiles") ?: 0)
-                jsonObject.put("notes", it.value<String>("notes") ?: 0)
+                jsonObject.put("related_mobiles", it.value<String>("related_mobiles") ?: "")
+                jsonObject.put("notes", it.value<String>("notes") ?: "")
                 billsIntos.add(jsonObject)
             }
 

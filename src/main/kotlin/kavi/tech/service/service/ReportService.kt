@@ -416,10 +416,10 @@ class ReportService @Autowired constructor(
             operator?.let { _operator ->
                 when (_operator) {
                     "CMCC" -> {
-                        userInfo = CMCC.buileUserInfo(dataObj, mobile, taskId, billMonth)
+                        userInfo = CMCC.buileUserInfo(dataObj, mobile, taskId, billMonth,operator)
                     }
                     "CUCC" -> {
-                        userInfo = CUCC.buileUserInfo(dataObj, mobile, taskId, billMonth)
+                        userInfo = CUCC.buileUserInfo(dataObj, mobile, taskId, billMonth,operator)
                     }
                     else -> null
                 }

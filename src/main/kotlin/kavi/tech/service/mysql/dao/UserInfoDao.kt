@@ -183,7 +183,7 @@ class UserInfoDao @Autowired constructor(
     fun sqlExecuteQuery(conn: SQLConnection, mobile: String, taskId: String): Single<ResultSet> {
         // 联通的
         val sql = "SELECT\n" +
-                "\tIFNULL( updated_at, created_at ) last_modify_time,\n" +
+                "\t FROM_UNIXTIME(IFNULL( updated_at, created_at )/1000 ,'%Y-%m-%d %H:%i:%s') last_modify_time ,\n" +
                 "CASE\n" +
                 "\t\t\n" +
                 "\t\tWHEN reliability = \"\" THEN\n" +
@@ -191,11 +191,11 @@ class UserInfoDao @Autowired constructor(
                 "\tEND AS reliability,\n" +
                 "\tin_net_date AS open_time,\n" +
                 "\t\"\" AS imsi,\n" +
-                "\t\"\" AS available_balance,\n" +
+                "\t 0 AS available_balance,\n" +
                 "\tprovince,\n" +
                 "\tcity,\n" +
                 "\tstate,\n" +
-                "\t\"\" AS real_balance,\n" +
+                "\t 0 AS real_balance,\n" +
                 "\tuser_email AS email,\n" +
                 "\tuser_address AS address,\n" +
                 "\tlevel,\n" +
