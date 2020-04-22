@@ -135,7 +135,7 @@ class CallAnalysisService {
                     "DATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))\n" +
                     "and  mobile = '$mobile' \n" +
         "and task_id = '$taskId' "
-        return conn.rxQuery(sql).doAfterTerminate(conn::close)
+        return conn.rxQuery(sql)
             .doOnError {
                 log.info("近1月主叫通话次数")
                 print(it.printStackTrace())
@@ -150,7 +150,7 @@ class CallAnalysisService {
     fun LastOneMonthCallTime(conn: SQLConnection, mobile: String, taskId: String): Single<ResultSet> {
         log.info("近一个月被叫通话时长")
         var sql:String = " select count(if(cv.dial_type='DIALED',true,null)) as call_dialed_time_1m from carrier_voicecall cv where cv.mobile = '$mobile' and cv.task_id = '$taskId' and cv.time between DATE_FORMAT(DATE(date_add(now(), interval -1 month)),'%m-%d %H:%i:%s') and date_format(now(),'%m-%d %H:%i:%s');"
-        return conn.rxQuery(sql).doAfterTerminate(conn::close)
+        return conn.rxQuery(sql)
             .doOnError {
                 log.info("近一个月被叫通话时长")
                 print(it.printStackTrace())
@@ -164,7 +164,7 @@ class CallAnalysisService {
     fun LastThreeMonthCallTime(conn: SQLConnection, mobile: String, taskId: String): Single<ResultSet> {
         log.info("近三个月被叫通话时长")
         var sql:String = " select count(if(cv.dial_type='DIALED',true,null)) as call_dialed_time_3m from carrier_voicecall cv where cv.mobile = '$mobile' and cv.task_id = '$taskId' and cv.time between DATE_FORMAT(DATE(date_add(now(), interval -3 month)),'%m-%d %H:%i:%s') and date_format(now(),'%m-%d %H:%i:%s');"
-        return conn.rxQuery(sql).doAfterTerminate(conn::close)
+        return conn.rxQuery(sql)
             .doOnError {
                 log.info("近三个月被叫通话时长")
                 print(it.printStackTrace())
@@ -179,7 +179,7 @@ class CallAnalysisService {
     fun avgLastThreeMonthCallTime(conn: SQLConnection, mobile: String, taskId: String): Single<ResultSet> {
         log.info("近3月被叫月均通话时长")
         var sql:String = " select count(if(cv.dial_type='DIALED',true,null))/3 as avg_call_dialed_time_3m from carrier_voicecall cv where cv.mobile = '$mobile' and cv.task_id = '$taskId' and cv.time between DATE_FORMAT(DATE(date_add(now(), interval -3 month)),'%m-%d %H:%i:%s') and date_format(now(),'%m-%d %H:%i:%s');"
-        return conn.rxQuery(sql).doAfterTerminate(conn::close)
+        return conn.rxQuery(sql)
             .doOnError {
                 log.info("近3月被叫月均通话时长")
                 print(it.printStackTrace())
@@ -193,7 +193,7 @@ class CallAnalysisService {
     fun LastSixMonthCallTime(conn: SQLConnection, mobile: String, taskId: String): Single<ResultSet> {
         log.info("近六个月被叫通话时长")
         var sql:String = " select count(if(cv.dial_type='DIALED',true,null)) as call_dialed_time_6m from carrier_voicecall cv where cv.mobile = '$mobile' and cv.task_id = '$taskId' and cv.time between DATE_FORMAT(DATE(date_add(now(), interval -6 month)),'%m-%d %H:%i:%s') and date_format(now(),'%m-%d %H:%i:%s');"
-        return conn.rxQuery(sql).doAfterTerminate(conn::close)
+        return conn.rxQuery(sql)
             .doOnError {
                 log.info("近六个月被叫通话时长")
                 print(it.printStackTrace())
@@ -208,7 +208,7 @@ class CallAnalysisService {
     fun avgLastSixMonthCallTime(conn: SQLConnection, mobile: String, taskId: String): Single<ResultSet> {
         log.info("近6月被叫月均通话时长")
         var sql:String = " select count(if(cv.dial_type='DIALED',true,null))/6 as avg_call_dialed_time_6m from carrier_voicecall cv where cv.mobile = '$mobile' and cv.task_id = '$taskId' and cv.time between DATE_FORMAT(DATE(date_add(now(), interval -6 month)),'%m-%d %H:%i:%s') and date_format(now(),'%m-%d %H:%i:%s');"
-        return conn.rxQuery(sql).doAfterTerminate(conn::close)
+        return conn.rxQuery(sql)
             .doOnError {
                 log.info("近6月被叫月均通话时长")
                 print(it.printStackTrace())
@@ -233,7 +233,7 @@ class CallAnalysisService {
                     "DATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))\n" +
                     "and  peer_number = '$mobile'  \n" +
         "and task_id = '$taskId'  "
-        return conn.rxQuery(sql).doAfterTerminate(conn::close)
+        return conn.rxQuery(sql)
             .doOnError {
                 log.info("近1个月被叫通话次数")
                 print(it.printStackTrace())
@@ -257,7 +257,7 @@ class CallAnalysisService {
                     "and  mobile = '$mobile'  \n" +
         "and task_id = '$taskId' "
 
-        return conn.rxQuery(sql).doAfterTerminate(conn::close)
+        return conn.rxQuery(sql)
             .doOnError {
                 log.info("近3月主叫月均通话次数")
                 print(it.printStackTrace())
@@ -281,7 +281,7 @@ class CallAnalysisService {
                     "and  mobile = '$mobile'  \n" +
                     "and task_id = '$taskId' "
 
-        return conn.rxQuery(sql).doAfterTerminate(conn::close)
+        return conn.rxQuery(sql)
             .doOnError {
                 log.info("近3月主叫通话次数")
                 print(it.printStackTrace())
@@ -305,7 +305,7 @@ class CallAnalysisService {
                     "DATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))\n" +
                     "and  peer_number = '$mobile'  \n" +
         "and task_id = '$taskId' "
-        return conn.rxQuery(sql).doAfterTerminate(conn::close)
+        return conn.rxQuery(sql)
             .doOnError {
                 log.info("近3个月被叫通话次数")
                 print(it.printStackTrace())
@@ -328,7 +328,7 @@ class CallAnalysisService {
                     "DATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))\n" +
                     "and  peer_number = '$mobile'  " +
                     "and task_id = '$taskId' "
-        return conn.rxQuery(sql).doAfterTerminate(conn::close)
+        return conn.rxQuery(sql)
             .doOnError {
                 log.info("近3月被叫月均通话次数")
                 print(it.printStackTrace())
@@ -350,7 +350,7 @@ class CallAnalysisService {
                     "DATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))\n" +
                     "and  peer_number = '$mobile'  \n" +
         "and task_id = '$taskId'  "
-        return conn.rxQuery(sql).doAfterTerminate(conn::close)
+        return conn.rxQuery(sql)
             .doOnError {
                 log.info("近6个月被叫通话次数")
                 print(it.printStackTrace())
@@ -364,7 +364,7 @@ class CallAnalysisService {
         log.info("近6个月被叫通话次数（近6月是指近六月的数据，即0-180天）")
         var sql: String = "SELECT IFNULL(COUNT(id),0)  AS avg_call_dialed_cnt_6m\tFROM \tcarrier_voicecall\twhere \tDATE(date_add(now(), interval -180 day))<\tDATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))\tand  peer_number = '$mobile'\tand task_id = '$taskId'"
 
-        return conn.rxQuery(sql).doAfterTerminate(conn::close)
+        return conn.rxQuery(sql)
             .doOnError {
                 log.info("近6月被叫月均通话次数")
                 print(it.printStackTrace())
@@ -386,7 +386,7 @@ class CallAnalysisService {
                     "DATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))\n" +
                     "and  mobile = '$mobile' \n" +
         "and task_id = '$taskId' "
-        return conn.rxQuery(sql).doAfterTerminate(conn::close)
+        return conn.rxQuery(sql)
             .doOnError {
                 log.info("近6月主叫通话次数")
                 print(it.printStackTrace())
@@ -408,7 +408,7 @@ class CallAnalysisService {
                     "DATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))\n" +
                     "and  mobile = '$mobile' \n" +
                     "and task_id = '$taskId' "
-        return conn.rxQuery(sql).doAfterTerminate(conn::close)
+        return conn.rxQuery(sql)
             .doOnError {
                 log.info("近6月主叫通话次数")
                 print(it.printStackTrace())
@@ -431,7 +431,7 @@ class CallAnalysisService {
                     "DATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))\n" +
                     "and  mobile = '$mobile'  " +
         "and task_id = '$taskId'  "
-        return conn.rxQuery(sql).doAfterTerminate(conn::close)
+        return conn.rxQuery(sql)
             .doOnError {
                 log.info("近1月主叫通话时长")
                 print(it.printStackTrace())
@@ -453,7 +453,7 @@ class CallAnalysisService {
                     "DATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))\n" +
                     "and  mobile = '$mobile'  " +
         "and task_id = '$taskId'  "
-        return conn.rxQuery(sql).doAfterTerminate(conn::close)
+        return conn.rxQuery(sql)
             .doOnError {
                 log.info("近3月主叫通话时长")
                 print(it.printStackTrace())
@@ -475,7 +475,7 @@ class CallAnalysisService {
                     "DATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))\n" +
                     "and  mobile = '$mobile'  " +
                     "and task_id = '$taskId'  "
-        return conn.rxQuery(sql).doAfterTerminate(conn::close)
+        return conn.rxQuery(sql)
             .doOnError {
                 log.info("近3月主叫月均通话时长")
                 print(it.printStackTrace())
@@ -497,7 +497,7 @@ class CallAnalysisService {
                     "DATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))\n" +
                     "and  mobile = '$mobile' " +
         "and task_id = '$taskId' "
-        return conn.rxQuery(sql).doAfterTerminate(conn::close)
+        return conn.rxQuery(sql)
             .doOnError {
                 log.info("近6月主叫通话时长")
                 print(it.printStackTrace())
@@ -519,7 +519,7 @@ class CallAnalysisService {
                     "DATE(CONCAT(SUBSTR(bill_month,1,4),\"-\",time))\n" +
                     "and  mobile = '$mobile' " +
         "and task_id = '$taskId' "
-        return conn.rxQuery(sql).doAfterTerminate(conn::close)
+        return conn.rxQuery(sql)
             .doOnError {
                 log.info("近6月主叫月均通话时长")
                 print(it.printStackTrace())
@@ -556,7 +556,7 @@ class CallAnalysisService {
         "and task_id =  '$taskId'  " +
         ")\n"
 
-        return conn.rxQuery(sql).doAfterTerminate(conn::close)
+        return conn.rxQuery(sql)
             .doOnError {
                 log.info("近1月通话次数")
                 print(it.printStackTrace())
@@ -593,7 +593,7 @@ class CallAnalysisService {
                     "and task_id =  '$taskId'  " +
                     ")\n"
 
-        return conn.rxQuery(sql).doAfterTerminate(conn::close)
+        return conn.rxQuery(sql)
             .doOnError {
                 log.info("近3月通话次数")
                 print(it.printStackTrace())
@@ -630,7 +630,7 @@ class CallAnalysisService {
                     "and task_id =  '$taskId'  " +
                     ")\n"
 
-        return conn.rxQuery(sql).doAfterTerminate(conn::close)
+        return conn.rxQuery(sql)
             .doOnError {
                 log.info("近3月平均通话次数")
                 print(it.printStackTrace())
@@ -668,7 +668,7 @@ class CallAnalysisService {
         "and task_id =  '$taskId'  " +
         ")\n"
 
-        return conn.rxQuery(sql).doAfterTerminate(conn::close)
+        return conn.rxQuery(sql)
             .doOnError {
                 log.info("近6月通话次数")
                 print(it.printStackTrace())
@@ -706,7 +706,7 @@ class CallAnalysisService {
                     "and task_id =  '$taskId'  " +
                     ")\n"
 
-        return conn.rxQuery(sql).doAfterTerminate(conn::close)
+        return conn.rxQuery(sql)
             .doOnError {
                 log.info("近6月平均通话次数")
                 print(it.printStackTrace())
@@ -744,7 +744,7 @@ class CallAnalysisService {
         "and task_id =  '$taskId' " +
         ")\n"
 
-        return conn.rxQuery(sql).doAfterTerminate(conn::close)
+        return conn.rxQuery(sql)
             .doOnError {
                 log.info("近1月通话时长")
                 print(it.printStackTrace())
@@ -781,7 +781,7 @@ class CallAnalysisService {
         "and task_id = '$taskId'  " +
         ")\n"
 
-        return conn.rxQuery(sql).doAfterTerminate(conn::close)
+        return conn.rxQuery(sql)
             .doOnError {
                 log.info("近3月通话时长")
                 print(it.printStackTrace())
@@ -818,7 +818,7 @@ class CallAnalysisService {
                 "and task_id = '$taskId'  " +
                 ")\n"
 
-        return conn.rxQuery(sql).doAfterTerminate(conn::close)
+        return conn.rxQuery(sql)
             .doOnError {
                 log.info("近3月平均通话时长")
                 print(it.printStackTrace())
@@ -855,7 +855,7 @@ class CallAnalysisService {
         "and task_id =  '$taskId'  "  +
         ")\n"
 
-        return conn.rxQuery(sql).doAfterTerminate(conn::close)
+        return conn.rxQuery(sql)
             .doOnError {
             log.info("近6月通话时长（秒）（秒）（秒")
             print(it.printStackTrace())
@@ -892,7 +892,7 @@ class CallAnalysisService {
                 "and task_id =  '$taskId'  "  +
                 ")\n"
 
-        return conn.rxQuery(sql).doAfterTerminate(conn::close)
+        return conn.rxQuery(sql)
             .doOnError {
             log.info("近6月平均通话时长（秒）")
             print(it.printStackTrace())
