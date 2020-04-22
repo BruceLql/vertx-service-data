@@ -106,6 +106,7 @@ class NoticeHandler @Autowired constructor(
                             + "${resultSend.value<String>("message")}"
                             + "${resultSend.value<Long>("operation_time")}"
                             + "${resultSend.value<String>("nonce")}"
+                            + "${NoticeRecords.KEY}"
                 )
                 println("sign:$sign")
                 // 增加签名

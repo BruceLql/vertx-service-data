@@ -467,6 +467,7 @@ class ReportService @Autowired constructor(
                         val dataArray = dataOut?.getJsonArray("fourpackage")
                         val _list = dataArray?.mapNotNull { _any ->
                             try {
+                                println("==========fourpackage cucc==========:"+_any.toString())
                                 _any as JsonObject
                             } catch (e: Exception) {
                                 null

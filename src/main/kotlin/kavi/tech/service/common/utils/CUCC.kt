@@ -254,7 +254,7 @@ object CUCC {
         combo.task_id = taskId
 
         combo.mobile = mobile
-        combo.bill_month = json.value<String>("cycleId")
+        combo.bill_month = json.value<String>("cycleId")?:""
         // 套餐起始时间
         var startdate = json.value<String>("startdate")?:""
         if(startdate.isNotEmpty()){

@@ -9,6 +9,7 @@ import kavi.tech.service.common.extension.logger
 import kavi.tech.service.common.extension.value
 import kavi.tech.service.common.utils.Sha256Utils
 import kavi.tech.service.mongo.model.RecordModel
+import kavi.tech.service.mysql.entity.NoticeRecords
 import org.springframework.beans.factory.annotation.Autowired
 import tech.kavi.vs.web.ControllerHandler
 import tech.kavi.vs.web.HandlerRequest
@@ -39,6 +40,7 @@ class ListHandler @Autowired constructor(
                         + "${resultSend.value<String>("message")}"
                         + "${resultSend.value<Long>("operation_time")}"
                         + "${resultSend.value<String>("nonce")}"
+                        + "${NoticeRecords.KEY}"
             )
             println("sign:$sign")
             val _sign = resultSend.value<String>("sign")

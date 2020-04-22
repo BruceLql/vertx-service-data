@@ -143,13 +143,14 @@ class ComboDao @Autowired constructor(
      * sql查询 按月汇总套餐数据
      */
     fun sqlExecuteQuery(conn: SQLConnection, mobile: String, taskId: String, moth: String): Single<ResultSet> {
-        val sql = "SELECT bill_month, count(*) AS total_size FROM ${Combo.tableName}\n" +
+        val sql = "SELECT " +
+                "bill_month, count(*) AS total_size FROM ${Combo.tableName}\n" +
                 " WHERE mobile = \"$mobile\" \n" +
                 "AND task_id = \"$taskId\" \n" +
                 "AND bill_month = \"$moth\"\n" +
                 "GROUP BY bill_month\n" +
                 "ORDER BY bill_month DESC"
-        println("+++++++++combo+++++++：" + sql)
+        println("+++++++++combo+++++++：$sql")
         return this.query(conn, sql)
     }
 
@@ -159,18 +160,22 @@ class ComboDao @Autowired constructor(
      */
     fun sqlExecuteQuery2(conn: SQLConnection, mobile: String, taskId: String, moth: String): Single<ResultSet> {
         val sql = "SELECT\n" +
-                "\tcom.bill_start_date as bill_start_date,\n" +
-                "\tcom.bill_end_date as bill_end_date,\n" +
-                "\tcom.`name` as name,\n" +
-                "\tcom.unit as unit,\n" +
-                "\tcom.used as used,\n" +
-                "\tcom.total as total "+
+                "\t CASE\t\n" +
+                "\tWHEN\n" +
+                "\t\t( bill_start_date = NULL || bill_start_date = \"\" ) THEN\n" +
+                "\t\"$moth-01\" ELSE bill_start_date \n" +
+                "\t\t\tEND AS bill_start_date,\n" +
+                "\t bill_end_date,\n" +
+                "\t name,\n" +
+                "\t unit,\n" +
+                "\tused,\n" +
+                "\t total  "+
 
                 " FROM ${Combo.tableName}  com " +
                 " WHERE mobile = \"$mobile\" \n" +
                 "AND task_id = \"$taskId\" \n" +
                 "AND bill_month = \"$moth\"\n"
-        println("----------combo--------:" + sql)
+        println("----------combo--------:$sql")
         return this.query(conn, sql)
     }
 
