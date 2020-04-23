@@ -507,9 +507,11 @@ class ReportService @Autowired constructor(
                 // 用户行为分析（按月汇总,汇总近6个月的）
                 userBehaviorService.getCellBehavior(mobile, task_id).toObservable(),
                 // 朋友圈联系人数量
-                friendSummaryService.toCleaningCircleFriendsData(mobile, task_id).toObservable()
+                friendSummaryService.toCleaningCircleFriendsData(mobile, task_id).toObservable(),
                 // 通话详单（近6月）
-//                userCallDetailsService.getUserDetails(mobile,task_id)
+                userCallDetailsService.getUserDetails(mobile,task_id),
+                friendSummaryService.getPeerNumTopList(mobile,task_id),
+                friendSummaryService.getLocationTopList(mobile,task_id)
 
 
             )
@@ -526,11 +528,11 @@ class ReportService @Autowired constructor(
             // 朋友圈联系人数量
             val friend_circleJsonObject = JsonObject()
             friend_circleJsonObject.put("summary", it[3])
-//            friend_circleJsonObject.put("peer_num_top_list", it[5])
-//            friend_circleJsonObject.put("location_top_list", it[6])
+            friend_circleJsonObject.put("peer_num_top_list", it[5])
+            friend_circleJsonObject.put("location_top_list", it[6])
             jsonObject.put("friend_circle", friend_circleJsonObject)
             // 通话详单（近6月）
-//            jsonObject.put("call_contact_detail", it[4])
+            jsonObject.put("call_contact_detail", it[4])
 
         }
 
