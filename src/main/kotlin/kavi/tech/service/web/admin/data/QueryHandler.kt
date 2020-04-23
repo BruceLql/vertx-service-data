@@ -1,18 +1,15 @@
 package kavi.tech.service.web.admin.data
 
 import io.vertx.core.http.HttpMethod
-import io.vertx.core.json.JsonArray
 import io.vertx.core.json.JsonObject
 import io.vertx.ext.web.RoutingContext
 import kavi.tech.service.common.extension.logger
 import kavi.tech.service.common.extension.regexPhone
-import kavi.tech.service.mysql.component.SQL
+import kavi.tech.service.common.extension.value
 import kavi.tech.service.mysql.dao.QueryRecordsDao
 import kavi.tech.service.mysql.dao.ResultDataDao
 import kavi.tech.service.mysql.entity.QueryRecords
-import kavi.tech.service.mysql.entity.ResultData
 import org.springframework.beans.factory.annotation.Autowired
-import rx.Single
 import tech.kavi.vs.web.ControllerHandler
 import tech.kavi.vs.web.HandlerRequest
 
@@ -47,15 +44,15 @@ class QueryHandler @Autowired constructor(
             if (params.isEmpty) {
                 throw IllegalArgumentException("传入参数不合法！")
             }
-            val mobile = params.getString("mobile") ?: throw IllegalArgumentException("缺少手机号码！")
-            val task_id = params.getString("task_id")
-            val item = params.getString("item")  // ”raw“; "report"
+            val mobile = params.value<String>("mobile") ?: throw IllegalArgumentException("缺少手机号码！")
+            val task_id = params.value<String>("task_id") ?: null
+            val item = params.value<String>("item") ?: throw IllegalArgumentException("缺少 item 类型！")  // ”raw“; "report"
             if (!regexPhone(mobile)) {
                 throw IllegalArgumentException("(手机号)参数不合法！")
             }
             val queryRecord = QueryRecords()
             queryRecord.mobile = mobile
-            if (task_id.isNotEmpty()) {
+            if (!task_id.isNullOrEmpty()) {
                 queryRecord.task_id = task_id
             }
             // 获取数据的方式 1:推送 2：主动查询
@@ -63,19 +60,34 @@ class QueryHandler @Autowired constructor(
             // 状态 0：success 1:error
             queryRecord.status = 0
             // 保存请求记录
-//            queryRecordsDao.insert(queryRecord).flatMap {
-            queryLastestTaskId(queryRecord).flatMap {
-                // 返回手机号和 任务ID
-                result.put("mobile", mobile)
-                result.put("task_id", it.getString("task_id"))
-                val listOf = if (item.isNotEmpty()) {
-                    listOf(Pair("task_id", it.getString("task_id")), Pair("mobile", mobile), Pair("item", item))
-                } else {
-                    listOf(Pair("task_id", it.getString("task_id")), Pair("mobile", mobile))
+            resultDataDao.queryLastestTaskId(queryRecord).flatMap {
+
+                println("==============it:" + it.toJson())
+                if (it.numRows == 0) {
+                    result.put("message", "没有查询到数据!")
+                    event.response().setStatusCode(500).end(result.toString())
+//                  throw IllegalArgumentException("没有查询到数据！")
                 }
 
+                // 查询出来的task_id
+                val taskId = it.rows[0].getString("task_id") ?: null
+                when (taskId) {
+                    null -> {
+                        result.put("message", "没有查询到数据!")
+                        event.response().setStatusCode(500).end(result.toString())
+                    }
+                }
 
-                resultDataDao.selectData(listOf)
+                // 返回手机号和 任务ID
+                result.put("mobile", mobile)
+                result.put("task_id", taskId)
+                val listOf = if (item.isNotEmpty()) {
+                    listOf(Pair("task_id", taskId), Pair("mobile", mobile), Pair("item", item))
+                } else {
+                    listOf(Pair("task_id", taskId), Pair("mobile", mobile))
+                }
+
+                resultDataDao.selectData(listOf())
 
             }.subscribe({
                 println(it.toString())
@@ -90,24 +102,10 @@ class QueryHandler @Autowired constructor(
 
         } catch (e: Exception) {
             e.printStackTrace()
+            println("======== catch =========")
             result.put("message", e.message ?: "异常，请联系管理员排查")
             event.response().setStatusCode(500).end(result.toString()) // 返回数据
         }
-    }
-
-    /**
-     * 查询最近一次的采集结果的任务ID
-     */
-    fun queryLastestTaskId(queryRecord: QueryRecords): Single<JsonObject> {
-
-        val sql = SQL.init {
-            SELECT("task_id")
-            FROM(ResultData.tableName)
-            WHERE(Pair("mobile", queryRecord.mobile))
-            ORDER_BY("created_at")
-        } + " DESC"
-        println("queryLastestTaskId:$sql")
-        return queryRecordsDao.one(sql)
     }
 
 }
