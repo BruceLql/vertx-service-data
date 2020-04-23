@@ -530,7 +530,7 @@ class ReportService @Autowired constructor(
 //            friend_circleJsonObject.put("location_top_list", it[6])
             jsonObject.put("friend_circle", friend_circleJsonObject)
             // 通话详单（近6月）
-            jsonObject.put("call_contact_detail", it[4])
+//            jsonObject.put("call_contact_detail", it[4])
 
         }
 
