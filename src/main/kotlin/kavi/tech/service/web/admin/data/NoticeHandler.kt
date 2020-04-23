@@ -69,7 +69,7 @@ class NoticeHandler @Autowired constructor(
             query.put("mobile", mobile).put("mid", task_id)
 
             //   数据提取 根据传进来的task_id开始从mongo中读取数据 以及简单清洗后存入Mysql
-            reportService.beginDataByMongo(query, FindOptions()).flatMap {
+            reportService.beginDataByMongo(query, FindOptions(),name,idCard).flatMap {
 
                 //   调用数据清洗服务 结果封装到 result
                 reportService.dataClear(mobile, task_id).flatMap {

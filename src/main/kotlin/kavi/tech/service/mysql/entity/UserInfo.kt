@@ -20,6 +20,7 @@ data class UserInfo(
     var task_id: String? = null,                // 创建任务时的monoId
     var mobile: String? = null,                 // 手机号码
     var name: String? = null,             // 用户姓名
+    var user_name: String? = null,             // 外部传进来的用户姓名
     var real_name_info: String? = null,                   // 用户认证状态
     var user_lever: String? = null,            // 用户级别
     var brand: String? = null,               // 所属品牌
@@ -32,6 +33,7 @@ data class UserInfo(
     var zip_code: String? = null,               // 邮政编码
     var user_address: String? = null,               //联系地址
     var idcard: String? = null,               // 身份证号码
+    var user_idcard: String? = null,               // 外部传进来的身份证号码
     var carrier: String? = null,               // 运营商类型：移动、联通、电信
     var province: String? = null,               // province 省份
     var city: String? = null,               // city 城市

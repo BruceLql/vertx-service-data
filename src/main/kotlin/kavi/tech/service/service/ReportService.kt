@@ -55,7 +55,7 @@ class ReportService @Autowired constructor(
     /**
      * 数据提取 根据传进来的task_id开始从mongo中读取数据 以及简单清洗后存入Mysql
      */
-    fun beginDataByMongo(query: JsonObject, findOptions: FindOptions): Single<List<UpdateResult>> {
+    fun beginDataByMongo(query: JsonObject, findOptions: FindOptions,userName: String,userIdCard: String): Single<List<UpdateResult>> {
 
         println("----------------- beginDataByMongo -----------------query ：${query.toString()}")
 
@@ -88,7 +88,7 @@ class ReportService @Autowired constructor(
 
         // 读取mongo 基础用户信息 并过滤数据插入mysql
         val userInfooResult = dataUserInfoModel.queryListAndSave2Mysql(query)
-            .flatMap { userInfoDao.insert(filterUserInfo(it)) }
+            .flatMap { userInfoDao.insert(filterUserInfo(it,userName,userIdCard)) }
 
         // 读取mongo 套餐数据 并过滤数据插入mysql
         val comboResult = dataComboModel.queryListAndSave2Mysql(query)
@@ -400,8 +400,11 @@ class ReportService @Autowired constructor(
 
     /**
      * 基础用户信息过滤数据
+     * @param list mongo数据库查询出来的数据
+     * @param name 外部传进来的用户姓名
+     * @param idCard 外部传进来的用户身份证号
      */
-    private fun filterUserInfo(list: List<JsonObject>): UserInfo {
+    private fun filterUserInfo(list: List<JsonObject>,userName: String,userIdCard: String): UserInfo {
         println("filterUserInfo :" + list)
         var userInfo = UserInfo()
         list.mapNotNull { json ->
@@ -416,10 +419,10 @@ class ReportService @Autowired constructor(
             operator?.let { _operator ->
                 when (_operator) {
                     "CMCC" -> {
-                        userInfo = CMCC.buileUserInfo(dataObj, mobile, taskId, billMonth,operator)
+                        userInfo = CMCC.buileUserInfo(dataObj, mobile, taskId, billMonth,operator,userName,userIdCard)
                     }
                     "CUCC" -> {
-                        userInfo = CUCC.buileUserInfo(dataObj, mobile, taskId, billMonth,operator)
+                        userInfo = CUCC.buileUserInfo(dataObj, mobile, taskId, billMonth,operator,userName,userIdCard)
                     }
                     else -> null
                 }
@@ -497,20 +500,37 @@ class ReportService @Autowired constructor(
 
         return Observable.concat(
             listOf(
+                // 通话风险分析
                 callAnalysisService.toCleaningCircleFriendsData(mobile, task_id).toObservable(),
+                // 联系人区域汇总(近3（0-90天）／6月（0-180天）联系次数降序)
                 contactsRegionService.getContactRegion(mobile, task_id).toObservable(),
+                // 用户行为分析（按月汇总,汇总近6个月的）
                 userBehaviorService.getCellBehavior(mobile, task_id).toObservable(),
+                // 朋友圈联系人数量
                 friendSummaryService.toCleaningCircleFriendsData(mobile, task_id).toObservable()
+                // 通话详单（近6月）
+//                userCallDetailsService.getUserDetails(mobile,task_id)
+
 
             )
         ).toList().toSingle().map {
 
 
             var jsonObject = JsonObject()
+            // 通话风险分析
             jsonObject.put("call_risk_analysis", it[0])
+            // 联系人区域汇总(近3（0-90天）／6月（0-180天）联系次数降序)
             jsonObject.put("contact_region", it[1])
+            // 用户行为分析（按月汇总,汇总近6个月的）
             jsonObject.put("cell_behavior", it[2])
-            jsonObject.put("friend_circle", JsonObject().put("summary", it[3]))
+            // 朋友圈联系人数量
+            val friend_circleJsonObject = JsonObject()
+            friend_circleJsonObject.put("summary", it[3])
+//            friend_circleJsonObject.put("peer_num_top_list", it[5])
+//            friend_circleJsonObject.put("location_top_list", it[6])
+            jsonObject.put("friend_circle", friend_circleJsonObject)
+            // 通话详单（近6月）
+            jsonObject.put("call_contact_detail", it[4])
 
         }
 

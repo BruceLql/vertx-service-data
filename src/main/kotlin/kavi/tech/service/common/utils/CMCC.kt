@@ -171,9 +171,12 @@ object CMCC {
         return smsInfo
     }
 
-    fun buileUserInfo(json: JsonObject, mobile: String, taskId: String, billMonth: String?,carrier: String): UserInfo {
+    fun buileUserInfo(json: JsonObject, mobile: String, taskId: String, billMonth: String?,carrier: String,userName: String,userIdcard: String): UserInfo {
         val userInfo = UserInfo()
         userInfo.task_id = taskId
+        // 外部传进来的姓名 身份证号
+        userInfo.user_name = userName
+        userInfo.user_idcard = userIdcard
 
         userInfo.mobile = mobile
         userInfo.carrier = carrier
