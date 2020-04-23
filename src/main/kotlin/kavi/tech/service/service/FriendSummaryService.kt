@@ -6,6 +6,7 @@ import io.vertx.ext.sql.ResultSet
 import io.vertx.rxjava.ext.asyncsql.AsyncSQLClient
 import io.vertx.rxjava.ext.sql.SQLConnection
 import kavi.tech.service.mysql.dao.CarrierResultDataDao
+import kavi.tech.service.mysql.dao.FriendSummaryDao
 import org.apache.commons.lang3.StringUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -27,6 +28,9 @@ class FriendSummaryService {
 
     @Autowired
     private lateinit var client: AsyncSQLClient
+
+    @Autowired
+    private lateinit var friendSummaryDao: FriendSummaryDao
 
     /**
      * 获取统计数据 朋友圈联系人数量（friend_circle.summary）
@@ -64,6 +68,21 @@ class FriendSummaryService {
                 json.put("is_city_match_friend_city_center_6m", if (it[8].rows.size==0) "0" else it[8].rows[0].getValue("is_city_match_friend_city_center_6m").toString())
                 json.put("inter_peer_num_6m", if (it[9].rows.size==0) "0" else it[9].rows[0].getValue("inter_peer_num_6m").toString())
         }
+    }
+
+
+    /**
+     * 朋友圈联系人（3/6个月）top统计
+     */
+    fun getPeerNumTopList(mobile: String,taskId: String): Observable<List<JsonObject>> {
+        return friendSummaryDao.getPeerNumTopList(mobile, taskId).toObservable()
+    }
+
+    /**
+     * 朋友圈通话地（3/6个月）top统计
+     */
+    fun getLocationTopList(mobile: String,taskId: String): Observable<List<JsonObject>> {
+        return friendSummaryDao.getLocationTopList(mobile,taskId).toObservable()
     }
 
 
