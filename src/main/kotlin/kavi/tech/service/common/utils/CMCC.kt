@@ -1,6 +1,7 @@
 package kavi.tech.service.common.utils
 
 import io.vertx.core.json.JsonObject
+import kavi.tech.service.common.extension.regexDate
 import kavi.tech.service.common.extension.splitHms
 import kavi.tech.service.common.extension.splitYmd
 import kavi.tech.service.common.extension.value
@@ -14,7 +15,10 @@ object CMCC {
         callLog.task_id = taskId
         callLog.mobile = mobile
         callLog.bill_month = billMonth
-        callLog.time = json.value<String>("startTime")
+        callLog.time = json.value<String>("startTime").let {
+            if(regexDate(it.toString())){ it.toString().substring(5,19) }else it
+        }
+
         callLog.location = json.value<String>("commPlac")
         val commMode = json.value<String>("commMode")
 
@@ -25,6 +29,8 @@ object CMCC {
             "被叫" -> "DIALED"
             "VOLTE被叫" -> "DIALED"
             "呼转" -> "DIALED"
+            "高清语音主叫" ->"DIAL"
+            "高清语音被叫" ->"DIALED"
             else -> commMode
         }
         // 对方号码
@@ -46,12 +52,12 @@ object CMCC {
         return callLog
     }
 
-    fun buildExpenseCalendar(json: JsonObject, mobile: String, taskId: String, billMonth: String?): ExpenseCalendar {
+    fun buildExpenseCalendar(json: JsonObject, mobile: String, taskId: String ): ExpenseCalendar {
         val expenseCalendar = ExpenseCalendar()
         expenseCalendar.task_id = taskId
         expenseCalendar.mobile = mobile
         // 账单月
-        expenseCalendar.bill_month = billMonth
+        expenseCalendar.bill_month = json.value("billMonth")
 
         // 交费方式
         expenseCalendar.bill_start_date = json.value<String>("billStartDate")
@@ -146,7 +152,9 @@ object CMCC {
         smsInfo.mobile = mobile
         smsInfo.bill_month = billMonth
 
-        smsInfo.time = json.value<String>("startTime")
+        smsInfo.time = json.value<String>("startTime").let {
+            if(regexDate(it.toString())){ it.toString().substring(5,19) }else it
+        }
         smsInfo.location = json.value<String>("commPlac")
         // 通信方式 （SMS-短信; MSS-彩信）
         smsInfo.msg_type = json.value<String>("infoType")

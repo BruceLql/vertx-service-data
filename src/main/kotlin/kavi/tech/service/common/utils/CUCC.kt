@@ -23,7 +23,7 @@ object CUCC {
             "被叫" -> "DIALED"
             "呼叫转移" -> "DIALED"
             "呼转" -> "DIALED"
-            else -> json.value<String>("calltypeName")
+            else -> json.value<String>("calltypeName")?:"DIAL"   // todo 默认将无呼叫类型的数据 归类为 主叫
         }
         // 对方号码
         callLog.peer_number = json.value<String>("othernum")

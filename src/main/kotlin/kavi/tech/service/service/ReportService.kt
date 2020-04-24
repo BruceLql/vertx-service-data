@@ -202,7 +202,7 @@ class ReportService @Autowired constructor(
                     when (_operator) {
                         "CMCC" -> {
                             listExpenseCalendar.add(
-                                CMCC.buildExpenseCalendar(it, mobile, taskId, billMonth)
+                                CMCC.buildExpenseCalendar(it, mobile, taskId)
                             )
                         }
                         "CUCC" -> {

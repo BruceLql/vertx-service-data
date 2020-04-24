@@ -288,7 +288,7 @@ class SmsInfoDao @Autowired constructor(
                     sqlExecuteQuery1(conn, mobile, taskId, dateList[d]).map {
 
                         println("result1" + it.toJson())
-                        json.put("data", if (it.numRows == 0) JsonObject().put("bill_month",dateList[d]).put("total_size",0).put("items",ArrayList<JsonObject>()) else it.rows[0])
+                        json.put("data", if (it.numRows == 0) JsonObject().put("bill_month",dateList[d].let { it -> it.substring(0,4)+"-"+it.substring(4,6) }).put("total_size",0).put("items",ArrayList<JsonObject>()) else it.rows[0])
 
                     }.toObservable()
                 }
