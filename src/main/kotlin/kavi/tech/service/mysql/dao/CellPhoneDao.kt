@@ -18,7 +18,7 @@ class CellPhoneDao @Autowired constructor(
      * 获取手机号基本信息
      * @param mobile 手机号
      */
-    fun getCellPhoneInfo(mobile: String): Observable<ResultSet> {
+    fun getCellPhoneInfo(mobile: String,taskId:String): Observable<ResultSet> {
         val sql = "select\n" +
                 "cb.mobile as mobile,\n" +
                 "cb.`name` as carrier_name,\n" +
@@ -36,7 +36,7 @@ class CellPhoneDao @Autowired constructor(
                 "'未知' as available_balance,\n" +
                 "cb.`package_name` as package_name,\n" +
                 "FROM_UNIXTIME((cb.`created_at` / 1000),'%Y-%m-%d %H:%i:%S') as bill_certification_day\n" +
-                "from `carrier_baseinfo` cb where cb.`mobile` = '$mobile'"
+                "from `carrier_baseinfo` cb where cb.`mobile` = '$mobile' and cb.task_id = '$taskId'"
         return this.client.rxGetConnection().flatMap { conn ->
             conn.rxQuery(sql).doAfterTerminate(conn::close)
         }.toObservable()

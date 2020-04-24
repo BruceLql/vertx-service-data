@@ -18,9 +18,9 @@ class UserBasicService @Autowired constructor(
     /**
      * 用户基本信息
      */
-    fun getUserBasicInfo(idCard: String): Observable<List<JsonObject>> {
+    fun getUserBasicInfo(mobile: String,taskId:String): Observable<List<JsonObject>> {
         var list = ArrayList<JsonObject>()
-        return userBasicDao.getUserBasicInfo(idCard).map {
+        return userBasicDao.getUserBasicInfo(mobile,taskId).map {
             if(it.rows.isNotEmpty()){
                 it.rows.forEach {
                     it.map{

@@ -18,9 +18,9 @@ class CellPhoneService @Autowired constructor(
      * 获取手机号基本信息
      *@param mobile 手机号
      */
-    fun getCellPhoneInfo(mobile:String):Observable<List<JsonObject>>{
+    fun getCellPhoneInfo(mobile:String,taskId:String):Observable<List<JsonObject>>{
         var list = ArrayList<JsonObject>()
-        return cellPhoneDao.getCellPhoneInfo(mobile).map {
+        return cellPhoneDao.getCellPhoneInfo(mobile,taskId).map {
             if(it.rows.isNotEmpty()){
                 it.rows.forEach {
                     it.map{

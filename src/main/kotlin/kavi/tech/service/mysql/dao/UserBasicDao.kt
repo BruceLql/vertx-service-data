@@ -20,7 +20,7 @@ class UserBasicDao @Autowired constructor(
      * 获取用户基本信息
      * @param idCard 身份证号
      */
-    fun getUserBasicInfo(idCard: String): Observable<ResultSet> {
+    fun getUserBasicInfo(mobile: String,taskId:String): Observable<ResultSet> {
 
         val sql = "select\n" +
                 "cb.`name` as name,\n" +
@@ -45,7 +45,7 @@ class UserBasicDao @Autowired constructor(
                 "cb.`city` as city,\n" +
                 "'未知' as region,\n" +
                 "'未知' as native_place\n" +
-                "from `carrier_baseinfo` cb where cb.`user_idcard` = '$idCard'"
+                "from `carrier_baseinfo` cb where cb.`mobile` = '$mobile' and cb.task_id = '$taskId'"
         return this.client.rxGetConnection().flatMap { conn ->
             conn.rxQuery(sql).doAfterTerminate(conn::close)
         }.toObservable()
