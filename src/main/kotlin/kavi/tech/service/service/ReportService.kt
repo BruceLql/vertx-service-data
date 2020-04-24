@@ -41,8 +41,9 @@ class ReportService @Autowired constructor(
     val contactsRegionService: ContactsRegionService,
     val friendSummaryService: FriendSummaryService,
     val userBehaviorService: UserBehaviorService,
-    val carierService: CarierService,
-    val userCallDetailsService: UserCallDetailsService
+    val userCallDetailsService: UserCallDetailsService,
+    val userBasicService: UserBasicService,
+    val cellPhoneService: CellPhoneService
 
 ) {
     @Autowired
@@ -88,7 +89,7 @@ class ReportService @Autowired constructor(
 
         // 读取mongo 基础用户信息 并过滤数据插入mysql
         val userInfooResult = dataUserInfoModel.queryListAndSave2Mysql(query)
-            .flatMap { userInfoDao.insert(filterUserInfo(it,userName,userIdCard)) }
+            .flatMap { userInfoDao.insert(filterUserInfo(it, userName, userIdCard)) }
 
         // 读取mongo 套餐数据 并过滤数据插入mysql
         val comboResult = dataComboModel.queryListAndSave2Mysql(query)
@@ -404,7 +405,7 @@ class ReportService @Autowired constructor(
      * @param name 外部传进来的用户姓名
      * @param idCard 外部传进来的用户身份证号
      */
-    private fun filterUserInfo(list: List<JsonObject>,userName: String,userIdCard: String): UserInfo {
+    private fun filterUserInfo(list: List<JsonObject>, userName: String, userIdCard: String): UserInfo {
         println("filterUserInfo :" + list)
         var userInfo = UserInfo()
         list.mapNotNull { json ->
@@ -419,10 +420,12 @@ class ReportService @Autowired constructor(
             operator?.let { _operator ->
                 when (_operator) {
                     "CMCC" -> {
-                        userInfo = CMCC.buileUserInfo(dataObj, mobile, taskId, billMonth,operator,userName,userIdCard)
+                        userInfo =
+                            CMCC.buileUserInfo(dataObj, mobile, taskId, billMonth, operator, userName, userIdCard)
                     }
                     "CUCC" -> {
-                        userInfo = CUCC.buileUserInfo(dataObj, mobile, taskId, billMonth,operator,userName,userIdCard)
+                        userInfo =
+                            CUCC.buileUserInfo(dataObj, mobile, taskId, billMonth, operator, userName, userIdCard)
                     }
                     else -> null
                 }
@@ -509,9 +512,11 @@ class ReportService @Autowired constructor(
                 // 朋友圈联系人数量
                 friendSummaryService.toCleaningCircleFriendsData(mobile, task_id).toObservable(),
                 // 通话详单（近6月）
-                userCallDetailsService.getUserDetails(mobile,task_id),
-                friendSummaryService.getPeerNumTopList(mobile,task_id),
-                friendSummaryService.getLocationTopList(mobile,task_id)
+                userCallDetailsService.getUserDetails(mobile, task_id),
+                friendSummaryService.getPeerNumTopList(mobile, task_id),
+                friendSummaryService.getLocationTopList(mobile, task_id),
+                userBasicService.getUserBasicInfo(mobile, task_id),
+                cellPhoneService.getCellPhoneInfo(mobile, task_id)
 
 
             )
@@ -533,6 +538,8 @@ class ReportService @Autowired constructor(
             jsonObject.put("friend_circle", friend_circleJsonObject)
             // 通话详单（近6月）
             jsonObject.put("call_contact_detail", it[4])
+            jsonObject.put("user_basic", it[7])
+            jsonObject.put("cell_phone", it[8])
 
         }
 

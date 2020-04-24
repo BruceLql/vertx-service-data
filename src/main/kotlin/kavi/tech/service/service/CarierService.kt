@@ -113,7 +113,7 @@ class CarierService @Autowired constructor(
             val total_size = data?.getInteger("total_size")
             jsonObject.put("bill_month", bill_month)
             jsonObject.put("total_size", total_size)
-            val items = smsesList[d].value<JsonArray>("data")
+            val items = smsesList[d].value<JsonArray>("data")?:JsonArray()
 
             jsonObject.put("items", items)
             smses.add(jsonObject)

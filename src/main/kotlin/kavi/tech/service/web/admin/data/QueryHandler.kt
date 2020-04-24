@@ -3,6 +3,7 @@ package kavi.tech.service.web.admin.data
 import io.vertx.core.http.HttpMethod
 import io.vertx.core.json.JsonObject
 import io.vertx.ext.web.RoutingContext
+import kavi.tech.service.common.extension.GZIPUtils
 import kavi.tech.service.common.extension.logger
 import kavi.tech.service.common.extension.regexPhone
 import kavi.tech.service.common.extension.value
@@ -91,9 +92,10 @@ class QueryHandler @Autowired constructor(
 
             }.subscribe({
                 println(it.toString())
-                val ss = it.getString("result")
-
-                result.put("data", JsonObject(ss))
+                val resultStr = it.getString("result")
+                // 取出result 字段 再gzip压缩转成ByteArray
+                val gzipData = GZIPUtils().compress(JsonObject(resultStr).toString())
+                result.put("data", gzipData)
                 //  数据返回
                 event.response().end(result.toString())
 
