@@ -10,7 +10,7 @@ import rx.Observable
 import rx.Single
 
 @Service
-class CarierService @Autowired constructor(
+class CarrierService @Autowired constructor(
     val callLogDao: CallLogDao,
     val expenseCalendarDao: ExpenseCalendarDao,
     val internetInfoDao: InternetInfoDao,

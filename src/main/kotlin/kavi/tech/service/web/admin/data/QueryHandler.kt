@@ -2,14 +2,13 @@ package kavi.tech.service.web.admin.data
 
 import io.vertx.core.http.HttpMethod
 import io.vertx.core.json.JsonObject
+import io.vertx.ext.mongo.FindOptions
 import io.vertx.ext.web.RoutingContext
 import kavi.tech.service.common.extension.GZIPUtils
 import kavi.tech.service.common.extension.logger
 import kavi.tech.service.common.extension.regexPhone
 import kavi.tech.service.common.extension.value
-import kavi.tech.service.mysql.dao.QueryRecordsDao
-import kavi.tech.service.mysql.dao.ResultDataDao
-import kavi.tech.service.mysql.entity.QueryRecords
+import kavi.tech.service.mongo.model.CarrierReportInfoModel
 import org.springframework.beans.factory.annotation.Autowired
 import tech.kavi.vs.web.ControllerHandler
 import tech.kavi.vs.web.HandlerRequest
@@ -20,8 +19,7 @@ import tech.kavi.vs.web.HandlerRequest
  */
 @HandlerRequest(path = "/query", method = HttpMethod.POST)
 class QueryHandler @Autowired constructor(
-    private val queryRecordsDao: QueryRecordsDao,
-    private val resultDataDao: ResultDataDao
+    private val carrierReportInfoModel: CarrierReportInfoModel
 ) : ControllerHandler() {
     private val log = logger(this::class)
     /**
@@ -35,7 +33,6 @@ class QueryHandler @Autowired constructor(
         log.info("=========/data/notice==============")
         // result 返回值
         val result = JsonObject()
-        val data = JsonObject()
         result.put("status", "0")
         result.put("message", "success")
 
@@ -46,55 +43,60 @@ class QueryHandler @Autowired constructor(
                 throw IllegalArgumentException("传入参数不合法！")
             }
             val mobile = params.value<String>("mobile") ?: throw IllegalArgumentException("缺少手机号码！")
-            val task_id = params.value<String>("task_id") ?: null
+            val outTaskId = params.value<String>("task_id")
             val item = params.value<String>("item") ?: throw IllegalArgumentException("缺少 item 类型！")  // ”raw“; "report"
             if (!regexPhone(mobile)) {
                 throw IllegalArgumentException("(手机号)参数不合法！")
             }
-            val queryRecord = QueryRecords()
-            queryRecord.mobile = mobile
-            if (!task_id.isNullOrEmpty()) {
-                queryRecord.task_id = task_id
+            val query = JsonObject()
+            query.put("mobile", mobile)
+            if (!outTaskId.isNullOrEmpty()) {
+                query.put("task_id", outTaskId)
             }
-            // 获取数据的方式 1:推送 2：主动查询
-            queryRecord.type = 2
-            // 状态 0：success 1:error
-            queryRecord.status = 0
-            // 保存请求记录
-            resultDataDao.queryLastestTaskId(queryRecord).flatMap {
+            val findOptions = FindOptions()
+            findOptions.setFields(JsonObject().put("task_id", 1).put("_id", 0))
+                .setSort(JsonObject().put("created_at", -1)).limit = 1
+            //如果没传task_id 将根据手机号查询最近一次的任务ID ，如果传来task_id 将检查该任务ID是否存在
+            carrierReportInfoModel.queryLatestTaskId(query, findOptions).flatMap {
 
-                println("==============it:" + it.toJson())
-                if (it.numRows == 0) {
-                    result.put("message", "没有查询到数据!")
-                    event.response().setStatusCode(500).end(result.toString())
-//                  throw IllegalArgumentException("没有查询到数据！")
+                if (it.isEmpty()) {
+                    result.put("status", "1")
+                    result.put("message", "未查询到数据!")
+                    event.response().end(result.toString())
+                    throw IllegalArgumentException("未查询到数据！")
                 }
 
                 // 查询出来的task_id
-                val taskId = it.rows[0].getString("task_id") ?: null
+                val taskId = it[0].value<String>("task_id")
                 when (taskId) {
                     null -> {
-                        result.put("message", "没有查询到数据!")
-                        event.response().setStatusCode(500).end(result.toString())
+                        result.put("status", "1")
+                        result.put("message", "未查询到数据!")
+                        event.response().end(result.toString())
+                        throw IllegalArgumentException("未查询到数据！")
                     }
                 }
 
                 // 返回手机号和 任务ID
                 result.put("mobile", mobile)
                 result.put("task_id", taskId)
-                val listOf = if (item.isNotEmpty()) {
-                    listOf(Pair("task_id", taskId), Pair("mobile", mobile), Pair("item", item))
-                } else {
-                    listOf(Pair("task_id", taskId), Pair("mobile", mobile))
-                }
 
-                resultDataDao.selectData(listOf())
+                val query = JsonObject().also { que ->
+                    que.put("mobile", mobile).put("task_id", taskId).put("item", item)
+                }
+                val findOption = FindOptions()
+                findOption.setSort(JsonObject().put("created_at", -1)).limit = 1
+                carrierReportInfoModel.queryListResultData(query, findOption)
 
             }.subscribe({
-                println(it.toString())
-                val resultStr = it.getString("result")
+
+                if (it.isEmpty()) {
+                    event.response().end(result.put("status", "1").put("message", "未查询到数据!").toString())
+                    throw IllegalArgumentException("未查询到数据！")
+                }
+                val resultStr = it[0].value<JsonObject>("result").toString()
                 // 取出result 字段 再gzip压缩转成ByteArray
-                val gzipData = GZIPUtils().compress(JsonObject(resultStr).toString())
+                val gzipData = GZIPUtils().compress(resultStr)
                 result.put("data", gzipData)
                 //  数据返回
                 event.response().end(result.toString())

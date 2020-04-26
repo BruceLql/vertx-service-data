@@ -12,6 +12,7 @@ import kavi.tech.service.common.utils.CMCC
 import kavi.tech.service.common.utils.CUCC
 import kavi.tech.service.common.utils.Sha256Utils
 import kavi.tech.service.mongo.model.*
+import kavi.tech.service.mongo.schema.CarrierReportInfo
 import kavi.tech.service.mysql.dao.*
 import kavi.tech.service.mysql.entity.*
 import org.springframework.beans.factory.annotation.Autowired
@@ -35,7 +36,6 @@ class ReportService @Autowired constructor(
     val smsInfoDao: SmsInfoDao,
     val userInfoDao: UserInfoDao,
     val comboDao: ComboDao,
-    val resultDataDao: ResultDataDao,
 
     val callAnalysisService: CallAnalysisService,
     val contactsRegionService: ContactsRegionService,
@@ -43,15 +43,12 @@ class ReportService @Autowired constructor(
     val userBehaviorService: UserBehaviorService,
     val userCallDetailsService: UserCallDetailsService,
     val userBasicService: UserBasicService,
-    val cellPhoneService: CellPhoneService
+    val cellPhoneService: CellPhoneService,
+    val carrierReportInfoModel: CarrierReportInfoModel
 
 ) {
     @Autowired
     private lateinit var rxClient: WebClient
-
-    fun report(mobile: String, taskId: String) {
-
-    }
 
     /**
      * 数据提取 根据传进来的task_id开始从mongo中读取数据 以及简单清洗后存入Mysql
@@ -63,7 +60,7 @@ class ReportService @Autowired constructor(
         // 读取mongo 数据库通话记录 并过滤数据插入Mysql
         val callLogResult = dataCallLogModel.queryListAndSave2Mysql(query)
             .flatMap {
-                println("======:" + it)
+                println("======:$it")
                 callLogDao.insertBybatch(filterCallLog(it))
             }
 
@@ -88,7 +85,7 @@ class ReportService @Autowired constructor(
             }
 
         // 读取mongo 基础用户信息 并过滤数据插入mysql
-        val userInfooResult = dataUserInfoModel.queryListAndSave2Mysql(query)
+        val userInfoResult = dataUserInfoModel.queryListAndSave2Mysql(query)
             .flatMap { userInfoDao.insert(filterUserInfo(it, userName, userIdCard)) }
 
         // 读取mongo 套餐数据 并过滤数据插入mysql
@@ -104,7 +101,7 @@ class ReportService @Autowired constructor(
             internetInfoResult,
             paymentRecordResult,
             smsInfoResult,
-            userInfooResult,
+            userInfoResult,
             comboResult
         )
             .toList().toSingle()
@@ -117,7 +114,7 @@ class ReportService @Autowired constructor(
      * 通话记录过滤数据
      */
     private fun filterCallLog(list: List<JsonObject>): List<CallLog> {
-        println("通话过滤：${list.toString()}")
+        println("通话过滤：$list")
 
         val listCallLog = mutableListOf<CallLog>()
         list.mapNotNull { json ->
@@ -284,7 +281,7 @@ class ReportService @Autowired constructor(
      * 充值缴费记录过滤数据
      */
     private fun filterPaymentRecord(list: List<JsonObject>): List<PaymentRecord> {
-        println("充值缴费过滤：${list.toString()}")
+        println("充值缴费过滤：$list")
         val listPaymentRecord = mutableListOf<PaymentRecord>()
         list.mapNotNull { json ->
             val dataOut = json.value<JsonObject>("data")
@@ -345,7 +342,7 @@ class ReportService @Autowired constructor(
      * 短信记录过滤数据
      */
     private fun filterSmsInfo(list: List<JsonObject>): List<SmsInfo> {
-        println("短信 filterSmsInfo========：${list.toString()}")
+        println("短信 filterSmsInfo========：$list")
         val listSmsInfo = mutableListOf<SmsInfo>()
         list.mapNotNull { json ->
             val dataOut = json.value<JsonObject>("data")
@@ -406,7 +403,7 @@ class ReportService @Autowired constructor(
      * @param idCard 外部传进来的用户身份证号
      */
     private fun filterUserInfo(list: List<JsonObject>, userName: String, userIdCard: String): UserInfo {
-        println("filterUserInfo :" + list)
+        println("filterUserInfo :$list")
         var userInfo = UserInfo()
         list.mapNotNull { json ->
             val dataObj = json.value<JsonObject>("data")!!
@@ -523,7 +520,7 @@ class ReportService @Autowired constructor(
         ).toList().toSingle().map {
 
 
-            var jsonObject = JsonObject()
+            val jsonObject = JsonObject()
             // 通话风险分析
             jsonObject.put("call_risk_analysis", it[0])
             // 联系人区域汇总(近3（0-90天）／6月（0-180天）联系次数降序)
@@ -625,12 +622,13 @@ class ReportService @Autowired constructor(
 
 
     /**
-     * @param item raw 原始数据  report: 运营商报告
-     * @param task_id
-     * @param mobile
-     * @param idCard
-     * @param name
-     * @param resultSend  JsonObject 运营商原始数据  or 运营商报告
+     * 存储运营商报告 or 原始数据  到Mongo 库
+     * @param idCard 身份证号
+     * @param mobile  手机号码
+     * @param task_id  任务ID
+     * @param name 姓名
+     * @param item  类型： raw： 原始数据  report: 运营商报告
+     * @param resultSend  具体存储的数据
      *
      */
     fun saveRecord(
@@ -642,16 +640,19 @@ class ReportService @Autowired constructor(
         nonce: String,
         resultSend: JsonObject
     ) {
-        val resultData = ResultData()
-        resultData.task_id = task_id
-        resultData.mobile = mobile
-        resultData.id_card = idCard
-        resultData.name = name
-        resultData.nonce = nonce
-        // raw 原始数据  report: 运营商报告
-        resultData.item = item
-        resultData.result = resultSend.toString()
-        resultDataDao.insert(resultData).subscribe({}, { it.printStackTrace() })
+        println("==============saveReportToMongo =====================")
+        val carrierReportInfo = CarrierReportInfo()
+        carrierReportInfo.idCard = idCard
+        carrierReportInfo.mobile = mobile
+        carrierReportInfo.task_id = task_id
+        carrierReportInfo.name = name
+        carrierReportInfo.nonce = nonce
+        carrierReportInfo.item = item
+        carrierReportInfo.result = resultSend
+
+        carrierReportInfoModel.insertReportDataIntoMongo(carrierReportInfo).subscribe({
+            println("mobile: $mobile ,任务ID：$task_id ,$item 数据 insert to mongoDB success!")
+        }, { it.printStackTrace() })
     }
 
 
