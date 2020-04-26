@@ -7,11 +7,11 @@ import io.vertx.ext.sql.UpdateResult
 import io.vertx.rxjava.ext.asyncsql.AsyncSQLClient
 import io.vertx.rxjava.ext.sql.SQLConnection
 import kavi.tech.service.common.extension.logger
+import kavi.tech.service.common.extension.value
 import kavi.tech.service.common.utils.DateUtils
 import kavi.tech.service.mysql.component.AbstractDao
 import kavi.tech.service.mysql.component.SQL
 import kavi.tech.service.mysql.entity.CallLog
-import kavi.tech.service.mysql.entity.InternetInfo
 import kavi.tech.service.mysql.entity.PaymentRecord
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
@@ -111,8 +111,26 @@ class PaymentRecordDao @Autowired constructor(
             var jsonList = ArrayList<JsonObject>()
             var json = JsonObject()
             val reChargesObservable = sqlExecuteQuery(conn, mobile, taskId).map {
-                println("充值记录:" + it.toJson())
-                json.put("data", if (it.numRows == 0) JsonObject() else it.rows)
+                log.info("充值记录:" + it.toJson())
+                json.put("data", if (it.numRows == 0) JsonObject() else it.rows.mapNotNull {rows ->
+                    log.info("+++++++++++rows： $rows")
+                    when(rows.value<String>("carrier")){
+                        "CMCC" ->{
+                            val rechargeTime = rows.value<String>("recharge_time")
+                            val ss= rechargeTime?.let { recTime ->
+                                recTime.substring(0, 4) + "-" + recTime.substring(4, 6) + "-" + recTime.substring(6, 8)+" "+ recTime.substring(8, 10)+":"+ recTime.substring(10, 12)+":"+ recTime.substring(12, 14)
+                            }
+                            rows.put("recharge_time",ss)
+
+                        }
+                        else ->{
+
+                        }
+                    }
+                    // 移除不需要的字段
+                    rows.remove("carrier")
+                    rows
+                })
 
             }.toObservable()
 
@@ -127,7 +145,7 @@ class PaymentRecordDao @Autowired constructor(
      * sql查询 充值记录数据
      */
     fun sqlExecuteQuery(conn: SQLConnection, mobile: String, taskId: String): Single<ResultSet> {
-        // 移动的
+        // 移动的 todo 需要优化
         /*val sql = "SELECT amount_money as amount,\n" +
                 "CONCAT_WS(\" \",\n" +
                 "CONCAT_WS(\"-\",SUBSTRING(recharge_time FROM 1 FOR 4),SUBSTRING(recharge_time FROM 5 FOR 2),SUBSTRING(recharge_time FROM 7 FOR 2)),\n" +
@@ -141,10 +159,12 @@ class PaymentRecordDao @Autowired constructor(
         // 联通的
         val sql = "SELECT amount_money as amount,\n" +
                 "recharge_time,\n" +
-                "type  " +
-                "FROM ${PaymentRecord.tableName}" +
-                " WHERE mobile = \"$mobile\" \n" +
-                "AND task_id = \"$taskId\" \n" +
+                "type , " +
+                "carrier  " +
+                "FROM ${PaymentRecord.tableName} rec  LEFT JOIN carrier_baseinfo base ON base.mobile = rec.mobile \n" +
+                "\tAND base.task_id = rec.task_id  " +
+                " WHERE rec.mobile = \"$mobile\" \n" +
+                "AND rec.task_id = \"$taskId\" \n" +
                 "ORDER BY recharge_time DESC"
         log.info("----------充值记录数据--------:$sql")
         return this.query(conn, sql)

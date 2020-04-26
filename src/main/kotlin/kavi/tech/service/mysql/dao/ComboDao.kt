@@ -100,7 +100,7 @@ class ComboDao @Autowired constructor(
 
             val listCount =
                 (0..5).map { d ->
-                    var json = JsonObject()
+                    val json = JsonObject()
                     sqlExecuteQuery2(conn, mobile, taskId, dateList[d]).map {
                         println("=========it.rows==========="+it.rows)
                         json.put("items", if (it.numRows == 0) JsonArray() else it.rows)
@@ -120,12 +120,12 @@ class ComboDao @Autowired constructor(
     fun queryComboCountRaw6Month(mobile: String, taskId: String): Single<List<JsonObject>> {
         //获取最近6个月时间
         val dateList = DateUtils.getPreMothInCurrentMoth(6, DateUtils.DatePattern.YYYY_MM.value)
-        println("=====queryComboCountRaw6Month====:" + dateList.toString())
+        log.info("=====queryComboCountRaw6Month====:$dateList")
         return this.client.rxGetConnection().flatMap { conn ->
 
             val listCount =
                 (0..5).map { d ->
-                    var json = JsonObject()
+                    val json = JsonObject()
                     sqlExecuteQuery(conn, mobile, taskId, dateList[d]).map {
 
                         println("result1" + it.toJson())
@@ -151,7 +151,7 @@ class ComboDao @Autowired constructor(
                 "AND bill_month = \"$moth\"\n" +
                 "GROUP BY bill_month\n" +
                 "ORDER BY bill_month DESC"
-        println("+++++++++combo+++++++：$sql")
+        log.info("按月汇总套餐数据：$sql")
         return this.query(conn, sql)
     }
 
@@ -176,7 +176,7 @@ class ComboDao @Autowired constructor(
                 " WHERE mobile = \"$mobile\" \n" +
                 "AND task_id = \"$taskId\" \n" +
                 "AND bill_month = \"$moth\"\n"
-        println("----------combo--------:$sql")
+        log.info("具体套餐数据:$sql")
         return this.query(conn, sql)
     }
 
