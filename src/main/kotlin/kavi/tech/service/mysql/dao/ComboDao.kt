@@ -129,7 +129,7 @@ class ComboDao @Autowired constructor(
                     sqlExecuteQuery(conn, mobile, taskId, dateList[d]).map {
 
                         println("result1" + it.toJson())
-                        json.put("data", if (it.numRows == 0) JsonObject().put("bill_start_date",dateList[d].let { it-> it.substring(0,4)+"-"+it.substring(4,6)+"01" }).put("bill_end_date",dateList[d].let { it-> it.substring(0,4)+"-"+it.substring(4,6)+"30" }).put("items",ArrayList<JsonObject>()) else it.rows[0].put("bill_start_date",dateList[d]+"-01").put("bill_end_date",dateList[d]+"-30"))
+                        json.put("data", if (it.numRows == 0) JsonObject().put("bill_start_date",dateList[d].let { it-> it.substring(0,4)+"-"+it.substring(4,6)+"-01" }).put("bill_end_date",dateList[d].let { it-> it.substring(0,4)+"-"+it.substring(4,6)+"-30" }).put("items",ArrayList<JsonObject>()) else it.rows[0].put("bill_start_date",dateList[d]+"-01").put("bill_end_date",dateList[d]+"-30"))
 
                     }.toObservable()
                 }
