@@ -24,61 +24,11 @@ class PaymentRecordDao @Autowired constructor(
 ) : AbstractDao<CallLog>(client) {
     override val log: Logger = logger(this::class)
 
-
-    fun paymentRecordDataInsert(data: List<JsonObject>): Single<UpdateResult> {
-
-        println(" 充值记录存入mysql: .....")
-        val paymentRecordList = ArrayList<PaymentRecord>()
-        data.forEach {
-            println("paymentRecordData：" + it.toString())
-            // 运营商类型  移动：CMCC 联通：CUCC 电信：CTCC
-            val operator = it.getString("operator")
-            val mobile = it.getString("mobile")
-            val task_id = it.getString("mid")
-            val dataOut = it.getJsonObject("data")
-            if (!dataOut.isEmpty) {
-                when (operator) {
-                    // 移动数据提取
-                    "CMCC" -> {
-                        dataOut.getJsonArray("data").forEachIndexed { index, mutableEntry ->
-                            val paymentRecord_s = PaymentRecord()
-                            paymentRecord_s.mobile = mobile
-                            paymentRecord_s.task_id = task_id
-                            val obj = JsonObject(mutableEntry.toString())
-                            cmcc(paymentRecord_s, obj)
-                            paymentRecordList.add(paymentRecord_s)
-                        }
-
-                    }
-                    // 联通数据提取
-                    "CUCC" -> {
-                        dataOut.getJsonArray("totalResult").forEachIndexed { index, mutableEntry ->
-                            val paymentRecord_s = PaymentRecord()
-                            paymentRecord_s.mobile = mobile
-                            paymentRecord_s.task_id = task_id
-                            val obj = JsonObject(mutableEntry.toString())
-                            cucc(paymentRecord_s, obj)
-                            paymentRecordList.add(paymentRecord_s)
-                        }
-                    }
-                    // 电信数据提取
-                    "CTCC" -> {
-
-                    }
-                }
-
-            }
-
-        }
-        println("smsInfoList:${paymentRecordList.size}" + paymentRecordList.toString())
-        return insertBybatch(paymentRecordList)
-    }
-
     /**
      * 批量新增通话记录
      * */
     fun insertBybatch(valueList: List<PaymentRecord>): Single<UpdateResult> {
-        if(valueList.isNullOrEmpty()){
+        if (valueList.isNullOrEmpty()) {
             return Single.just(UpdateResult())
         }
         val sql = SQL.init {
@@ -147,74 +97,7 @@ class PaymentRecordDao @Autowired constructor(
         }
     }
 
-    /**
-     * 移动-充值缴费数据提取
-     */
-    private fun cmcc(paymentRecord: PaymentRecord, obj: JsonObject) {
 
-        // 交费日期
-        paymentRecord.recharge_time = obj.getString("payDate") ?: ""
-        // 交费方式
-        paymentRecord.type = obj.getString("payTypeName") ?: ""
-        // 交费渠道
-        paymentRecord.pay_chanel = obj.getString("payChannel")
-        // 支付状态
-        paymentRecord.pay_flag = obj.getString("payFlag") ?: ""
-        // 支付地址
-        paymentRecord.pay_addr = obj.getString("payAddr") ?: ""
-
-        // 金额费用 原始数据单位是元  转换成分后存储
-        val commFee = when (obj.getString("payFee")) {
-            null -> "0.00"
-            "" -> "0.00"
-            else -> obj.getString("payFee")
-        }
-        paymentRecord.amount_money = (commFee.toDouble() * 100).toInt()
-        // 预留字段
-        paymentRecord.carrier_001 = ""
-        paymentRecord.carrier_002 = ""
-
-    }
-
-    /**
-     * 联通-充值缴费数据提取
-     */
-    private fun cucc(paymentRecord: PaymentRecord, obj: JsonObject) {
-        // 交费日期
-        paymentRecord.recharge_time = obj.getString("paydate") ?: ""
-        // 交费方式
-        paymentRecord.type = obj.getString("payment") ?: ""
-        // 交费渠道
-        paymentRecord.pay_chanel = obj.getString("paychannel") ?: ""
-        // 支付状态 暂无
-        paymentRecord.pay_flag = ""
-        // 支付地址 暂无
-        paymentRecord.pay_addr = ""
-
-        // 金额费用 原始数据单位是元  转换成分后存储
-        val commFee = when (obj.getString("payfee")) {
-            null -> "0.00"
-            "" -> "0.00"
-            else -> obj.getString("payfee")
-        }
-
-        paymentRecord.amount_money = (commFee.toDouble() * 100).toInt()
-        // 预留字段
-        paymentRecord.carrier_001 = ""
-        paymentRecord.carrier_002 = ""
-
-
-    }
-
-    /**
-     * 电信-充值缴费数据提取
-     */
-    private fun ctcc(paymentRecord: PaymentRecord, obj: JsonObject) {
-
-        // 预留字段
-        paymentRecord.carrier_001 = ""
-        paymentRecord.carrier_002 = ""
-    }
 
     /**
      * 获取近六个月 充值记录原始数据
@@ -258,12 +141,12 @@ class PaymentRecordDao @Autowired constructor(
         // 联通的
         val sql = "SELECT amount_money as amount,\n" +
                 "recharge_time,\n" +
-                "type  "+
+                "type  " +
                 "FROM ${PaymentRecord.tableName}" +
                 " WHERE mobile = \"$mobile\" \n" +
                 "AND task_id = \"$taskId\" \n" +
                 "ORDER BY recharge_time DESC"
-        println("----------充值记录数据--------:$sql")
+        log.info("----------充值记录数据--------:$sql")
         return this.query(conn, sql)
     }
 

@@ -25,7 +25,7 @@ class NoticeRecordsDao @Autowired constructor(
             INSERT_INTO(noticeRecords.tableName())
             noticeRecords.preInsert().forEach { (t, u) -> VALUES(t, u) }
         }
-        println("insert sql：$sql")
+
         return this.client.rxGetConnection().flatMap { conn ->
 
             conn.rxUpdate(sql).map {

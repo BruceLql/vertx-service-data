@@ -38,72 +38,12 @@ class SmsInfoDao @Autowired constructor(
         }
     }
 
-    fun smsInfoDataInsert(data: List<JsonObject>): Single<UpdateResult> {
-
-        println(" 短信记录存入mysql: .....")
-        val smsInfoList = ArrayList<SmsInfo>()
-        data.forEach {
-            println("smsData：$it")
-            // 运营商类型  移动：CMCC 联通：CUCC 电信：CTCC
-            val operator = it.getString("operator")
-            val mobile = it.getString("mobile")
-            val bill_month = it.getString("bill_month")
-            val task_id = it.getString("mid")
-            val dataOut = it.getJsonObject("data")
-            if (!dataOut.isEmpty) {
-                when (operator) {
-                    // 移动数据提取
-                    "CMCC" -> {
-                        if (dataOut.getJsonArray("data").size() >= 1) {
-                            dataOut.getJsonArray("data").forEachIndexed { index, mutableEntry ->
-                                val smsInfo_s = SmsInfo()
-                                smsInfo_s.mobile = mobile
-                                smsInfo_s.bill_month = bill_month
-                                smsInfo_s.task_id = task_id
-                                val obj = JsonObject(mutableEntry.toString())
-
-                                cmcc(smsInfo_s, obj)
-                                smsInfoList.add(smsInfo_s)
-                            }
-                        }
-                    }
-
-                    // 联通数据提取
-                    "CUCC" -> {
-                        val pageMap = dataOut.getJsonObject("pageMap")
-                        println("===== pageMap:$pageMap")
-                        println("===== pageMap.result:${pageMap.getJsonArray("result")}")
-                        dataOut.getJsonObject("pageMap").getJsonArray("result").forEachIndexed { index, mutableEntry ->
-                            val smsInfo_s = SmsInfo()
-                            smsInfo_s.mobile = mobile
-                            smsInfo_s.bill_month = bill_month
-                            smsInfo_s.task_id = task_id
-                            val obj = JsonObject(mutableEntry.toString())
-
-                            cucc(smsInfo_s, obj)
-                            smsInfoList.add(smsInfo_s)
-                        }
-
-                    }
-
-                    // 电信数据提取
-                    "CTCC" -> {
-                    }
-
-                }
-            }
-        }
-        println("smsInfoList:${smsInfoList.size}" + smsInfoList.toString())
-        return insertBybatch(smsInfoList)
-
-    }
-
     /**
      * 批量新增通话记录
      * */
     fun insertBybatch(valueList: List<SmsInfo>): Single<UpdateResult> {
 
-        if(valueList.isNullOrEmpty()){
+        if (valueList.isNullOrEmpty()) {
             return Single.just(UpdateResult())
         }
 
@@ -178,76 +118,6 @@ class SmsInfoDao @Autowired constructor(
 
         }
     }
-
-    /**
-     * 移动-短信数据提取
-     */
-    private fun cmcc(smsInfo: SmsInfo, obj: JsonObject) {
-        smsInfo.time = obj.getString("startTime")
-        smsInfo.location = obj.getString("commPlac")
-        // 通信方式 （SMS-短信; MSS-彩信）
-        smsInfo.msg_type = obj.getString("infoType")
-        // 接收类型 SEND-发送; RECEIVE-收取
-        smsInfo.send_type = when (obj.getString("commMode")) {
-            "接收" -> "RECEIVE"
-            "发送" -> "SEND"
-            else -> obj.getString("commMode")
-        }
-        // 业务名称 （e.g. 点对点(网内)）
-        smsInfo.service_name = obj.getString("meal")
-        // 对方号码
-        smsInfo.peer_number = obj.getString("anotherNm")
-        // 费用 原始数据单位是元  转换成分后存储
-        smsInfo.fee = (obj.getString("commFee").toDouble() * (100)).toInt()
-
-        // 预留字段
-        smsInfo.carrier_001 = ""
-        smsInfo.carrier_002 = ""
-    }
-
-    /**
-     * 联通-短信数据提取
-     */
-    private fun cucc(smsInfo: SmsInfo, obj: JsonObject) {
-        smsInfo.time = obj.getString("smsdate") + " " + obj.getString("smstime")
-        // 通信地点 无数据
-        smsInfo.location = ""
-        // 通信方式 （SMS-短信; MSS-彩信） //(01-国内短信/02-国际短信/03-国内彩信)
-        smsInfo.msg_type = when (obj.getString("businesstype")) {
-            "01" -> "SMS"
-            "02" -> "SMS"
-            "03" -> "MSS"
-            else -> obj.getString("businesstype")
-        }
-        // 接收类型 (SEND-发送; RECEIVE-收取)
-        smsInfo.send_type = when (obj.getString("smstype")) {
-            // 1接收
-            "1" -> "RECEIVE"
-            "2" -> "SEND"
-            else -> obj.getString("smstype")
-        }
-        // 业务名称 （e.g. 点对点(网内)）
-        smsInfo.service_name = ""
-        // 对方号码
-        smsInfo.peer_number = obj.getString("othernum")
-        // 费用 原始数据单位是元  转换成分后存储
-        smsInfo.fee = (obj.getString("fee").toDouble() * (100)).toInt()
-
-        // 预留字段
-        smsInfo.carrier_001 = ""
-        smsInfo.carrier_002 = ""
-
-    }
-
-    /**
-     * 电信-短信数据提取
-     */
-    private fun ctcc(smsInfo: SmsInfo, obj: JsonObject) {
-
-
-    }
-
-
     /**
      * 获取近六个月 短信记录原始数据
      */
@@ -288,7 +158,17 @@ class SmsInfoDao @Autowired constructor(
                     sqlExecuteQuery1(conn, mobile, taskId, dateList[d]).map {
 
                         println("result1" + it.toJson())
-                        json.put("data", if (it.numRows == 0) JsonObject().put("bill_month",dateList[d].let { it -> it.substring(0,4)+"-"+it.substring(4,6) }).put("total_size",0).put("items",ArrayList<JsonObject>()) else it.rows[0])
+                        json.put(
+                            "data",
+                            if (it.numRows == 0) JsonObject().put(
+                                "bill_month",
+                                dateList[d].let { it ->
+                                    it.substring(0, 4) + "-" + it.substring(
+                                        4,
+                                        6
+                                    )
+                                }).put("total_size", 0).put("items", ArrayList<JsonObject>()) else it.rows[0]
+                        )
 
                     }.toObservable()
                 }
@@ -303,13 +183,13 @@ class SmsInfoDao @Autowired constructor(
      * sql查询 按月汇总短信数据
      */
     fun sqlExecuteQuery1(conn: SQLConnection, mobile: String, taskId: String, moth: String): Single<ResultSet> {
-        val sql = "SELECT CONCAT_WS('-',LEFT(bill_month,4),RIGHT(bill_month,2)) as bill_month , count(*) AS total_size FROM ${SmsInfo.tableName}\n" +
-                " WHERE mobile = \"$mobile\" \n" +
-                "AND task_id = \"$taskId\" \n" +
-                "AND bill_month = \"$moth\"\n" +
-                "GROUP BY bill_month\n" +
-                "ORDER BY bill_month DESC"
-        println("++++++++++++++++：" + sql)
+        val sql =
+            "SELECT CONCAT_WS('-',LEFT(bill_month,4),RIGHT(bill_month,2)) as bill_month , count(*) AS total_size FROM ${SmsInfo.tableName}\n" +
+                    " WHERE mobile = \"$mobile\" \n" +
+                    "AND task_id = \"$taskId\" \n" +
+                    "AND bill_month = \"$moth\"\n" +
+                    "GROUP BY bill_month\n" +
+                    "ORDER BY bill_month DESC"
         return this.query(conn, sql)
     }
 
@@ -331,7 +211,6 @@ class SmsInfoDao @Autowired constructor(
                 "AND task_id = \"$taskId\" \n" +
                 "AND bill_month = \"$moth\"\n" +
                 "ORDER BY time DESC"
-        println("------------------:" + sql)
         return this.query(conn, sql)
     }
 

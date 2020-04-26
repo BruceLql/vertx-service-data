@@ -26,44 +26,6 @@ class UserInfoDao @Autowired constructor(
 ) : AbstractDao<UserInfo>(client) {
     override val log: Logger = logger(this::class)
 
-
-    fun userInfoDataInsert(data: List<JsonObject>): Single<UpdateResult> {
-
-        println(" 基本信息存入mysql: .....")
-        val userInfo = UserInfo()
-        data.forEach {
-            println("基本信息:" + it)
-            userInfo.mobile = it.getString("mobile")
-            userInfo.task_id = it.getString("mid")
-            userInfo.carrier = it.getString("operator")  // CMCC 移动
-            val dataOut = it.getJsonObject("data")
-
-
-            if (!dataOut.isEmpty) {
-                when (userInfo.carrier) {
-                    "CMCC" -> {
-                        cmcc(userInfo,dataOut)
-
-                    }
-                    "CUCC" -> {
-                        cucc(userInfo,dataOut)
-                    }
-                    "CTCC" -> {
-
-                    }
-                }
-
-            }
-
-        }
-        if (!userInfo.name.isNullOrEmpty()) {
-            return insert(userInfo)
-        } else {
-            return Single.just(UpdateResult())
-        }
-
-    }
-
     /**
      * 新增记录
      * */
@@ -81,79 +43,6 @@ class UserInfoDao @Autowired constructor(
 
 
     /**
-     * 移动-短信数据提取
-     */
-    private fun cmcc(userInfo: UserInfo, dataOut: JsonObject) {
-        userInfo.name = dataOut.getString("name")
-        userInfo.state = dataOut.getString("status")
-        userInfo.real_name_info = dataOut.getString("realNameInfo")
-        userInfo.reliability = dataOut.getString("realNameInfo")
-        userInfo.brand = dataOut.getString("brand")
-        userInfo.package_name = ""
-        userInfo.in_net_date = dataOut.getString("inNetDate")
-        userInfo.net_age = dataOut.getString("netAge")
-        userInfo.net_age = splitYmd(dataOut.getString("netAge")).toString()
-
-
-        userInfo.level = dataOut.getString("starLevel")
-        userInfo.user_lever = dataOut.getString("level")
-        userInfo.star_score = dataOut.getString("star_score")
-        userInfo.user_email = dataOut.getString("email")
-        userInfo.zip_code = dataOut.getString("zipCode")
-        userInfo.user_address = dataOut.getString("address")
-        userInfo.idcard = dataOut.getString("certnum") // 仅联通有
-        userInfo.city = dataOut.getString("city_name")  //城市
-        userInfo.province = dataOut.getString("area")  // 省份
-
-
-        // 预留字段
-        userInfo.carrier_001 = ""
-        userInfo.carrier_002 = ""
-    }
-
-    /**
-     * 联通-短信数据提取
-     */
-    private fun cucc(userInfo: UserInfo, dataOut: JsonObject) {
-
-        userInfo.name = dataOut.getJsonObject("userinfo").getString("custName")
-        userInfo.state = dataOut.getJsonObject("userinfo").getString("status")
-        userInfo.real_name_info = dataOut.getJsonObject("userinfo").getString("verifyState")
-        userInfo.reliability = dataOut.getJsonObject("userinfo").getString("verifyState")
-        userInfo.brand = dataOut.getJsonObject("userinfo").getString("brand_name")
-        userInfo.package_name = dataOut.getJsonObject("userinfo").getString("packageName")
-        userInfo.in_net_date = dataOut.getJsonObject("userinfo").getString("opendate")
-        userInfo.net_age = dataOut.getString("netAge")  // 根据opendate 计算
-
-        userInfo.level = dataOut.getJsonObject("userinfo").getString("custlvl")
-        userInfo.user_lever = dataOut.getJsonObject("userinfo").getString("custlvl")
-        userInfo.star_score = ""
-        userInfo.user_email = dataOut.getJsonObject("result").getJsonObject("MyDetail").getString("sendemail")
-        userInfo.zip_code = ""
-        userInfo.user_address = dataOut.getJsonObject("result").getJsonObject("MyDetail").getString("certaddr")
-        userInfo.idcard = dataOut.getJsonObject("userinfo").getString("certnum") // 仅联通有
-        userInfo.city = dataOut.getJsonObject("userinfo").getString("citycode")  //城市
-        userInfo.province = dataOut.getJsonObject("userinfo").getString("provincecode")  // 省份
-
-
-        // 预留字段
-        userInfo.carrier_001 = ""
-        userInfo.carrier_002 = ""
-
-    }
-
-    /**
-     * 电信-短信数据提取
-     */
-    private fun ctcc(userInfo: UserInfo, obj: JsonObject) {
-
-        // 预留字段
-        userInfo.carrier_001 = ""
-        userInfo.carrier_002 = ""
-    }
-
-
-    /**
      * 获取 用户基本信息原始数据
      */
     fun queryUserInfoRaw6Month(mobile: String, taskId: String): Single<JsonObject> {
@@ -165,7 +54,7 @@ class UserInfoDao @Autowired constructor(
             var jsonList = ArrayList<JsonObject>()
             var json = JsonObject()
             val reChargesObservable = sqlExecuteQuery(conn, mobile, taskId).map {
-                println("户基本信息:" + it.toJson())
+                log.info("户基本信息:" + it.toJson())
                 json.put("data", if (it.numRows == 0) JsonObject() else it.rows)
 
             }.toObservable()
@@ -212,7 +101,7 @@ class UserInfoDao @Autowired constructor(
                 "FROM ${UserInfo.tableName}" +
                 " WHERE mobile = \"$mobile\" \n" +
                 "AND task_id = \"$taskId\" \n"
-        println("----------用户基本信原始数据--------:$sql")
+        log.info("----------用户基本信原始数据--------:$sql")
         return this.query(conn, sql)
     }
 }

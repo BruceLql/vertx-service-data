@@ -2,6 +2,7 @@ package kavi.tech.service.service
 
 import io.vertx.core.json.JsonArray
 import io.vertx.core.json.JsonObject
+import kavi.tech.service.common.extension.logger
 import kavi.tech.service.common.extension.value
 import kavi.tech.service.mysql.dao.*
 import org.springframework.beans.factory.annotation.Autowired
@@ -19,7 +20,7 @@ class CarrierService @Autowired constructor(
     val userInfoDao: UserInfoDao,
     val comboDao: ComboDao
 ) {
-
+    private val log = logger(this::class)
     /**
      * 原始数据封装
      */
@@ -49,28 +50,28 @@ class CarrierService @Autowired constructor(
             resultJson.put("smses", smses)
             // recharges 充值记录原始数据  ==========================================================
             val rechargesList = it[2]
-            println("recharge_time:$rechargesList")
+            log.info("recharges :$rechargesList")
             val recharges = rechargesInto(rechargesList[0])
             resultJson.put("recharges", recharges)
             // nets 上网记录原始数据  ==========================================================
             val netsList = it[3]
-            println("netsList:$netsList")
+            log.info("netsList:$netsList")
             val nets = netsInto(netsList[0], netsList[1])
             resultJson.put("nets", nets)
             // carrier_user_info 用户基本信息 原始数据  ==========================================================
             val userInfoList = it[4]
-            println("netsList:$userInfoList")
+            log.info("netsList:$userInfoList")
             val carrier_user_info = userInfoInto(userInfoList[0])
             resultJson.put("carrier_user_info", carrier_user_info)
             // bills 月账单 原始数据  ==========================================================
             val billsList = it[5]
-            println("billsList:$billsList")
+            log.info("billsList:$billsList")
             val bills = billsInto(billsList[0])
             resultJson.put("bills", bills)
 
             // 套餐数据 原始数据  ==========================================================
             val packagesList = it[6]
-            println("packagesList:$packagesList")
+            log.info("packagesList:$packagesList")
             val packages = packagesInto(packagesList[0], packagesList[1])
             resultJson.put("packages", packages)
             // 亲情号码数据 联通没有 先模拟 =================================================
@@ -125,7 +126,7 @@ class CarrierService @Autowired constructor(
         val recharges = ArrayList<JsonObject>()
 
         rechargesList.mapNotNull { json ->
-            println("json-----:$json")
+            log.info("json-----:$json")
             val dataValue = json.value<JsonArray>("data")
 
             dataValue?.mapNotNull {
@@ -169,7 +170,7 @@ class CarrierService @Autowired constructor(
         var userInfos = JsonObject()
 
         userInfoList.mapNotNull { json ->
-            println("userInfoInto json-----:$json")
+            log.info("userInfoInto json-----:$json")
             val dataValue = json.value<JsonArray>("data")
             dataValue?.mapNotNull {
                 it as JsonObject
@@ -203,9 +204,9 @@ class CarrierService @Autowired constructor(
         val billsIntos = ArrayList<JsonObject>()
 
         billsList.mapNotNull { json ->
-            println("billsInto json-----:$json")
+            log.info("billsInto json-----:$json")
             val dataValue = json.value<JsonArray>("data")
-            println("dataValue：======= $dataValue")
+            log.info("dataValue：======= $dataValue")
             dataValue?.mapNotNull {
                 it as JsonObject
                 val jsonObject = JsonObject()
@@ -241,7 +242,7 @@ class CarrierService @Autowired constructor(
         (0..packagesData.size - 1).map { d ->
             val jsonObject = JsonObject()
             val data = packagesCount[d].value<JsonObject>("data")
-            println("packagesInto ====：$data")
+            log.info("packagesInto ====：$data")
 
             val bill_start_date = data?.value<String>("bill_start_date") ?: ""
             val bill_end_date = data?.value<String>("bill_end_date") ?: ""

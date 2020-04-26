@@ -29,7 +29,7 @@ class ResultDataDao @Autowired constructor(
             INSERT_INTO(resultData.tableName())
             resultData.preInsert().forEach { (t, u) -> VALUES(t, u) }
         }
-        println("insert sql：$sql")
+
         return this.client.rxGetConnection().flatMap { conn ->
 
             conn.rxExecute(sql).doAfterTerminate(conn::close)
@@ -41,7 +41,7 @@ class ResultDataDao @Autowired constructor(
      * */
     public fun selectData(where: List<Serializable>): Single<JsonObject> {
         val sql = SQL.init { SELECT("*"); FROM(ResultData.tableName); WHERES(where) }
-        print("selectData sql:$sql")
+        log.info("selectData sql:$sql")
         return this.one(sql)
 
     }
@@ -60,7 +60,7 @@ class ResultDataDao @Autowired constructor(
                 taskIdSqlStr +
                 "ORDER BY created_at DESC  limit 1\n"
 
-        println("queryLastestTaskId:$sql")
+        log.info("queryLastestTaskId:$sql")
 
 
         return this.client.rxGetConnection().flatMap { conn ->

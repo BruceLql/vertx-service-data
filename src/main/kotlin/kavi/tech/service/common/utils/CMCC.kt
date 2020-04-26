@@ -1,16 +1,14 @@
 package kavi.tech.service.common.utils
 
 import io.vertx.core.json.JsonObject
-import kavi.tech.service.common.extension.regexDate
-import kavi.tech.service.common.extension.splitHms
-import kavi.tech.service.common.extension.splitYmd
-import kavi.tech.service.common.extension.value
+import kavi.tech.service.common.extension.*
 import kavi.tech.service.mysql.entity.*
 
 object CMCC {
+    private val log = logger(this::class)
     fun buildCallLog(json: JsonObject, mobile: String, taskId: String, billMonth: String?): CallLog {
 
-        println("json：$json")
+        log.info("json：$json")
         val callLog = CallLog()
         callLog.task_id = taskId
         callLog.mobile = mobile

@@ -37,68 +37,13 @@ class InternetInfoDao @Autowired constructor(
         }
     }
 
-    fun internetInfoDataInsert(data: List<JsonObject>): Single<UpdateResult> {
-
-        println(" 上网记录存入mysql: .....")
-        val internetInfoList = ArrayList<InternetInfo>()
-        data.forEach {
-            println("internetData：$it")
-            // 运营商类型  移动：CMCC 联通：CUCC 电信：CTCC
-            val operator = it.getString("operator")
-            val mobile = it.getString("mobile")
-            val bill_month = it.getString("bill_month")
-            val task_id = it.getString("mid")
-            val dataOut = it.getJsonObject("data")
-            if (!dataOut.isEmpty) {
-
-                when (operator) {
-                    // 移动数据提取
-                    "CMCC" -> {
-
-                        dataOut.getJsonArray("data").forEachIndexed { index, mutableEntry ->
-                            val InternetInfo_s = InternetInfo()
-                            InternetInfo_s.mobile = mobile
-                            InternetInfo_s.bill_month = bill_month
-                            InternetInfo_s.task_id = task_id
-                            val obj = JsonObject(mutableEntry.toString())
-
-                            cmcc(InternetInfo_s, obj)
-                            internetInfoList.add(InternetInfo_s)
-                        }
-                    }
-                    // 联通数据提取
-                    "CUCC" -> {
-                        dataOut.getJsonArray("pagelist").forEachIndexed { index, mutableEntry ->
-                            val InternetInfo_s = InternetInfo()
-                            InternetInfo_s.mobile = mobile
-                            InternetInfo_s.bill_month = bill_month
-                            InternetInfo_s.task_id = task_id
-                            val obj = JsonObject(mutableEntry.toString())
-
-                            cucc(InternetInfo_s, obj)
-                            internetInfoList.add(InternetInfo_s)
-                        }
-
-
-                    }
-                    // 电信数据提取
-                    "CTCC" -> {
-                    }
-                }
-
-            }
-        }
-        println("internetInfoList:${internetInfoList.size}" + internetInfoList.toString())
-        return insertBybatch(internetInfoList)
-
-    }
 
     /**
      * 批量新增通话记录
      * */
     fun insertBybatch(valueList: List<InternetInfo>): Single<UpdateResult> {
 
-        if(valueList.isNullOrEmpty()){
+        if (valueList.isNullOrEmpty()) {
             return Single.just(UpdateResult())
         }
         val sql = SQL.init {
@@ -146,13 +91,12 @@ class InternetInfoDao @Autowired constructor(
 
         }
 
-        println("sql=$sql")
 
         return this.client.rxGetConnection().flatMap { conn ->
             val startTime = System.currentTimeMillis()
             conn.rxUpdate(sql).doAfterTerminate {
                 conn.close()
-                println("上网流量批量插入 执行时间：${System.currentTimeMillis() - startTime}ms")
+                log.info("上网流量批量插入 执行时间：${System.currentTimeMillis() - startTime}ms")
             }
         }
 
@@ -174,97 +118,18 @@ class InternetInfoDao @Autowired constructor(
 
         }
     }
-
-    /**
-     * 移动-上网记录数据提取
-     */
-    private fun cmcc(internetInfo: InternetInfo, obj: JsonObject) {
-        internetInfo.start_time = obj.getString("startTime")
-        internetInfo.comm_plac = obj.getString("commPlac")
-        // 上网方式
-        internetInfo.net_play_type = obj.getString("netPlayType")
-        // 网络类型
-        internetInfo.net_type = obj.getString("netType")
-        // 总时长
-        internetInfo.comm_time = obj.getString("commTime")
-        // 总流量
-        internetInfo.sum_flow = obj.getString("sumFlow").replace("KB","")
-
-        // 套餐优惠
-        internetInfo.meal = obj.getString("meal")
-
-        val commFee = when (obj.getString("commFee")) {
-            null -> "0.00"
-            "" -> "0.00"
-            else -> obj.getString("commFee")
-        }
-
-        // 费用 原始数据单位是元  转换成分后存储
-        internetInfo.comm_fee = (commFee.toDouble() * 100).toInt()
-        // 预留字段
-        internetInfo.carrier_001 = ""
-        internetInfo.carrier_002 = ""
-
-    }
-
-    /**
-     * 联通-上网记录数据提取
-     */
-    private fun cucc(internetInfo: InternetInfo, obj: JsonObject) {
-        internetInfo.start_time = obj.getString("begindateformat") + " " + obj.getString("begintimeformat")
-        // 通信地点 无数据
-        internetInfo.comm_plac = obj.getString("homearea")
-        // 上网方式
-        internetInfo.net_play_type = obj.getString("roamstat") //(国际漫游/国内)
-        // 网络类型
-        internetInfo.net_type = obj.getString("nettypeformat") //4g网络
-        // 总时长 单位s
-        internetInfo.comm_time = obj.getString("longhour")
-        // 总流量
-        val pertotalsm = when (obj.getString("pertotalsm")) {
-            null -> "0.00"
-            "" -> "0.00"
-            else -> obj.getString("pertotalsm")
-        }
-        internetInfo.sum_flow = (pertotalsm.toDouble() * 1000).toInt().toString()
-        // 套餐优惠
-        internetInfo.meal = obj.getString("deratefee")
-        // 费用 原始数据单位是元  转换成分后存储
-        val totalfee = when (obj.getString("totalfee")) {
-            null -> "0.00"
-            "" -> "0.00"
-            else -> obj.getString("totalfee")
-        }
-        internetInfo.comm_fee = (totalfee.toDouble() * 100).toInt()
-        // 预留字段
-        internetInfo.carrier_001 = ""
-        internetInfo.carrier_002 = ""
-
-
-    }
-
-    /**
-     * 电信-上网记录数据提取
-     */
-    private fun ctcc(internetInfo: InternetInfo, obj: JsonObject) {
-
-        // 预留字段
-        internetInfo.carrier_001 = ""
-        internetInfo.carrier_002 = ""
-    }
-
     /**
      * 获取近六个月 通话记录原始数据
      */
     fun queryNetsRaw6Month(mobile: String, taskId: String): Single<List<JsonObject>> {
         //获取最近6个月时间
         val dateList = DateUtils.getPreMothInCurrentMoth(6, DateUtils.DatePattern.YYYY_MM.value)
-        println("=========:" + dateList.toString())
+        log.info("=========:$dateList")
         return this.client.rxGetConnection().flatMap { conn ->
 
             val listCount =
                 (0..5).map { d ->
-                    var json = JsonObject()
+                    val json = JsonObject()
                     sqlExecuteQuery2(conn, mobile, taskId, dateList[d]).map {
 
                         json.put(dateList[d], if (it.numRows == 0) JsonObject() else it.rows)
@@ -290,12 +155,12 @@ class InternetInfoDao @Autowired constructor(
 
             val listCount =
                 (0..5).map { d ->
-                    var json = JsonObject()
+                    val json = JsonObject()
                     sqlExecuteQuery1(conn, mobile, taskId, dateList[d]).map {
 
                         println("result1" + it.toJson())
 //                        json.put("data", if (it.numRows == 0) JsonObject().put("bill_month",dateList[d]).put("total_size",0).put("items",ArrayList<JsonObject>()) else it.rows[0])
-                        json.put("data",  JsonObject().put("bill_month",dateList[d].let { it -> it.substring(0,4)+"-"+it.substring(4,6) }).put("total_size",0).put("items",ArrayList<JsonObject>()))
+                        json.put("data", JsonObject().put("bill_month", dateList[d].let { it -> it.substring(0, 4) + "-" + it.substring(4, 6) }).put("total_size", 0).put("items", ArrayList<JsonObject>()) )
 
                     }.toObservable()
                 }
@@ -310,13 +175,13 @@ class InternetInfoDao @Autowired constructor(
      * sql查询 上网流量按月汇总数据
      */
     fun sqlExecuteQuery1(conn: SQLConnection, mobile: String, taskId: String, moth: String): Single<ResultSet> {
-        val sql = "SELECT CONCAT_WS('-',LEFT(bill_month,4),RIGHT(bill_month,2)) as bill_month , count(*) AS total_size FROM ${InternetInfo.tableName}\n" +
-                " WHERE mobile = \"$mobile\" \n" +
-                "AND task_id = \"$taskId\" \n" +
-                "AND bill_month = \"$moth\"\n" +
-                "GROUP BY bill_month\n" +
-                "ORDER BY bill_month DESC"
-        println("++++++++++++++++：" + sql)
+        val sql =
+            "SELECT CONCAT_WS('-',LEFT(bill_month,4),RIGHT(bill_month,2)) as bill_month , count(*) AS total_size FROM ${InternetInfo.tableName}\n" +
+                    " WHERE mobile = \"$mobile\" \n" +
+                    "AND task_id = \"$taskId\" \n" +
+                    "AND bill_month = \"$moth\"\n" +
+                    "GROUP BY bill_month\n" +
+                    "ORDER BY bill_month DESC"
         return this.query(conn, sql)
     }
 
@@ -338,7 +203,6 @@ class InternetInfoDao @Autowired constructor(
                 "AND task_id = \"$taskId\" \n" +
                 "AND bill_month = \"$moth\"\n" +
                 "ORDER BY time DESC"
-        println("------------------:$sql")
         return this.query(conn, sql)
     }
 }

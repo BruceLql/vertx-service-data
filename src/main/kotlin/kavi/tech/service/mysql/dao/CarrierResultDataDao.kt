@@ -31,7 +31,7 @@ class CarrierResultDataDao @Autowired constructor(
     /**
      * 新增记录
      * */
-     fun insert(conn: SQLConnection, carrierResultData: CarrierResultData): Single<CarrierResultData> {
+    fun insert(conn: SQLConnection, carrierResultData: CarrierResultData): Single<CarrierResultData> {
         val sql = SQL.init {
             INSERT_INTO(carrierResultData.tableName())
 
@@ -45,13 +45,13 @@ class CarrierResultDataDao @Autowired constructor(
     /**
      * 通过task_id查询数据是否已经入库
      * */
-     fun selectBeforeInsert(carrierResultData: CarrierResultData): Single<List<JsonObject>> {
+    fun selectBeforeInsert(carrierResultData: CarrierResultData): Single<List<JsonObject>> {
 
         val sql = SQL.init {
-           SELECT("*")
+            SELECT("*")
             FROM(CallLog.tableName)
-            WHERE(Pair("task_id",carrierResultData.task_id))
-            WHERE(Pair("mobile",carrierResultData.mobile))
+            WHERE(Pair("task_id", carrierResultData.task_id))
+            WHERE(Pair("mobile", carrierResultData.mobile))
         }
         log.info("selectBeforeInsert sql：$sql")
 
@@ -61,14 +61,15 @@ class CarrierResultDataDao @Autowired constructor(
     /**
      * 自定义入参sql
      * */
-     fun customizeSQL(sql: String): Single<List<JsonObject>> {
+    fun customizeSQL(sql: String): Single<List<JsonObject>> {
         log.info("selectBeforeInsert sql：$sql")
         return this.select(sql)
     }
+
     /**
      * 自定义入参sql
      * */
-     fun customizeSQLRes(sql: String): Single<ResultSet> {
+    fun customizeSQLRes(sql: String): Single<ResultSet> {
 
         log.info("selectBeforeInsert sql：$sql")
         return this.client.rxGetConnection().flatMap { conn ->
@@ -125,68 +126,7 @@ class CarrierResultDataDao @Autowired constructor(
                 conn.close()
                 log.info("执行时间：${System.currentTimeMillis() - startTime}ms")
             }
-            /* conn.rxBatch(sql).doAfterTerminate{
-                 conn.close()
-                 println("执行时间：${System.currentTimeMillis() - startTime}ms")
-             }*/
         }
-
-    }
-
-    fun carrierResultDataInsert(data: List<JsonObject>) {
-
-        log.info(" 通话记录存入mysql: .....")
-        val carrierResultDataList = ArrayList<CarrierResultData>()
-        data.forEach {
-            val mobile = it.getString("mobile")
-            val task_id = it.getString("mid")
-            val dataOut = it.getJsonObject("data")
-            if (dataOut.isEmpty) {
-                return
-            }
-            if (dataOut.getInteger("totalNum") < 1) {
-                return
-            }
-            dataOut.getJsonArray("data").forEachIndexed { index, mutableEntry ->
-                val carrierResultDatas = CarrierResultData()
-                carrierResultDatas.mobile = mobile
-                carrierResultDatas.task_id = task_id
-                val obj = JsonObject(mutableEntry.toString())
-                this.assistantSave(carrierResultDatas, obj)
-                carrierResultDataList.add(carrierResultDatas)
-            }
-        }
-        log.info("carrierResultDataList:${carrierResultDataList.size}" + carrierResultDataList.toString())
-//        selectBeforeInsert(carrierResultDataList[0]).subscribe({
-//            // 如果查询结果的行数大于0 说明已经入库过了  暂时先不处理
-//            if (it.numRows == 0) {
-//                // 执行批量方法
-//                insertBybatch(CarrierResultData(), carrierResultDataList).subscribe({ it ->
-//                    println(it)
-//                    // todo 处理通话数据分析规则
-//                    println("处理分析结果数据表：=====")
-//
-//                }, {
-//                    it.printStackTrace()
-//                })
-//            } else {
-//                log.info("已经存在${it.numRows}条数据,该数据已经入库过！新数据有${carrierResultDataList.size}条")
-//            }
-//        }, {
-//            log.error(it.printStackTrace())
-//        })
-    }
-
-    /**
-     * 移动-短信数据提取
-     */
-    private fun assistantSave(carrierResultDatas: CarrierResultData, obj: JsonObject) {
-
-        carrierResultDatas.item = obj.getString("item")
-        carrierResultDatas.result = obj.getString("result")
-        // 预留字段
-        carrierResultDatas.carrier_001 = ""
-        carrierResultDatas.carrier_002 = ""
 
     }
 

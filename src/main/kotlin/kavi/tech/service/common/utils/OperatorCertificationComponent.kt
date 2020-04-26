@@ -35,7 +35,7 @@ class OperatorCertificationComponent {
     fun callBackPlatform(resultSend: JsonObject, callbackUrl: String, callBackName: String) {
         var retry = 0
         val pushData = GZIPUtils().compress(resultSend.toString())
-        println("gzip 压缩后的长度：${pushData?.size}")
+        log.info("gzip 压缩后的长度：${pushData?.size}")
 
         Single.create<String> { subscriber ->
 

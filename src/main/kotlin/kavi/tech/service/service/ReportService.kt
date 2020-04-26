@@ -7,6 +7,7 @@ import io.vertx.ext.mongo.FindOptions
 import io.vertx.ext.sql.UpdateResult
 import io.vertx.rxjava.ext.web.client.WebClient
 import kavi.tech.service.common.extension.GZIPUtils
+import kavi.tech.service.common.extension.logger
 import kavi.tech.service.common.extension.value
 import kavi.tech.service.common.utils.CMCC
 import kavi.tech.service.common.utils.CUCC
@@ -49,18 +50,19 @@ class ReportService @Autowired constructor(
 ) {
     @Autowired
     private lateinit var rxClient: WebClient
+    private val log = logger(this::class)
 
     /**
      * 数据提取 根据传进来的task_id开始从mongo中读取数据 以及简单清洗后存入Mysql
      */
     fun beginDataByMongo(query: JsonObject, findOptions: FindOptions,userName: String,userIdCard: String): Single<List<UpdateResult>> {
 
-        println("----------------- beginDataByMongo -----------------query ：${query.toString()}")
+        log.info("----------------- beginDataByMongo -----------------query ：${query}")
 
         // 读取mongo 数据库通话记录 并过滤数据插入Mysql
         val callLogResult = dataCallLogModel.queryListAndSave2Mysql(query)
             .flatMap {
-                println("======:$it")
+                log.info("======:$it")
                 callLogDao.insertBybatch(filterCallLog(it))
             }
 
