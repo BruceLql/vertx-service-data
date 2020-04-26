@@ -4,10 +4,10 @@ import io.vertx.core.http.HttpMethod
 import io.vertx.core.json.JsonObject
 import io.vertx.ext.mongo.FindOptions
 import io.vertx.ext.web.RoutingContext
-import io.vertx.rxjava.ext.web.client.WebClient
 import kavi.tech.service.common.extension.logger
 import kavi.tech.service.common.extension.regexPhone
 import kavi.tech.service.common.extension.value
+import kavi.tech.service.common.utils.OperatorCertificationComponent
 import kavi.tech.service.service.CarrierService
 import kavi.tech.service.service.ReportService
 import org.springframework.beans.factory.annotation.Autowired
@@ -17,13 +17,11 @@ import tech.kavi.vs.web.HandlerRequest
 @HandlerRequest(path = "/notice", method = HttpMethod.POST)
 class NoticeHandler @Autowired constructor(
     val reportService: ReportService,
-    val carrierService: CarrierService
+    val carrierService: CarrierService,
+    val operatorCertificationComponent: OperatorCertificationComponent
 
 ) : ControllerHandler() {
     private val log = logger(this::class)
-
-    @Autowired
-    private lateinit var rxClient: WebClient
 
     /**
      * 爬虫程序执行完毕后通知
@@ -62,16 +60,15 @@ class NoticeHandler @Autowired constructor(
             }
 
 
-            val resultJsonObject = JsonObject()  // 存取最终返回结果
 
             query.put("mobile", mobile).put("mid", taskId)
 
             //   数据提取 根据传进来的task_id开始从mongo中读取数据 以及简单清洗后存入Mysql
-            reportService.beginDataByMongo(query, FindOptions(),name,idCard).flatMap {
+            reportService.beginDataByMongo(query, FindOptions(), name, idCard).flatMap {
 
                 //   调用数据清洗服务 结果封装到 result
                 reportService.dataClear(mobile, taskId).flatMap {
-                   // todo 清洗服务失败的情况下  调整return_code message
+                    // todo 清洗服务失败的情况下  调整return_code message
                     val return_code = "00000"
                     val message = "成功"
                     val operation_time = System.currentTimeMillis()
@@ -89,7 +86,8 @@ class NoticeHandler @Autowired constructor(
                 val message = "成功"
                 val operation_time = System.currentTimeMillis()
                 // 封装运营商原始数据报文格式
-                val resultSend = reportService.resultPacket(it, return_code, message, operation_time, taskId, mobile, nonce)
+                val resultSend =
+                    reportService.resultPacket(it, return_code, message, operation_time, taskId, mobile, nonce)
                 // 加签名后  运营商原始数据存储入库
                 reportService.saveRecord("raw", taskId, mobile, idCard, name, nonce, resultSend)
 
@@ -98,7 +96,7 @@ class NoticeHandler @Autowired constructor(
                 println("推送前结果size： ${resultSend.toString().length}")
 
                 println("推送地址 : $backUrl")
-                reportService.pushData(backUrl, resultSend)
+                operatorCertificationComponent.callBackPlatform(resultSend, backUrl, backUrl)
                 event.response().end(result.put("message", "notice success").toString())
 
             }, { it.printStackTrace() })
