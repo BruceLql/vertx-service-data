@@ -35,6 +35,17 @@ fun regexDate(dateStr: String): Boolean {
 }
 
 /**
+ * 日期时间格式校验正则
+ */
+fun regexDateTime(dateStr: String): Boolean {
+
+    var mainRegex = "\\d{14}"
+    var p = Pattern.compile(mainRegex)
+    val m = p.matcher(dateStr)
+    return m.matches()
+}
+
+/**
  *  字符串时分秒单位 取值转换成秒
  */
 fun splitHms(strHms: String): Int {

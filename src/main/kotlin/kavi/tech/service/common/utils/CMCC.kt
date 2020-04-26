@@ -120,7 +120,23 @@ object CMCC {
 
 
         // 交费日期
-        paymentRecord.recharge_time = json.value<String>("payDate") ?: ""
+        var payDate = json.value<String>("payDate")?:""
+        when{
+            regexDateTime(payDate) ->{
+                println("----------------regexDateTime-----------------------------")
+                payDate = payDate?.let { recTime ->
+                    recTime.substring(0, 4) + "-" + recTime.substring(4, 6) + "-" + recTime.substring(6, 8)+" "+ recTime.substring(8, 10)+":"+ recTime.substring(10, 12)+":"+ recTime.substring(12, 14)
+                }
+                println("payDate:$payDate")
+            }
+            else ->{
+
+                println("~~~~~~~~~~~~~")
+            }
+
+         }
+
+        paymentRecord.recharge_time = payDate
         // 交费方式
         paymentRecord.type = json.value<String>("payTypeName") ?: ""
         // 交费渠道
