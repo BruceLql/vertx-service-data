@@ -21,7 +21,7 @@ inline fun <reified T> User.principal(): T? {
 /**
  * 返回JSON的成功信息
  * */
-fun HttpServerResponse.success(data: Any, json: JsonObject ?= null) {
+fun HttpServerResponse.success(data: Any?, json: JsonObject ?= null) {
     val result = JsonObject().put("data", data)
     if (json != null) result.mergeIn(json)
     this.putHeader("Content-Type", "application/json; charset=utf-8")
@@ -33,13 +33,17 @@ fun HttpServerResponse.success(data: Any, json: JsonObject ?= null) {
  * @param e 异常类
  * @param json 附加JsonObject信息
  * */
-fun HttpServerResponse.error(e: Throwable, json: JsonObject ?= null) {
+fun HttpServerResponse.error(e: Throwable, statusCode: Int = 500, json: JsonObject ?= null, message: String? =null) {
+    this.setStatusCode(statusCode)
+    this.error(e, json, message)
+}
+fun HttpServerResponse.error(e: Throwable, json: JsonObject ?= null, message: String? =null) {
     val result = JsonObject()
     val cause = e.cause
     if (e is HttpStatusException && cause != null) {
-        result.put("error", cause.javaClass.simpleName).put("message", cause.message)
+        result.put("error", cause.javaClass.simpleName).put("message", cause.message ?: message)
     } else {
-        result.put("error", e.javaClass.simpleName).put("message", e.message)
+        result.put("error", e.javaClass.simpleName).put("message", e.message?: message)
     }
 
     if (json != null) result.mergeIn(json)

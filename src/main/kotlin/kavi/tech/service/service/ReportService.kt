@@ -454,18 +454,63 @@ class ReportService @Autowired constructor(
 
                 when (_operator) {
                     "CMCC" -> {
-                        val dataArray = dataOut.value<JsonArray>("data")
-                        val _list = dataArray?.mapNotNull { _any ->
+                        val _list = dataOut.value<JsonArray>("data")?.mapNotNull { _any ->
                             try {
                                 _any as JsonObject
                             } catch (e: Exception) {
                                 null
                             }
                         }
-                        _list?.map { listJson ->
-                            listCombo.add(
-                                CMCC.buileCombo(listJson, mobile, taskId, billMonth)
-                            )
+                        _list?.map { arrList ->
+                            when {
+                                arrList.value<String>("type") == "1" -> {
+                                    val _arrList = arrList.value<JsonArray>("arr")?.mapNotNull { _any ->
+                                        try {
+                                            _any as JsonObject
+                                        } catch (e: Exception) {
+                                            null
+                                        }
+                                    }
+                                    _arrList?.map { _arr ->
+                                        val resInfos = _arr.value<JsonArray>("resInfos")?.mapNotNull { _any ->
+                                            try {
+                                                _any as JsonObject
+                                            } catch (e: Exception) {
+                                                null
+                                            }
+                                        }
+
+                                        resInfos?.map { _sec ->
+                                            val _secResInfos =
+                                                _sec.value<JsonArray>("secResInfos")?.mapNotNull { _sec ->
+                                                    try {
+                                                        _sec as JsonObject
+                                                    } catch (e: Exception) {
+                                                        null
+                                                    }
+                                                }
+                                            _secResInfos?.map { secResInfos ->
+
+                                                println("------------套餐数据-------------$secResInfos" )
+                                                listCombo.add(
+                                                    CMCC.buileCombo(secResInfos, mobile, taskId, billMonth)
+                                                )
+
+
+                                            }
+
+
+                                        }
+
+
+                                    }
+
+                                }
+                                else -> {
+
+                                }
+                            }
+
                         }
                     }
                     "CUCC" -> {

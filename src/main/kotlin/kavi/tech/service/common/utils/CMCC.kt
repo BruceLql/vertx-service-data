@@ -10,7 +10,7 @@ import kavi.tech.service.mysql.entity.*
 object CMCC {
     fun buildCallLog(json: JsonObject, mobile: String, taskId: String, billMonth: String?): CallLog {
 
-        println("json："+json)
+        println("json：$json")
         val callLog = CallLog()
         callLog.task_id = taskId
         callLog.mobile = mobile
@@ -29,22 +29,22 @@ object CMCC {
             "被叫" -> "DIALED"
             "VOLTE被叫" -> "DIALED"
             "呼转" -> "DIALED"
-            "高清语音主叫" ->"DIAL"
-            "高清语音被叫" ->"DIALED"
+            "高清语音主叫" -> "DIAL"
+            "高清语音被叫" -> "DIALED"
             else -> commMode
         }
         // 对方号码
         callLog.peer_number = json.value<String>("anotherNm")
         // 对方归属地
         callLog.homearea = ""
-        val commTime = json.value<String>("commTime")?:""
+        val commTime = json.value<String>("commTime") ?: ""
 
         // 通信时长  // 示例数据：“2小时26分钟58秒”
         callLog.duration_in_second = splitHms(commTime).toString()
         //通信类型 （通话地类型 e.g.省内漫游、 国内被叫）
         callLog.location_type = json.value<String>("commType")
         // 费用 原始数据单位是元  转换成分后存储
-        callLog.fee = ((json.value<String>("commFee")?:"0.0").toDouble() * 100).toInt()
+        callLog.fee = ((json.value<String>("commFee") ?: "0.0").toDouble() * 100).toInt()
         // 预留字段
         callLog.carrier_001 = ""
         callLog.carrier_002 = ""
@@ -52,7 +52,7 @@ object CMCC {
         return callLog
     }
 
-    fun buildExpenseCalendar(json: JsonObject, mobile: String, taskId: String ): ExpenseCalendar {
+    fun buildExpenseCalendar(json: JsonObject, mobile: String, taskId: String): ExpenseCalendar {
         val expenseCalendar = ExpenseCalendar()
         expenseCalendar.task_id = taskId
         expenseCalendar.mobile = mobile
@@ -65,7 +65,7 @@ object CMCC {
         expenseCalendar.bill_end_date = json.value<String>("billEndDate")
 
         // 金额费用 原始数据单位是元  转换成分后存储
-        expenseCalendar.bill_fee =((json.value<String>("billFee")?:"0.0").toDouble()*100).toInt()
+        expenseCalendar.bill_fee = ((json.value<String>("billFee") ?: "0.0").toDouble() * 100).toInt()
         // 预留字段
         expenseCalendar.carrier_001 = ""
         expenseCalendar.carrier_002 = ""
@@ -91,7 +91,7 @@ object CMCC {
         // 总时长
         internetInfo.comm_time = json.value<String>("commTime")
         // 总流量
-        internetInfo.sum_flow = json.value<String>("sumFlow")?.replace("KB","")
+        internetInfo.sum_flow = json.value<String>("sumFlow")?.replace("KB", "")
 
         // 套餐优惠
         internetInfo.meal = json.value<String>("meal")
@@ -133,7 +133,7 @@ object CMCC {
         paymentRecord.pay_addr = json.value<String>("payAddr") ?: ""
 
         // 金额费用 原始数据单位是元  转换成分后存储
-        val commFee = json.value<String>("payFee")?:"0.0"
+        val commFee = json.value<String>("payFee") ?: "0.0"
 
         paymentRecord.amount_money = (commFee.toDouble() * 100).toInt()
         // 预留字段
@@ -170,7 +170,7 @@ object CMCC {
         // 对方号码
         smsInfo.peer_number = json.value<String>("anotherNm")
         // 费用 原始数据单位是元  转换成分后存储
-        smsInfo.fee = ((json.value<String>("commFee")?:"0.0").toDouble() * 100).toInt()
+        smsInfo.fee = ((json.value<String>("commFee") ?: "0.0").toDouble() * 100).toInt()
 
         // 预留字段
         smsInfo.carrier_001 = ""
@@ -196,7 +196,7 @@ object CMCC {
         userInfo.brand = json.value<String>("brand")
         userInfo.package_name = ""
         userInfo.in_net_date = json.value<String>("inNetDate")
-        userInfo.net_age = splitYmd(json.value<String>("netAge")?:"").toString()
+        userInfo.net_age = splitYmd(json.value<String>("netAge") ?: "").toString()
 
 
         userInfo.level = json.value<String>("starLevel")
@@ -223,19 +223,30 @@ object CMCC {
 
         combo.mobile = mobile
         combo.bill_month = billMonth
+
+        val resConInfo =
+            try {
+                json.value<JsonObject>("resConInfo") as JsonObject
+            } catch (e: Exception) {
+                null
+            }
+        val resConName = json.value<String>("resConName")
+
         // 套餐起始时间
-        combo.bill_start_date = json.value<String>("bill_start_date")
+        combo.bill_start_date =
+            resConInfo.value<String>("validDate")?.let { it.substring(0, 4) + "-" + it.substring(4, 6) + "-01" }
         // 套餐结束时间
-        combo.bill_end_date = json.value<String>("bill_end_date")
+        combo.bill_end_date = resConInfo.value<String>("validDate")
+            ?.let { it.substring(0, 4) + "-" + it.substring(4, 6) + "-" + it.substring(6, 8) }
         // 套餐名
-        combo.name = json.value<String>("name")
+        combo.name = resConName
         // 单位
-         combo.unit = json.value<String>("unit")
+        combo.unit = resConInfo.value<String>("unit")
 
         // 已使用量
-        combo.used = json.value<String>("used")
+        combo.used = resConInfo.value<String>("useMeal")
         // 总量
-        combo.total = json.value<String>("total")
+        combo.total = resConInfo.value<String>("totalMeal")
         // 预留字段
         combo.carrier_001 = ""
         combo.carrier_002 = ""
