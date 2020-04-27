@@ -114,7 +114,7 @@ class CarrierService @Autowired constructor(
             val total_size = data?.getInteger("total_size")
             jsonObject.put("bill_month", bill_month)
             jsonObject.put("total_size", total_size)
-            val items = smsesList[d].value<JsonArray>("data")?:JsonArray()
+            val items = smsesList[d].value<JsonArray>("data") ?: JsonArray()
 
             jsonObject.put("items", items)
             smses.add(jsonObject)
@@ -212,8 +212,10 @@ class CarrierService @Autowired constructor(
                 val jsonObject = JsonObject()
 
                 jsonObject.put("bill_month", it.value<String>("bill_month"))
-                jsonObject.put("bill_start_date", it.value<String>("bill_start_date")?.let { it->it.substring(0,4)+"-"+it.substring(4,6)+"-"+it.substring(6,8) }?:"") // 格式调整
-                jsonObject.put("bill_end_date", it.value<String>("bill_end_date")?.let { it->it.substring(0,4)+"-"+it.substring(4,6)+"-"+it.substring(6,8) }?:"") // 格式调整
+                val bill_start_date = it.value<String>("bill_start_date") ?: ""
+                val bill_end_date = it.value<String>("bill_end_date") ?: ""
+                jsonObject.put("bill_start_date", formateDate(bill_start_date)) // 格式调整
+                jsonObject.put("bill_end_date", formateDate(bill_end_date)) // 格式调整
                 jsonObject.put("bass_fee", it.getValue("bass_fee") ?: 0)
                 jsonObject.put("extra_fee", it.getValue("extra_fee") ?: 0)
                 jsonObject.put("voice_fee", it.getValue("voice_fee") ?: 0)
@@ -347,6 +349,26 @@ class CarrierService @Autowired constructor(
 
         return Observable.concat(listOf(queryComboRaw6Month.toObservable(), queryComboCountRaw6Month.toObservable()))
             .toList()
+
+    }
+
+    /**
+     * 时间格式判断转换
+     */
+    fun formateDate(strDate: String): String {
+        return when {
+            !strDate.isNullOrEmpty() -> {
+                try{
+                    strDate.let { it -> it.substring(0, 4) + "-" + it.substring(4, 6) + "-" + it.substring(6, 8) }
+                }catch (e: Exception){
+                    e.printStackTrace()
+                    ""
+                }
+            }
+            else -> {
+                ""
+            }
+        }
 
     }
 

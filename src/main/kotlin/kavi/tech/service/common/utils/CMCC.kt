@@ -58,9 +58,9 @@ object CMCC {
         expenseCalendar.bill_month = json.value("billMonth")
 
         // 交费方式
-        expenseCalendar.bill_start_date = json.value<String>("billStartDate")
+        expenseCalendar.bill_start_date = json.value<String>("billStartDate")?:""
         // 交费渠道
-        expenseCalendar.bill_end_date = json.value<String>("billEndDate")
+        expenseCalendar.bill_end_date = json.value<String>("billEndDate")?:""
 
         // 金额费用 原始数据单位是元  转换成分后存储
         expenseCalendar.bill_fee = ((json.value<String>("billFee") ?: "0.0").toDouble() * 100).toInt()
