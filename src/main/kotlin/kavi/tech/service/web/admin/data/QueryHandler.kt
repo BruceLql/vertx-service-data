@@ -38,7 +38,7 @@ class QueryHandler @Autowired constructor(
             event.response().error(e) // 返回数据
             return
         }
-        val mobile =params.value<String>("mobile")
+        val mobile = params.value<String>("mobile")
         val outTaskId = params.value<String>("task_id")
         val item = params.value<String>("item")
         try {
@@ -48,14 +48,14 @@ class QueryHandler @Autowired constructor(
             }
             mobile ?: throw IllegalArgumentException("缺少手机号码！")
 
-            item ?: throw IllegalArgumentException("缺少 item 类型！")  // ”raw“; "report"
+            if (item.isNullOrEmpty()) throw IllegalArgumentException("缺少 item 类型！")  // ”raw“; "report"
             if (!regexPhone(mobile)) {
                 throw IllegalArgumentException("(手机号)参数不合法！")
             }
         } catch (e: Exception) {
             e.printStackTrace()
             println("======== catch =========")
-            event.response().error(e, message= "异常，请联系管理员排查") // 返回数据
+            event.response().error(e, message = "异常，请联系管理员排查") // 返回数据
             return
         }
         val query = JsonObject()
