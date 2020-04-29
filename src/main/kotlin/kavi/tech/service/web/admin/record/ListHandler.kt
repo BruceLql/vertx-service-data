@@ -50,7 +50,7 @@ class ListHandler @Autowired constructor(
         })
 //        val result = GZIPUtils().uncompressToString(buffer.bytes)
 //        println("结果：${result}")
-        val returnJson = JsonObject().put("code", "FALL")
+        val returnJson = JsonObject().put("code", "success")
         event.response().setStatusCode(200).end(returnJson.toString())
 
 
