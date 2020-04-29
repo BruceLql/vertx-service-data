@@ -4,6 +4,7 @@
     "db_name": "fof_crawler"
   },
   "HTTP.PORT": 8080,
+  "HTTP.HOST": "localhost",
 
   "MYSQL": {
     "host": "39.108.162.204",

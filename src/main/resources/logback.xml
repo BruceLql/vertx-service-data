@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true" scanPeriod="60 seconds" debug="true">
+    <!--  引入相关配置  -->
+    <property resource="log_env.properties" />
+    <!--  日志地址  -->
+    <property name="LOG_HOME" value="${log.logPath}" />
+
+    <!--  控制台打印规则  -->
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <!--e格式化输出：%d表示日期，%thread表示线程名，%-5level：级别从左显示5个字符宽度%msg：日志消息，%n是换行符-->
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] - %highlight(%-5level) %boldMagenta(%logger{10}) - %cyan(%msg%n)</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+        <!--临界值日志过滤级别配置 -->
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter"><!-- 只打印DEBUG日志 -->
+            <!-- 在日志配置级别的基础上过滤掉info级别以下的日志 -->
+            <level>INFO</level>
+        </filter>
+    </appender>
+
+    <!-- info 日志滚动存储本地  -->
+    <appender name="INFO_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!--    正在记录的日志    -->
+        <file>${LOG_HOME}/${log.appName}/log-info.log</file>
+        <!-- 此日志文件只记录info级别的 -->
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>info</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_HOME}/${log.appName}/log-info.log-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <!-- 文件大小 -->
+            <maxFileSize>${log.file.maxFileSize}</maxFileSize>
+            <!--  文件存放时间  -->
+            <maxHistory>${log.file.maxHistory}</maxHistory>
+        </rollingPolicy>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <!--格式化输出：%d表示日期，%thread表示线程名，%-5level：级别从左显示5个字符宽度%msg：日志消息，%n是换行符-->
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] - %highlight(%-5level) %boldMagenta(%logger{10}) - %cyan(%msg%n)</pattern>
+        </encoder>
+    </appender>
+
+
+    <!-- error 日志滚动存储本地  -->
+    <appender name="ERROR_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!--    正在记录的日志    -->
+        <file>${LOG_HOME}/${log.appName}/log-error.log</file>
+        <!-- 此日志文件只记录info级别的 -->
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>error</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_HOME}/${log.appName}/log-error.log-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <!-- 文件大小 -->
+            <maxFileSize>${log.file.maxFileSize}</maxFileSize>
+            <!--  文件存放时间  -->
+            <maxHistory>${log.file.maxHistory}</maxHistory>
+        </rollingPolicy>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <!--格式化输出：%d表示日期，%thread表示线程名，%-5level：级别从左显示5个字符宽度%msg：日志消息，%n是换行符-->
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] - %highlight(%-5level) %boldMagenta(%logger{10}) - %cyan(%msg%n)</pattern>
+        </encoder>
+    </appender>
+
+
+    <!-- debug 日志滚动存储本地  -->
+    <appender name="DEBUG_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!--    正在记录的日志    -->
+        <file>${LOG_HOME}/${log.appName}/log-debug.log</file>
+        <!-- 此日志文件只记录info级别的 -->
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>debug</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_HOME}/${log.appName}/log-debug.log-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <!-- 文件大小 -->
+            <maxFileSize>${log.file.maxFileSize}</maxFileSize>
+            <!--  文件存放时间  -->
+            <maxHistory>${log.file.maxHistory}</maxHistory>
+        </rollingPolicy>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <!--格式化输出：%d表示日期，%thread表示线程名，%-5level：级别从左显示5个字符宽度%msg：日志消息，%n是换行符-->
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] - %highlight(%-5level) %boldMagenta(%logger{10}) - %cyan(%msg%n)</pattern>
+        </encoder>
+    </appender>
+
+
+    <!-- warn 日志滚动存储本地  -->
+    <appender name="WARN_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!--    正在记录的日志    -->
+        <file>${LOG_HOME}/${log.appName}/log-warn.log</file>
+        <!-- 此日志文件只记录info级别的 -->
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>warn</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_HOME}/${log.appName}/log-warn.log-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <!-- 文件大小 -->
+            <maxFileSize>${log.file.maxFileSize}</maxFileSize>
+            <!--  文件存放时间  -->
+            <maxHistory>${log.file.maxHistory}</maxHistory>
+        </rollingPolicy>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <!--格式化输出：%d表示日期，%thread表示线程名，%-5level：级别从左显示5个字符宽度%msg：日志消息，%n是换行符-->
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] - %highlight(%-5level) %boldMagenta(%logger{10}) - %cyan(%msg%n)</pattern>
+        </encoder>
+    </appender>
+
+
+<!--     输出日志到mysql数据库-->
+    <appender name="DB" class="ch.qos.logback.classic.db.DBAppender">
+        <connectionSource class="ch.qos.logback.core.db.DriverManagerConnectionSource">
+            <driverClass>${log.db.driverClass}</driverClass>
+            <url>${log.db.url}</url>
+            <user>${log.db.userName}</user>
+            <password>${log.db.password}</password>
+        </connectionSource>
+    </appender>
+
+
+<!--     flume收集 -->
+<!--    <appender name="FLUME_LOG" class="kavi.tech.service.flume.FlumeLogstashV1Appender">-->
+<!--        <flumeAgents>192.168.1.223:44444</flumeAgents>-->
+<!--        <flumeProperties>-->
+<!--            connect-timeout=4000;-->
+<!--            request-timeout=8000-->
+<!--        </flumeProperties>-->
+<!--        <batchSize>100</batchSize>-->
+<!--        <reportingWindow>1000</reportingWindow>-->
+<!--        <additionalAvroHeaders> myHeader = myValue </additionalAvroHeaders>-->
+<!--        <application>JustryDeng's Application</application>-->
+<!--        <layout class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">-->
+<!--            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] - %highlight(%-5level) %boldMagenta(%logger{10}) - %cyan(%msg%n)</pattern>-->
+<!--        </layout>-->
+<!--    </appender>-->
+
+<!--      sentry-->
+<!--    <appender name="Sentry" class="io.sentry.logback.SentryAppender">-->
+<!--        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">-->
+<!--            <level>WARN</level>-->
+<!--        </filter>-->
+<!--    </appender>-->
+
+    <!-- 自定义存入mongo db -->
+    <appender name="mongoDB" class="kavi.tech.service.common.utils.MyMongoDBAppend">
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+        </filter>
+    </appender>
+
+    <!-- 日志指定包打印 -->
+    <logger name="kavi.tech.service.common.utils.LogUtils" level="info">
+<!--        <appender-ref ref="DB"/>-->
+        <appender-ref ref="INFO_FILE"/>
+        <appender-ref ref="ERROR_FILE"/>
+        <appender-ref ref="DEBUG_FILE"/>
+        <appender-ref ref="WARN_FILE"/>
+<!--        <appender-ref ref="FLUME_LOG"/>-->
+        <appender-ref ref="mongoDB" />
+    </logger>
+    <logger name="io" level="off" additivity="false">
+        <appender-ref ref="STDOUT"/>
+    </logger>
+    <logger name="org" level="off" additivity="false">
+        <appender-ref ref="STDOUT"/>
+    </logger>
+
+    <!--  TRACE < DEBUG < INFO < WARN < ERROR  -->
+    <root level="INFO">
+        <appender-ref ref="STDOUT"/>
+<!--        <appender-ref ref="Sentry"/>-->
+        <appender-ref ref="mongoDB"/>
+<!--        <appender-ref ref="FLUME_LOG"/>-->
+<!--        <appender-ref ref="DB"/>-->
+        <appender-ref ref="INFO_FILE"/>
+        <appender-ref ref="ERROR_FILE"/>
+        <appender-ref ref="DEBUG_FILE"/>
+        <appender-ref ref="WARN_FILE"/>
+    </root>
+</configuration>
