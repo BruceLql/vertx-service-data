@@ -93,14 +93,24 @@ fun splitYmd(strYmd: String): Int {
         val str = it.replace("年", "-").replace("个月", "")
 
         val strList = str.split("-")
-        if (strList.size == 2) {
-            totalInt += strList[0].toInt() * 12
-            totalInt += strList[1].toInt()
-        }
-        if (strList.size == 1) {
-            totalInt += strList[0].toInt()
-        }
+        try {
+            if (strList.size == 1) {
+                totalInt = strList[0].toInt() * 12
+            }
+            if (strList.size == 2) {
+                if(strList[1].isNullOrEmpty()){
+                    totalInt += strList[0].toInt() * 12
+                }else {
+                    totalInt += strList[1].toInt()
+                }
+            }
+            if (strList.size == 1) {
+                totalInt += strList[0].toInt()
+            }
 
+        }catch (e: Exception){
+            totalInt = 0
+        }
         totalInt
     }
 }
