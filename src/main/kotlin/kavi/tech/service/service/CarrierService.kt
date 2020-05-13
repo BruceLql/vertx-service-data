@@ -88,7 +88,7 @@ class CarrierService @Autowired constructor(
     fun callsInto(callsData: List<JsonObject>, callsCount: List<JsonObject>): ArrayList<JsonObject> {
         val calls = ArrayList<JsonObject>()
 
-        (0..callsData.size - 1).map { d ->
+        (callsData.indices).map { d ->
             val jsonObject = JsonObject()
             val data = callsCount[d].value<JsonObject>("data")
             val bill_month = data?.value<String>("bill_month")
@@ -107,7 +107,7 @@ class CarrierService @Autowired constructor(
     fun smsesInto(smsesList: List<JsonObject>, callsCount: List<JsonObject>): ArrayList<JsonObject> {
         val smses = ArrayList<JsonObject>()
 
-        (0..smsesList.size - 1).map { d ->
+        (smsesList.indices).map { d ->
             val jsonObject = JsonObject()
             val data = callsCount[d].value<JsonObject>("data")
             val bill_month = data?.value<String>("bill_month")
@@ -148,7 +148,7 @@ class CarrierService @Autowired constructor(
 
         val nets = ArrayList<JsonObject>()
 
-        (0..netsData.size - 1).map { d ->
+        (netsData.indices).map { d ->
             val jsonObject = JsonObject()
             val data = netsCount[d].value<JsonObject>("data")
             val bill_month = data?.value<String>("bill_month")
@@ -241,7 +241,7 @@ class CarrierService @Autowired constructor(
 
         val nets = ArrayList<JsonObject>()
 
-        (0..packagesData.size - 1).map { d ->
+        (packagesData.indices).map { d ->
             val jsonObject = JsonObject()
             val data = packagesCount[d].value<JsonObject>("data")
             log.info("packagesInto ====：$data")

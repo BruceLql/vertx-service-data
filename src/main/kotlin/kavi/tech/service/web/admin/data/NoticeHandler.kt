@@ -109,7 +109,6 @@ class NoticeHandler @Autowired constructor(
             // 加签名后  运营商原始数据存储入库
             reportService.saveRecord("raw", taskId, mobile, idCard, name, nonce, resultSend)
 
-            // TODO  数据推送服务  resultSend
             log.info("推送前结果： $resultSend")
             log.info("推送前结果size： ${resultSend.toString().length}")
 
