@@ -1,15 +1,14 @@
 package kavi.tech.service.service
 
-import io.vertx.core.http.HttpMethod
 import io.vertx.core.json.JsonArray
 import io.vertx.core.json.JsonObject
 import io.vertx.ext.mongo.FindOptions
 import io.vertx.ext.sql.UpdateResult
 import io.vertx.rxjava.ext.web.client.WebClient
-import kavi.tech.service.common.extension.GZIPUtils
 import kavi.tech.service.common.extension.logger
 import kavi.tech.service.common.extension.value
 import kavi.tech.service.common.utils.CMCC
+import kavi.tech.service.common.utils.CTCC
 import kavi.tech.service.common.utils.CUCC
 import kavi.tech.service.common.utils.Sha256Utils
 import kavi.tech.service.mongo.model.*
@@ -71,7 +70,7 @@ class ReportService @Autowired constructor(
             .flatMap { expenseCalendarDao.insertBybatch(filterExpenseCalendar(it)) }
 
         // 读取mongo 上网详情记录 并过滤数据插入mysql
-        val internetInfoResult = dataInternetInfoMondel.queryListAndSave2Mysql(query)
+       /* val internetInfoResult = dataInternetInfoMondel.queryListAndSave2Mysql(query)
             .flatMap { internetInfoDao.insertBybatch(filterInternetInfo(it)) }
 
         // 读取mongo 交费记录 并过滤数据插入mysql
@@ -96,15 +95,16 @@ class ReportService @Autowired constructor(
                 val filterComboList = filterCombo(it)
                 comboDao.insertBybatch(filterComboList)
 
-            }
+            }*/
         return Single.concat(
             callLogResult,
-            expenseCalendarResult,
+            expenseCalendarResult
+            /*,
             internetInfoResult,
             paymentRecordResult,
             smsInfoResult,
             userInfoResult,
-            comboResult
+            comboResult*/
         )
             .toList().toSingle()
 
@@ -162,7 +162,20 @@ class ReportService @Autowired constructor(
                             listCallLog.add(CUCC.buildCallLog(listJson, mobile, taskId, billMonth))
                         }
                     }
-                    else -> {
+                    else -> { //todo 电信通话记录
+                        val dataArray = dataOut.value<JsonObject>("data")
+                        val _list = dataArray?.mapNotNull { _any ->
+                            try {
+                                (_any as JsonObject)
+                            } catch (e: Exception) {
+                                null
+                            }
+                        }
+                        _list?.forEach {listJson ->
+                            listCallLog.add(CTCC.buildCallLog(listJson, mobile, taskId, billMonth))
+
+                        }
+
 
                     }
 
@@ -589,25 +602,6 @@ class ReportService @Autowired constructor(
 
     }
 
-    /**
-     * @param backUrl 回调地址
-     * @author max
-     * @param resultSend 运营商原始数据 json 格式
-     */
-    fun pushData(backUrl: String, resultSend: JsonObject) {
-        val pushData = GZIPUtils().compress(resultSend.toString())
-
-        rxClient.putAbs(backUrl).method(HttpMethod.POST)
-            .sendStream(Observable.just(io.vertx.rxjava.core.buffer.Buffer.buffer(pushData))) { it ->
-                if (it.succeeded()) {
-                    val response = it.result()
-                    println("Got HTTP response with status ${response.statusCode()}")
-                } else {
-                    it.cause().printStackTrace()
-                    // todo 失败重新推送
-                }
-            }
-    }
 
     /**
      * 加签方法

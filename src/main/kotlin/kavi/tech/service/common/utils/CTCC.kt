@@ -1,6 +1,7 @@
 package kavi.tech.service.common.utils
 
 import io.vertx.core.json.JsonObject
+import kavi.tech.service.common.extension.value
 import kavi.tech.service.mysql.entity.*
 
 object CTCC {
@@ -9,6 +10,7 @@ object CTCC {
         callLog.task_id = taskId
         callLog.mobile = mobile
         callLog.bill_month = billMonth
+        val startTime = json.value<String>("startTime")
 
         return callLog
     }
