@@ -70,11 +70,11 @@ class ReportService @Autowired constructor(
             .flatMap { expenseCalendarDao.insertBybatch(filterExpenseCalendar(it)) }
 
         // 读取mongo 上网详情记录 并过滤数据插入mysql
-       /* val internetInfoResult = dataInternetInfoMondel.queryListAndSave2Mysql(query)
+        val internetInfoResult = dataInternetInfoMondel.queryListAndSave2Mysql(query)
             .flatMap { internetInfoDao.insertBybatch(filterInternetInfo(it)) }
 
         // 读取mongo 交费记录 并过滤数据插入mysql
-        val paymentRecordResult = dataPaymentRecordMondel.queryListAndSave2Mysql(query)
+        /*val paymentRecordResult = dataPaymentRecordMondel.queryListAndSave2Mysql(query)
             .flatMap { paymentRecordDao.insertBybatch(filterPaymentRecord(it)) }
 
         // 读取mongo 短信数据 并过滤数据插入mysql
@@ -98,13 +98,12 @@ class ReportService @Autowired constructor(
             }*/
         return Single.concat(
             callLogResult,
-            expenseCalendarResult
-            /*,
-            internetInfoResult,
-            paymentRecordResult,
-            smsInfoResult,
-            userInfoResult,
-            comboResult*/
+            expenseCalendarResult,
+            internetInfoResult
+//            paymentRecordResult,
+//            smsInfoResult,
+//            userInfoResult,
+//            comboResult
         )
             .toList().toSingle()
 
@@ -162,8 +161,11 @@ class ReportService @Autowired constructor(
                             listCallLog.add(CUCC.buildCallLog(listJson, mobile, taskId, billMonth))
                         }
                     }
-                    else -> { //todo 电信通话记录
-                        val dataArray = dataOut.value<JsonObject>("data")
+                    "CTCC"->{
+                        println("++++++++++ CTCC ++++++++:$dataOut")
+                        //todo 电信通话记录
+                        val dataArray = dataOut.value<JsonArray>("data")
+                        println("+++++===============： $dataArray")
                         val _list = dataArray?.mapNotNull { _any ->
                             try {
                                 (_any as JsonObject)
@@ -172,11 +174,13 @@ class ReportService @Autowired constructor(
                             }
                         }
                         _list?.forEach {listJson ->
+                            println("========== CTCC ===========: $listJson")
                             listCallLog.add(CTCC.buildCallLog(listJson, mobile, taskId, billMonth))
 
                         }
-
-
+                    }
+                    else -> {
+                        log.info("================ something must be error ====================")
                     }
 
                 }
@@ -197,7 +201,7 @@ class ReportService @Autowired constructor(
             val operator = json.value<String>("operator")
             val taskId = json.value<String>("mid")
             val mobile = json.value<String>("mobile")
-            val billMonth = json.value<String>("bill_month")
+
             if (taskId == null || mobile == null) {
                 return@mapNotNull null
             }
@@ -211,6 +215,7 @@ class ReportService @Autowired constructor(
 
             operator?.let { _operator ->
                 _list?.map { it ->
+                    println("================ ctcc ====: $it")
                     when (_operator) {
                         "CMCC" -> {
                             listExpenseCalendar.add(
@@ -220,6 +225,11 @@ class ReportService @Autowired constructor(
                         "CUCC" -> {
                             listExpenseCalendar.add(
                                 CUCC.buildExpenseCalendar(it, mobile, taskId)
+                            )
+                        }
+                        "CTCC" -> {
+                            listExpenseCalendar.add(
+                                CTCC.buildExpenseCalendar(it, mobile, taskId)
                             )
                         }
                         else -> null
@@ -271,6 +281,21 @@ class ReportService @Autowired constructor(
                     }
                     "CUCC" -> {
                         val dataArray = dataOut.value<JsonArray>("pagelist")
+                        val _list = dataArray?.mapNotNull { _any ->
+                            try {
+                                _any as JsonObject
+                            } catch (e: Exception) {
+                                null
+                            }
+                        }
+                        _list?.map { listJson ->
+                            listInternetInfo.add(
+                                CUCC.buildInternetInfo(listJson, mobile, taskId, billMonth)
+                            )
+                        }
+                    }
+                    "CTCC" -> {
+                        val dataArray = dataOut.value<JsonArray>("data")
                         val _list = dataArray?.mapNotNull { _any ->
                             try {
                                 _any as JsonObject

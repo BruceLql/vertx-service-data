@@ -45,6 +45,7 @@ class CallLogDao @Autowired constructor(
      * 批量新增通话记录
      * */
     fun insertBybatch(valueList: List<CallLog>): Single<UpdateResult> {
+        println("============>>>>>>>>>>>: ${valueList.toString()}")
         if(valueList.isNullOrEmpty()){
            return Single.just(UpdateResult())
         }

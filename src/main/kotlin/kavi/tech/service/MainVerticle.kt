@@ -27,13 +27,14 @@ class MainVerticle : LauncherVerticle() {
         val idCard = "360731199900002222"
         val mobile = "18016875613"
         val taskId = "5ebba3a74c4dd0396012b455"
+//        val taskId = "5ebcf52972f96dce85c178ef"
         val query = io.vertx.core.json.JsonObject()
         query.put("mobile", mobile).put("mid", taskId)
 
 
         //   数据提取 根据传进来的task_id开始从mongo中读取数据 以及简单清洗后存入Mysql
         reportService.beginDataByMongo(query, FindOptions(), name, idCard).subscribe({
-            println("---------------------:${it}")
+            println("---------------------:${it.toString()}")
         }, { it.printStackTrace() })
 
     }

@@ -118,23 +118,25 @@ object CUCC {
         internetInfo.mobile = mobile
         internetInfo.bill_month = billMonth
 
-        internetInfo.start_time = json.value<String>("begindateformat") + " " + json.value<String>("begintimeformat")
+        internetInfo.start_time = json.value<String>("start_time")?.let {
+            it.replace("/","-")
+        }
         // 通信地点 无数据
-        internetInfo.comm_plac = json.value<String>("homearea")
+        internetInfo.comm_plac = json.value<String>("comm_plac")?.let { it.replace("--","") }
         // 上网方式
         internetInfo.net_play_type = json.value<String>("roamstat") //(国际漫游/国内)
         // 网络类型
-        internetInfo.net_type = json.value<String>("nettypeformat") //4g网络
+        internetInfo.net_type = json.value<String>("net_type") //4g网络
         // 总时长 单位s
-        internetInfo.comm_time = json.value<String>("longhour")
+        internetInfo.comm_time = json.value<String>("comm_time")
         // 总流量
-        val pertotalsm = json.value<String>("pertotalsm") ?: "0.0"
+        val pertotalsm = json.value<String>("sum_flow")?.let { it.replace("MB","") } ?: "0.0"
 
         internetInfo.sum_flow = (pertotalsm.toDouble() * 1024).toInt().toString() // 单位为 M  转换成 KB 乘以1024
         // 套餐优惠
-        internetInfo.meal = json.value<String>("deratefee")
+        internetInfo.meal = json.value<String>("deratefee")?:""
         // 费用 原始数据单位是元  转换成分后存储
-        val totalfee = json.value<String>("totalfee") ?: "0.0"
+        val totalfee = json.value<String>("comm_fee") ?: "0.0"
         internetInfo.comm_fee = (totalfee.toDouble() * 100).toInt()
         // 预留字段
         internetInfo.carrier_001 = ""
