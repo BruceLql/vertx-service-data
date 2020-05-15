@@ -38,7 +38,20 @@ object CMCC {
         val commTime = json.value<String>("commTime") ?: ""
 
         // 通信时长  // 示例数据：“2小时26分钟58秒”
-        callLog.duration_in_second = splitHms(commTime).toString()
+        when {
+            regex(commTime, "\\d{2}(:)\\d{2}(:)\\d{2}") -> {
+                try {
+                    val split = commTime.split(":")
+                    callLog.duration_in_second = (split[0].toInt() * 60 * 60 + (split[1].toInt() * 60) + (split[2].toInt())).toString()
+                } catch (e: java.lang.Exception) {
+                    log.error("CMCC  callLog.duration_in_second 转换异常: $commTime")
+                    callLog.duration_in_second = "0"
+                }
+            }
+            else -> {
+                callLog.duration_in_second = splitHms(commTime).toString()
+            }
+        }
         //通信类型 （通话地类型 e.g.省内漫游、 国内被叫）
         callLog.location_type = json.value<String>("commType")
         // 费用 原始数据单位是元  转换成分后存储
@@ -123,7 +136,6 @@ object CMCC {
         var payDate = json.value<String>("payDate")?:""
         when{
             regexDateTime(payDate) ->{
-                println("----------------regexDateTime-----------------------------")
                 payDate = payDate?.let { recTime ->
                     recTime.substring(0, 4) + "-" + recTime.substring(4, 6) + "-" + recTime.substring(6, 8)+" "+ recTime.substring(8, 10)+":"+ recTime.substring(10, 12)+":"+ recTime.substring(12, 14)
                 }
