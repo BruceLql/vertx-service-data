@@ -14,6 +14,17 @@ fun regexPhone(phone: String): Boolean {
 }
 
 /**
+ * 正则校验
+ * @param
+ */
+fun regex(valueRegex: String, regex: String): Boolean {
+
+    var p = Pattern.compile(regex)
+    val m = p.matcher(valueRegex)
+    return m.matches()
+}
+
+/**
  * 手机号校验正则
  */
 fun regexInt(num: String): Boolean {

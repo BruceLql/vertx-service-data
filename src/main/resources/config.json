@@ -7,10 +7,10 @@
   "HTTP.HOST": "localhost",
 
   "MYSQL": {
-    "host": "rm-bp14p7245dy9y3z27o.mysql.rds.aliyuncs.com",
+    "host": "192.168.1.200",
     "port": 3306,
-    "database": "xincm",
-    "username": "xincm",
-    "password": "Xincm2020"
+    "database": "test",
+    "username": "root",
+    "password": "12345678"
   }
 }

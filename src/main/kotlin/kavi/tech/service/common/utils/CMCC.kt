@@ -243,7 +243,7 @@ object CMCC {
         return userInfo
     }
 
-    fun builedCombo(json: JsonObject, mobile: String, taskId: String, billMonth: String?): Combo {
+    fun buildCombo(json: JsonObject, mobile: String, taskId: String, billMonth: String?): Combo {
         val combo = Combo()
         combo.task_id = taskId
 

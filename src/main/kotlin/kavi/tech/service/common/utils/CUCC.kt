@@ -254,7 +254,7 @@ object CUCC {
         return userInfo
     }
 
-    fun buileCombo(json: JsonObject, mobile: String, taskId: String, billMonth: String?): Combo {
+    fun buildCombo(json: JsonObject, mobile: String, taskId: String, billMonth: String?): Combo {
 
         val combo = Combo()
         combo.task_id = taskId

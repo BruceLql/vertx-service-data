@@ -27,7 +27,7 @@ class QueryHandler @Autowired constructor(
      * @param back_url 回调地址
      * */
     override fun handle(event: RoutingContext) {
-        log.info("=========/data/notice==============")
+        log.info("=========/data/query==============")
         // result 返回值
         val result = JsonObject()
         result.put("status", "0")

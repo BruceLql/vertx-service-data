@@ -74,36 +74,35 @@ class ReportService @Autowired constructor(
             .flatMap { internetInfoDao.insertBybatch(filterInternetInfo(it)) }
 
         // 读取mongo 交费记录 并过滤数据插入mysql
-        /*val paymentRecordResult = dataPaymentRecordMondel.queryListAndSave2Mysql(query)
+       val paymentRecordResult = dataPaymentRecordMondel.queryListAndSave2Mysql(query)
             .flatMap { paymentRecordDao.insertBybatch(filterPaymentRecord(it)) }
 
         // 读取mongo 短信数据 并过滤数据插入mysql
-        val smsInfoResult = dataSmsInfoModel.queryListAndSave2Mysql(query)
+       val smsInfoResult = dataSmsInfoModel.queryListAndSave2Mysql(query)
             .flatMap {
-                val filterSmsInfo = filterSmsInfo(it)
-                smsInfoDao.insertBybatch(filterSmsInfo)
+                smsInfoDao.insertBybatch(filterSmsInfo(it))
 
             }
 
         // 读取mongo 基础用户信息 并过滤数据插入mysql
         val userInfoResult = dataUserInfoModel.queryListAndSave2Mysql(query)
-            .flatMap { userInfoDao.insert(filterUserInfo(it, userName, userIdCard)) }
+           .flatMap { userInfoDao.insert(filterUserInfo(it, userName, userIdCard)) }
 
-        // 读取mongo 套餐数据 并过滤数据插入mysql
-        val comboResult = dataComboModel.queryListAndSave2Mysql(query)
-            .flatMap {
-                val filterComboList = filterCombo(it)
-                comboDao.insertBybatch(filterComboList)
+       // 读取mongo 套餐数据 并过滤数据插入mysql
+       val comboResult = dataComboModel.queryListAndSave2Mysql(query)
+           .flatMap {
+               val filterComboList = filterCombo(it)
+               comboDao.insertBybatch(filterComboList)
 
-            }*/
+           }
         return Single.concat(
             callLogResult,
             expenseCalendarResult,
-            internetInfoResult
-//            paymentRecordResult,
-//            smsInfoResult,
-//            userInfoResult,
-//            comboResult
+            internetInfoResult,
+            paymentRecordResult,
+            smsInfoResult,
+            userInfoResult,
+            comboResult
         )
             .toList().toSingle()
 
@@ -305,7 +304,7 @@ class ReportService @Autowired constructor(
                         }
                         _list?.map { listJson ->
                             listInternetInfo.add(
-                                CUCC.buildInternetInfo(listJson, mobile, taskId, billMonth)
+                                CTCC.buildInternetInfo(listJson, mobile, taskId, billMonth)
                             )
                         }
                     }
@@ -369,6 +368,21 @@ class ReportService @Autowired constructor(
                             )
                         }
                     }
+                    "CTCC" -> {
+                        val dataArray = dataOut.value<JsonArray>("data")
+                        val _list = dataArray?.mapNotNull { _any ->
+                            try {
+                                _any as JsonObject
+                            } catch (e: Exception) {
+                                null
+                            }
+                        }
+                        _list?.map { listJson ->
+                            listPaymentRecord.add(
+                                CTCC.buildPaymentRecord(listJson, mobile, taskId, billMonth)
+                            )
+                        }
+                    }
                     else -> null
                 }
 
@@ -386,7 +400,7 @@ class ReportService @Autowired constructor(
         val listSmsInfo = mutableListOf<SmsInfo>()
         list.mapNotNull { json ->
             val dataOut = json.value<JsonObject>("data")
-
+            println("data  =====：$dataOut")
             val operator = json.value<String>("operator")
             val taskId = json.value<String>("mid")
             val mobile = json.value<String>("mobile")
@@ -428,6 +442,23 @@ class ReportService @Autowired constructor(
                             )
                         }
                     }
+                    "CTCC" -> {
+                        println("===============sms ctcc=========")
+                        val dataArray = dataOut.value<JsonArray>("data")
+                        println("===========dataArray ：$dataArray")
+                        val _list = dataArray?.mapNotNull { _any ->
+                            try {
+                                _any as JsonObject
+                            } catch (e: Exception) {
+                                null
+                            }
+                        }
+                        _list?.map { listJson ->
+                            listSmsInfo.add(
+                                CTCC.buildSmsInfo(listJson, mobile, taskId, billMonth)
+                            )
+                        }
+                    }
                     else -> null
                 }
 
@@ -463,6 +494,10 @@ class ReportService @Autowired constructor(
                     "CUCC" -> {
                         userInfo =
                             CUCC.buileUserInfo(dataObj, mobile, taskId, billMonth, operator, userName, userIdCard)
+                    }
+                    "CTCC" -> {
+                        userInfo =
+                            CTCC.buildUserInfo(dataObj, mobile, taskId, billMonth, operator, userName, userIdCard)
                     }
                     else -> null
                 }
@@ -533,7 +568,7 @@ class ReportService @Autowired constructor(
 
                                                 println("------------套餐数据-------------$secResInfos" )
                                                 listCombo.add(
-                                                    CMCC.buileCombo(secResInfos, mobile, taskId, billMonth)
+                                                    CMCC.buildCombo(secResInfos, mobile, taskId, billMonth)
                                                 )
 
 
@@ -565,7 +600,23 @@ class ReportService @Autowired constructor(
                         }
                         _list?.map { listJson ->
                             listCombo.add(
-                                CUCC.buileCombo(listJson, mobile, taskId, billMonth)
+                                CUCC.buildCombo(listJson, mobile, taskId, billMonth)
+                            )
+                        }
+                    }
+                    "CTCC" -> {
+                        val dataArray = dataOut?.getJsonArray("data")
+                        val _list = dataArray?.mapNotNull { _any ->
+                            try {
+                                println("==========fourpackage cucc==========:" + _any.toString())
+                                _any as JsonObject
+                            } catch (e: Exception) {
+                                null
+                            }
+                        }
+                        _list?.map { listJson ->
+                            listCombo.add(
+                                CTCC.buildCombo(listJson, mobile, taskId, billMonth)
                             )
                         }
                     }
