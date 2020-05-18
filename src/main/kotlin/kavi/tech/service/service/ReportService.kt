@@ -756,7 +756,7 @@ class ReportService @Autowired constructor(
         name: String,
         nonce: String,
         resultSend: JsonObject
-    ) {
+    ): Single<CarrierReportInfo> {
         println("==============saveReportToMongo =====================")
         val carrierReportInfo = CarrierReportInfo()
         carrierReportInfo.idCard = idCard
@@ -767,9 +767,7 @@ class ReportService @Autowired constructor(
         carrierReportInfo.item = item
         carrierReportInfo.result = resultSend
 
-        carrierReportInfoModel.insertReportDataIntoMongo(carrierReportInfo).subscribe({
-            println("mobile: $mobile ,任务ID：$task_id ,$item 数据 insert to mongoDB success!")
-        }, { it.printStackTrace() })
+        return carrierReportInfoModel.insertReportDataIntoMongo(carrierReportInfo)
     }
 
 
