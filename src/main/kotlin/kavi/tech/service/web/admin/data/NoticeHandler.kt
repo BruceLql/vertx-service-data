@@ -44,8 +44,8 @@ class NoticeHandler @Autowired constructor(
         /* 查询条件 */
         val query = JsonObject()
         val mobile = params.value<String>("mobile")
-        val taskId = params.value<String>("task_id")
-        val backUrl = params.value<String>("back_url")
+        val taskId = params.value<String>("taskId")
+        val backUrl = params.value<String>("backUrl")
         val nonce = params.value<String>("nonce")
         val name = params.value<String>("name")
         val idCard = params.value<String>("cid")
