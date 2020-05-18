@@ -58,18 +58,13 @@ class NoticeHandler @Autowired constructor(
             event.response().error(e, result) // 返回数据
             return
         }
-        h5RequestParamDao.queryParams(listOf(Pair("mid", taskId))).map {h5 ->
+        h5RequestParamDao.queryParams(listOf(Pair("mid", taskId))).flatMap {h5 ->
             log.info("$h5.toJson()")
-            val mobile = h5.mobile
-            val backUrl = h5.call_back
-            val nonce = h5.nonce
-            val name = h5.name
-            val idCard = h5.cid
-            mobile ?: throw IllegalArgumentException("缺少手机号码！")
-            backUrl ?: throw IllegalArgumentException("缺少回调地址！")
-            nonce ?: throw IllegalArgumentException("缺少nonce！")
-            name ?: throw IllegalArgumentException("缺少name！")
-            idCard ?: throw IllegalArgumentException("缺少idCard！")
+            val mobile = h5.mobile?: throw IllegalArgumentException("缺少手机号码！")
+            val backUrl = h5.call_back?: throw IllegalArgumentException("缺少回调地址！")
+            val nonce = h5.nonce?: throw IllegalArgumentException("缺少nonce！")
+            val name = h5.name?: throw IllegalArgumentException("缺少name！")
+            val idCard = h5.cid?: throw IllegalArgumentException("缺少idCard！")
             try {
                 if (!regexPhone(mobile)) {
                     throw IllegalArgumentException("(手机号)参数不合法！")
@@ -84,7 +79,6 @@ class NoticeHandler @Autowired constructor(
                 e.printStackTrace()
                 result.put("message", e.message ?: "异常，请联系管理员排查")
                 event.response().error(e, result) // 返回数据
-                return@map
             }
 
             query.put("mobile", mobile).put("mid", taskId)
@@ -102,37 +96,36 @@ class NoticeHandler @Autowired constructor(
                     val resultSend =
                         reportService.resultPacket(it, return_code, message, operation_time, taskId, mobile, nonce)
                     // 存储运营商报告
-                    reportService.saveRecord("report", taskId, mobile, idCard, name, nonce, resultSend)
-                    // 查询原始数据封装到result
-                    carrierService.dataRaw(mobile, taskId)
+                    reportService.saveRecord("report", taskId, mobile, idCard, name, nonce, resultSend).flatMap {
+                        // 查询原始数据封装到result
+                        carrierService.dataRaw(mobile, taskId).flatMap {
+                            // todo 原始数据获取失败的情况下  调整return_code message
+                            val return_code = "00000"
+                            val message = "成功"
+                            val operation_time = System.currentTimeMillis()
+                            // 封装运营商原始数据报文格式
+                            val resultSend =
+                                reportService.resultPacket(it, return_code, message, operation_time, taskId, mobile, nonce)
+                            log.info("推送前结果： $resultSend")
+                            log.info("推送前结果size： ${resultSend.toString().length}")
+                            log.info("推送地址 : $backUrl")
+                            operatorCertificationComponent.callBackPlatform(resultSend, backUrl, backUrl)
+                            // 加签名后  运营商原始数据存储入库
+                            reportService.saveRecord("raw", taskId, mobile, idCard, name, nonce, resultSend)
+                        }
+                    }
+
                 }
-            }.subscribe({
-                // todo 原始数据获取失败的情况下  调整return_code message
-                val return_code = "00000"
-                val message = "成功"
-                val operation_time = System.currentTimeMillis()
-                // 封装运营商原始数据报文格式
-                val resultSend =
-                    reportService.resultPacket(it, return_code, message, operation_time, taskId, mobile, nonce)
-                // 加签名后  运营商原始数据存储入库
-                reportService.saveRecord("raw", taskId, mobile, idCard, name, nonce, resultSend)
-
-                log.info("推送前结果： $resultSend")
-                log.info("推送前结果size： ${resultSend.toString().length}")
-
-                log.info("推送地址 : $backUrl")
-                operatorCertificationComponent.callBackPlatform(resultSend, backUrl, backUrl)
-                event.response().end(result.put("message", "notice success").toString())
-
-            }, { it.printStackTrace() })
+            }
 
         }.subscribe({
-            it
-        },{
+
+            event.response().end(result.put("message", "notice success").toString())
+
+        }, {
             it.printStackTrace()
             event.response().end(result.put("message", "notice failed").toString())
         })
-
     }
 }
 
