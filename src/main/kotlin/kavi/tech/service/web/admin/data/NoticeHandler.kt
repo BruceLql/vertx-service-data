@@ -73,7 +73,7 @@ class NoticeHandler @Autowired constructor(
         } catch (e: Exception) {
             e.printStackTrace()
             result.put("message", e.message ?: "异常，请联系管理员排查")
-            event.response().error(e, result) // 返回数据
+            event.response().setStatusCode(500).error(e, result) // 返回数据
             return
         }
 
