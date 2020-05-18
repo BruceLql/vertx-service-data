@@ -4,13 +4,14 @@
     "db_name": "fof_crawler"
   },
   "HTTP.PORT": 8080,
-  "HTTP.HOST": "localhost",
+  "HTTP.HOST": "192.168.1.102",
 
   "MYSQL": {
-    "host": "192.168.1.200",
+    "host": "39.108.162.204",
     "port": 3306,
     "database": "test",
     "username": "root",
-    "password": "12345678"
+    "password": "4JrFsm9HdcPPKEMm"
   }
+
 }

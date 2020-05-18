@@ -1,6 +1,10 @@
 package kavi.tech.service
 
+import io.vertx.core.json.JsonObject
 import io.vertx.ext.mongo.FindOptions
+import kavi.tech.service.common.extension.value
+import kavi.tech.service.mongo.model.CarrierStatisticsModel
+import kavi.tech.service.mongo.schema.CarrierStatistics
 import kavi.tech.service.service.ReportService
 import kavi.tech.service.web.WebVerticle
 import org.springframework.beans.factory.annotation.Autowired
@@ -16,8 +20,6 @@ class MainVerticle : LauncherVerticle() {
 
     @Autowired
     private lateinit var webVerticle: WebVerticle
-    @Autowired
-    private lateinit var reportService: ReportService
 
     @Throws(Exception::class)
     override fun start() {

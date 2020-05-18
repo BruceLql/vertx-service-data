@@ -13,6 +13,7 @@ import kavi.tech.service.common.utils.CUCC
 import kavi.tech.service.common.utils.Sha256Utils
 import kavi.tech.service.mongo.model.*
 import kavi.tech.service.mongo.schema.CarrierReportInfo
+import kavi.tech.service.mongo.schema.CarrierStatistics
 import kavi.tech.service.mysql.dao.*
 import kavi.tech.service.mysql.entity.*
 import org.springframework.beans.factory.annotation.Autowired
@@ -44,7 +45,8 @@ class ReportService @Autowired constructor(
     val userCallDetailsService: UserCallDetailsService,
     val userBasicService: UserBasicService,
     val cellPhoneService: CellPhoneService,
-    val carrierReportInfoModel: CarrierReportInfoModel
+    val carrierReportInfoModel: CarrierReportInfoModel,
+    val carrierStatisticsModel: CarrierStatisticsModel
 
 ) {
     @Autowired
@@ -769,7 +771,28 @@ class ReportService @Autowired constructor(
 
         return carrierReportInfoModel.insertReportDataIntoMongo(carrierReportInfo)
     }
+    // 缓存数据处理逻辑
+    fun cacheData(query: JsonObject,fileds:JsonObject): Single<CarrierStatistics> {
+        val task_id =  query.value<String>("task_id")
+        query.remove("task_id")
+       return carrierStatisticsModel.queryCarrierStatistics(query,fileds).flatMap {
+            println("++++++++++++++++++:$it")
 
+            val carrierStatistics = CarrierStatistics()
+            carrierStatistics.mobile = it.value<String>("mobile")
+            carrierStatistics.operator = it.value<String>("operator")
+            carrierStatistics.statistics = 1
+            carrierStatistics.city = it.value<String>("city")
+            carrierStatistics.province = it.value<String>("province")
+            carrierStatistics.ip = it.value<String>("ip")
+            carrierStatistics.success = true
+            carrierStatistics.app_name = "cache"
+            carrierStatistics.task_id = query.value<String>("task_id")
+            carrierStatistics.preInsert()
+            carrierStatisticsModel.saveCarrierStatistics(carrierStatistics)
+        }
+
+    }
 
 }
 
