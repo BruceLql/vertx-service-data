@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configuration scan="true" scanPeriod="60 seconds" debug="true">
+<configuration scan="false" scanPeriod="60 seconds" debug="true">
     <!--  引入相关配置  -->
     <property resource="log_env.properties" />
     <!--  日志地址  -->
